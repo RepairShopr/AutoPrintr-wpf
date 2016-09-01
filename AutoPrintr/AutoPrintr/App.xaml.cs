@@ -1,17 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using AutoPrintr.Controls;
 using System.Windows;
 
 namespace AutoPrintr
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
+    internal partial class App : Application
     {
+        public App()
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        }
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+            new NotifyIconContextMenu();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            base.OnExit(e);
+            NotifyIconContextMenu.Close();
+        }
     }
 }

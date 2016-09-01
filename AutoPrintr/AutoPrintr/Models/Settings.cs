@@ -4,8 +4,8 @@ namespace AutoPrintr.Models
 {
     public class Settings
     {
-        public string Channel { get; set; }
-        public IEnumerable<Location> Locations { get; set; }
+        public Channel Channel { get; set; }
+        public User User { get; set; }
         public IEnumerable<Printer> Printers { get; set; }
     }
 }
