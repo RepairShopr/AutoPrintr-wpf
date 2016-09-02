@@ -1,5 +1,6 @@
 ﻿using AutoPrintr.IServices;
 using Newtonsoft.Json;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,7 +17,7 @@ namespace AutoPrintr.Services
         #region Constructors
         public FileService(string folder = null)
         {
-            _folderPath = folder ?? $"{Path.GetTempPath()}/FilesToPrint";
+            _folderPath = folder ?? AppDomain.CurrentDomain.BaseDirectory;
         }
         #endregion
 
@@ -67,30 +68,38 @@ namespace AutoPrintr.Services
             return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(str));
         }
 
-        public async Task SaveFileAsync<T>(string fileName, T content)
+        public async Task SaveStringAsync(string fileName, string content)
         {
             await Task.Factory.StartNew(() =>
             {
-                byte[] bytes = null;
-                if (typeof(T) == typeof(string))
-                    bytes = Encoding.Unicode.GetBytes(content.ToString());
-                else if (typeof(T) == typeof(byte[]))
-                    bytes = content as byte[];
-                else
-                {
-                    var str = JsonConvert.SerializeObject(content);
-                    bytes = Encoding.Unicode.GetBytes(str);
-                }
-
                 var filePath = GetFilePath(fileName);
-                using (var stream = File.Open(filePath, FileMode.CreateNew))
-                    stream.Write(bytes, 0, bytes.Length);
+                using (var stream = File.Open(filePath, FileMode.Create))
+                {
+                    using (var writer = new StreamWriter(stream))
+                        writer.Write(content);
+                }
             });
+        }
+
+        public async Task SaveBytesAsync(string fileName, byte[] content)
+        {
+            await Task.Factory.StartNew(() =>
+            {
+                var filePath = GetFilePath(fileName);
+                using (var stream = File.Open(filePath, FileMode.Create))
+                    stream.Write(content, 0, content.Length);
+            });
+        }
+
+        public async Task SaveObjectAsync<T>(string fileName, T content)
+        {
+            var str = JsonConvert.SerializeObject(content);
+            await SaveStringAsync(fileName, str);
         }
 
         private string GetFilePath(string fileName)
         {
-            var filePath = new StringBuilder(_folderPath);
+            var filePath = new StringBuilder(_folderPath.Replace('\\', '/'));
             if (_folderPath.Last() != '/')
                 filePath.Append('/');
 

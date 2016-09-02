@@ -7,7 +7,9 @@ namespace AutoPrintr.IServices
         Task<string> ReadStringAsync(string fileName);
         Task<byte[]> ReadBytesAsync(string fileName);
         Task<T> ReadObjectAsync<T>(string fileName);
-        Task SaveFileAsync<T>(string fileName, T content);
+        Task SaveStringAsync(string fileName, string content);
+        Task SaveBytesAsync(string fileName, byte[] content);
+        Task SaveObjectAsync<T>(string fileName, T content);
         Task DeleteFileAsync(string fileName);
     }
 }

@@ -25,7 +25,7 @@ namespace AutoPrintr.Services
             var baseUrl = $"https://admin.{HOST_NAME}/api/v1/";
             var action = "sign_in";
 
-            var result = await _apiService.PostAsync<User>(baseUrl, action, login);
+            var result = await _apiService.LoginAsync<User>(baseUrl, action, login.Email, login.Password);
             return result.Result;
         }
 

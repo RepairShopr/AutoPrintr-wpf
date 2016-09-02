@@ -23,11 +23,13 @@ namespace AutoPrintr.Services
         public async Task LoadSettingsAsync()
         {
             Settings = await _fileService.ReadObjectAsync<Settings>(nameof(Settings));
+            if (Settings == null)
+                Settings = new Settings();
         }
 
         public async Task SaveSettingsAsync()
         {
-            await _fileService.SaveFileAsync(nameof(Settings), Settings);
+            await _fileService.SaveObjectAsync(nameof(Settings), Settings);
         }
         #endregion
     }

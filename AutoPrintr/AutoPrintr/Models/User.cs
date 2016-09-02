@@ -18,7 +18,7 @@ namespace AutoPrintr.Models
         public string Subdomain { get; set; }
 
         [JsonProperty("default_location")]
-        public int DefaulLocationId { get; set; }
+        public int? DefaulLocationId { get; set; }
 
         [JsonProperty("locations_allowed")]
         public IEnumerable<Location> Locations { get; set; }

@@ -1,16 +1,19 @@
 ﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 
-namespace AutoPrintr.Controls
+namespace AutoPrintr.Views
 {
-    internal partial class NotifyIconContextMenu : UserControl
+    internal partial class TrayIconContextMenuView : UserControl
     {
         private static System.Windows.Forms.NotifyIcon _notifier;
 
-        public NotifyIconContextMenu()
+        public TrayIconContextMenuView()
         {
             InitializeComponent();
-            CreateNotifier();
+            CreateTrayIcon();
+
+            ContextMenu.DataContext = App.GetDataContext(Helpers.ViewType.ContextMenu);
         }
 
         public static void Close()
@@ -19,7 +22,7 @@ namespace AutoPrintr.Controls
             _notifier = null;
         }
 
-        private void CreateNotifier()
+        private void CreateTrayIcon()
         {
             if (_notifier != null)
                 throw new InvalidOperationException();
@@ -34,7 +37,7 @@ namespace AutoPrintr.Controls
             };
             _notifier.Click += _notifier_Click;
 
-            _notifier.ShowBalloonTip(200);
+            _notifier.ShowBalloonTip(500);
         }
 
         private void _notifier_Click(object sender, EventArgs e)
@@ -42,29 +45,9 @@ namespace AutoPrintr.Controls
             ContextMenu.IsOpen = true;
         }
 
-        private void ExitMenuItem_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
         {
             App.Current.Shutdown();
-        }
-
-        private void LoginMenuItem_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void JobsMenuItem_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void SettingsMenuItem_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void LogoutMenuItem_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoPrintr.Helpers;
 using AutoPrintr.IServices;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -20,6 +21,32 @@ namespace AutoPrintr.Services
         #endregion
 
         #region Methods
+        public async Task<ApiResult<T>> LoginAsync<T>(string baseUrl, string url, string email, string password)
+        {
+            using (var client = CreateHttpClient(baseUrl))
+            {
+                try
+                {
+                    var request = new HttpRequestMessage();
+                    request.Method = HttpMethod.Post;
+                    request.RequestUri = new Uri(string.Concat(baseUrl, url));
+                    var parms = new[]
+                    {
+                        new KeyValuePair<string, string>(nameof(email), email),
+                        new KeyValuePair<string, string>(nameof(password), password)
+                    };
+                    request.Content = new FormUrlEncodedContent(parms);
+
+                    var response = await client.SendAsync(request);
+                    return await ReadResponseAsync<T>(response);
+                }
+                catch (HttpRequestException ex)
+                {
+                    return CreateHttpRequestExceptionResult<T>(ex);
+                }
+            }
+        }
+
         public async Task<ApiResult<T>> GetAsync<T>(string baseUrl, string url)
         {
             using (var client = CreateHttpClient(baseUrl))
