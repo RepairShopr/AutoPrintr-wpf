@@ -77,6 +77,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
@@ -101,6 +102,11 @@
     </ApplicationDefinition>
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Helpers\ApiResult.cs" />
+    <Compile Include="Helpers\BindableValidator.cs" />
+    <Compile Include="Helpers\ControlMessageType.cs" />
+    <Compile Include="Helpers\ErrorMessagesContainer.cs" />
+    <Compile Include="Helpers\HideControlMessage.cs" />
+    <Compile Include="Helpers\ShowControlMessage.cs" />
     <Compile Include="Helpers\ViewType.cs" />
     <Compile Include="IServices\IApiService.cs" />
     <Compile Include="IServices\IFileService.cs" />
@@ -109,6 +115,7 @@
     <Compile Include="IServices\IUserService.cs" />
     <Compile Include="Models\Channel.cs" />
     <Compile Include="Models\User.cs" />
+    <Compile Include="Models\ValidatableBaseModel.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

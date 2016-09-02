@@ -1,6 +1,9 @@
 ﻿using AutoPrintr.Helpers;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Views;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
 
 namespace AutoPrintr.ViewModels
 {
@@ -42,6 +45,35 @@ namespace AutoPrintr.ViewModels
 
         public virtual void NavigatedTo(object parameter = null)
         { }
+
+        protected void ShowBusyControl(string caption = null)
+        {
+            IsBusy = true;
+            var message = new ShowControlMessage(ControlMessageType.Busy) { Caption = caption };
+            MessengerInstance.Send(message);
+        }
+
+        protected void HideBusyControl()
+        {
+            IsBusy = false;
+            MessengerInstance.Send(new HideControlMessage(ControlMessageType.Busy));
+        }
+
+        protected void ShowMessageControl(string message, string caption = null)
+        {
+            var msg = new ShowControlMessage(ControlMessageType.Message) { Caption = caption, Data = message };
+            MessengerInstance.Send(msg);
+        }
+
+        protected void ShowMessageControl(ReadOnlyDictionary<string, ReadOnlyCollection<string>> errors, string caption = null)
+        {
+            var message = new StringBuilder();
+            foreach (var error in errors.SelectMany(e => e.Value))
+                message.AppendLine(error);
+
+            var msg = new ShowControlMessage(ControlMessageType.Message) { Caption = caption, Data = message.ToString() };
+            MessengerInstance.Send(msg);
+        }
         #endregion
     }
 }

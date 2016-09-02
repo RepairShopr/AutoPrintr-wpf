@@ -16,6 +16,9 @@ namespace AutoPrintr
         public App()
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+            Messenger.Default.Register<ShowControlMessage>(this, OnShowControl);
+            Messenger.Default.Register<HideControlMessage>(this, OnHideControl);
         }
 
         public static BaseViewModel GetDataContext(ViewType view)
@@ -76,6 +79,25 @@ namespace AutoPrintr
             await settingsService.LoadSettingsAsync();
 
             Messenger.Default.Send(settingsService.Settings.User);
+        }
+
+        private void OnShowControl(ShowControlMessage message)
+        {
+            switch (message.Type)
+            {
+                //case ControlMessageType.Busy: BusyControl.Show(message.Caption); break;
+                case ControlMessageType.Message: MessageBox.Show((string)message.Data, message.Caption); break;
+                default: break;
+            }
+        }
+
+        private void OnHideControl(HideControlMessage message)
+        {
+            switch (message.Type)
+            {
+                //case ControlMessageType.Busy: BusyControl.Hide(); break;
+                default: break;
+            }
         }
     }
 }

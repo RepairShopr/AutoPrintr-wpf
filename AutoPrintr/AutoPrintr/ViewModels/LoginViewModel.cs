@@ -48,29 +48,27 @@ namespace AutoPrintr.ViewModels
         #region Methods
         private async void OnLogin()
         {
-            //TODO: Add validation
-            if (string.IsNullOrEmpty(Login.Email))
+            if (!Login.ValidateProperties())
             {
-                System.Windows.MessageBox.Show("Username is required");
+                ShowMessageControl(Login.GetAllErrors());
                 return;
             }
-            if (string.IsNullOrEmpty(Login.Password))
-            {
-                System.Windows.MessageBox.Show("Password is required");
-                return;
-            }
+
+            ShowBusyControl("Authenticating");
 
             var user = await _userService.LoginAsync(Login);
             if (user == null)
             {
-                System.Windows.MessageBox.Show("Authentication failed. Incorrect username or password");
+                HideBusyControl();
+                ShowMessageControl("Authentication failed. Incorrect username or password");
                 return;
             }
 
             var channel = await _userService.GetChannelAsync(user);
             if (user == null)
             {
-                System.Windows.MessageBox.Show("Operation of getting channel is failed");
+                HideBusyControl();
+                ShowMessageControl("Operation of getting channel is failed");
                 return;
             }
 
@@ -81,6 +79,8 @@ namespace AutoPrintr.ViewModels
 
             _settingsService.Settings.Channel = channel;
             await _settingsService.SaveSettingsAsync();
+
+            HideBusyControl();
 
             MessengerInstance.Send(user);
             NavigateTo(ViewType.Settings);

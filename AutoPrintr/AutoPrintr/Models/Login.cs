@@ -1,8 +1,17 @@
-﻿namespace AutoPrintr.Models
+﻿using AutoPrintr.Helpers;
+using System.ComponentModel.DataAnnotations;
+
+namespace AutoPrintr.Models
 {
-    public class Login
+    public class Login : ValidatableBaseModel
     {
-        public string Email { get; set; }
+        [Required(ErrorMessage = ErrorMessagesContainer.RequiredFieldError)]
+        [EmailAddress(ErrorMessage = ErrorMessagesContainer.EmailError)]
+        public string Username { get; set; }
+
+        [Required(ErrorMessage = ErrorMessagesContainer.RequiredFieldError)]
+        [StringLength(50, MinimumLength = 1, ErrorMessage = ErrorMessagesContainer.LengthError)]
+        [DataType(DataType.Password)]
         public string Password { get; set; }
     }
 }
