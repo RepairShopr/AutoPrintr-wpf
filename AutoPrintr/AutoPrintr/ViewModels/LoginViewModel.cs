@@ -65,7 +65,7 @@ namespace AutoPrintr.ViewModels
             }
 
             var channel = await _userService.GetChannelAsync(user);
-            if (user == null)
+            if (channel == null)
             {
                 HideBusyControl();
                 ShowMessageControl("Operation of getting channel is failed");

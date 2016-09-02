@@ -34,7 +34,7 @@ namespace AutoPrintr.Services
             var baseUrl = $"https://{user.Subdomain}.{HOST_NAME}/api/v1/";
             var action = $"settings/printing?api_key={user.Token}";
 
-            var result = await _apiService.GetAsync<Channel>(baseUrl, "sign_in");
+            var result = await _apiService.GetAsync<Channel>(baseUrl, action);
             return result.Result;
         }
         #endregion

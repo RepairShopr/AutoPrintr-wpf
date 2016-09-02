@@ -24,7 +24,7 @@
         <TextBlock Grid.ColumnSpan="3" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,20" Text="AutoPrintr" Style="{StaticResource HeaderTextBlockStyle}" />
 
         <TextBlock Grid.Row="1" Text="Username" Style="{StaticResource FormTextBlockStyle}" />
-        <TextBox x:Name="UsernameTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Login.Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox x:Name="UsernameTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Login.Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
         <TextBlock Grid.Row="2" Text="Password" Style="{StaticResource FormTextBlockStyle}" />
         <PasswordBox x:Name="PasswordBox" Grid.Row="2" Grid.Column="1" PasswordChanged="PasswordBox_PasswordChanged" />
