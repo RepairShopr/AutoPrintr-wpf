@@ -1,4 +1,5 @@
 ﻿using AutoPrintr.Helpers;
+using AutoPrintr.IServices;
 using AutoPrintr.Models;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Views;
@@ -8,6 +9,8 @@ namespace AutoPrintr.ViewModels
     public class TrayIconContextMenuViewModel : BaseViewModel
     {
         #region Properties
+        private readonly ISettingsService _settingsService;
+
         public override ViewType Type => ViewType.ContextMenu;
 
         private bool _isUserLoggedIn;
@@ -20,15 +23,20 @@ namespace AutoPrintr.ViewModels
         public RelayCommand GoToLoginCommand { get; private set; }
         public RelayCommand GoToSettingsCommand { get; private set; }
         public RelayCommand GoToJobsCommand { get; private set; }
+        public RelayCommand LogoutCommand { get; private set; }
         #endregion
 
         #region Constructors
-        public TrayIconContextMenuViewModel(INavigationService navigationService)
+        public TrayIconContextMenuViewModel(INavigationService navigationService,
+            ISettingsService settingsService)
             : base(navigationService)
         {
+            _settingsService = settingsService;
+
             GoToLoginCommand = new RelayCommand(OnGoToLogin);
             GoToSettingsCommand = new RelayCommand(OnGoToSettings);
             GoToJobsCommand = new RelayCommand(OnGoToJobs);
+            LogoutCommand = new RelayCommand(OnLogout);
 
             MessengerInstance.Register<User>(this, OnUserChanged);
         }
@@ -53,6 +61,17 @@ namespace AutoPrintr.ViewModels
         private void OnGoToSettings()
         {
             NavigateTo(ViewType.Settings);
+        }
+
+        private async void OnLogout()
+        {
+            if (_settingsService.Settings.User != null)
+            {
+                _settingsService.Settings.User = null;
+                await _settingsService.SaveSettingsAsync();
+            }
+
+            MessengerInstance.Send<User>(null);
         }
         #endregion
     }
