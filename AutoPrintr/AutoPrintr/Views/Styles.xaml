@@ -54,4 +54,14 @@
     <Style TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
         <Setter Property="MinWidth" Value="80" />
     </Style>
+
+    <!--CheckBox Styles-->
+    <Style TargetType="CheckBox" x:Key="BaseCheckBoxStyle">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Padding" Value="10,3" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style TargetType="CheckBox" BasedOn="{StaticResource BaseCheckBoxStyle}">
+    </Style>
 </ResourceDictionary>

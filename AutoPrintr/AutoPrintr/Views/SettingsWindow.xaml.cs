@@ -1,27 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AutoPrintr.Models;
+using AutoPrintr.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace AutoPrintr.Views
 {
-    /// <summary>
-    /// Interaction logic for SettingsWindow.xaml
-    /// </summary>
-    public partial class SettingsWindow : Window
+    internal partial class SettingsWindow : Window
     {
+        private SettingsViewModel ViewModel => (SettingsViewModel)DataContext;
+
         public SettingsWindow()
         {
             InitializeComponent();
+        }
+
+        private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            foreach (Location newItem in e.AddedItems)
+                ViewModel.SelectedLocations.Add(newItem);
+
+            foreach (Location oldtem in e.RemovedItems)
+                ViewModel.SelectedLocations.Remove(oldtem);
+        }
+
+        private void ListView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            var listView = (ListView)sender;
+            listView.SelectionChanged -= ListView_SelectionChanged;
+
+            foreach (var item in ViewModel.SelectedLocations)
+                listView.SelectedItems.Add(item);
+
+            listView.SelectionChanged += ListView_SelectionChanged;
         }
     }
 }

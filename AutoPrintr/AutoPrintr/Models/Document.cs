@@ -5,14 +5,14 @@ namespace AutoPrintr.Models
     public class Document
     {
         public string Name { get; set; }
-        public string Title => GetTitle();
+        public string Title => GetTitle(Type);
         public string LocalFilePath { get; set; }
         public Uri FileUri { get; set; }
         public DocumentType Type { get; set; }
 
-        public string GetTitle()
+        public static string GetTitle(DocumentType type)
         {
-            switch (Type)
+            switch (type)
             {
                 case DocumentType.Invoice: return "Invoice";
                 case DocumentType.Estimate: return "Estimate";

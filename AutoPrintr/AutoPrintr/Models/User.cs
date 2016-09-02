@@ -20,6 +20,9 @@ namespace AutoPrintr.Models
         [JsonProperty("default_location")]
         public int? DefaulLocationId { get; set; }
 
+        [JsonProperty("enable_multi_locations")]
+        public bool MultiLocationsAllowed { get; set; }
+
         [JsonProperty("locations_allowed")]
         public IEnumerable<Location> Locations { get; set; }
     }

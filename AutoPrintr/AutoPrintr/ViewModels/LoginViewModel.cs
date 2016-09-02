@@ -73,12 +73,9 @@ namespace AutoPrintr.ViewModels
             }
 
             if (RememberMe)
-                _settingsService.Settings.User = user;
+                await _settingsService.SetSettingsAsync(user, channel);
             else
-                _settingsService.Settings.User = null;
-
-            _settingsService.Settings.Channel = channel;
-            await _settingsService.SaveSettingsAsync();
+                await _settingsService.SetSettingsAsync(null, channel);
 
             HideBusyControl();
 

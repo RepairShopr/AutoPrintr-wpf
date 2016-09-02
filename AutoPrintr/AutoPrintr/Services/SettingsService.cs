@@ -1,5 +1,6 @@
 ﻿using AutoPrintr.IServices;
 using AutoPrintr.Models;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AutoPrintr.Services
@@ -27,7 +28,35 @@ namespace AutoPrintr.Services
                 Settings = new Settings();
         }
 
-        public async Task SaveSettingsAsync()
+        public async Task SetSettingsAsync(User user, Channel channel = null)
+        {
+            Settings.User = user;
+            if (channel != null)
+                Settings.Channel = channel;
+
+            await SaveSettingsAsync();
+        }
+
+        public async Task AddLocationAsync(Location location)
+        {
+            if (Settings.Locations.Any(l => l.Id == location.Id))
+                return;
+
+            Settings.Locations = Settings.Locations.Union(new[] { location }).ToList();
+            await SaveSettingsAsync();
+        }
+
+        public async Task RemoveLocationAsync(Location location)
+        {
+            var oldLocation = Settings.Locations.SingleOrDefault(l => l.Id == location.Id);
+            if (oldLocation == null)
+                return;
+
+            Settings.Locations = Settings.Locations.Except(new[] { oldLocation }).ToList();
+            await SaveSettingsAsync();
+        }
+
+        private async Task SaveSettingsAsync()
         {
             await _fileService.SaveObjectAsync(nameof(Settings), Settings);
         }

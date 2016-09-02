@@ -7,6 +7,8 @@ namespace AutoPrintr.IServices
     {
         Settings Settings { get; }
         Task LoadSettingsAsync();
-        Task SaveSettingsAsync();
+        Task SetSettingsAsync(User user, Channel channel = null);
+        Task AddLocationAsync(Location location);
+        Task RemoveLocationAsync(Location location);
     }
 }
