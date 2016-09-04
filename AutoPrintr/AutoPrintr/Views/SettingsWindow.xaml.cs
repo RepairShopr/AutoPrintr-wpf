@@ -23,7 +23,7 @@ namespace AutoPrintr.Views
                 ViewModel.SelectedLocations.Remove(oldtem);
         }
 
-        private void ListView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void ListView_Loaded(object sender, RoutedEventArgs e)
         {
             var listView = (ListView)sender;
             listView.SelectionChanged -= ListView_SelectionChanged;

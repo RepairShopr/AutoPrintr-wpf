@@ -23,8 +23,6 @@ namespace AutoPrintr.Services
             _currentWindow?.Close();
             _currentWindow = GetView(pageKey);
             _currentWindow.Show();
-
-            ((BaseViewModel)_currentWindow.DataContext).NavigatedTo();
         }
 
         public void NavigateTo(string pageKey, object parameter)
@@ -32,8 +30,6 @@ namespace AutoPrintr.Services
             _currentWindow?.Close();
             _currentWindow = GetView(pageKey);
             _currentWindow.Show();
-
-            ((BaseViewModel)_currentWindow.DataContext).NavigatedTo(parameter);
         }
 
         private Window GetView(string pageKey)
@@ -52,6 +48,8 @@ namespace AutoPrintr.Services
                 default: throw new NotImplementedException();
             }
             window.DataContext = App.GetDataContext(viewType);
+
+            ((BaseViewModel)window.DataContext).NavigatedTo();
             return window;
         }
     }

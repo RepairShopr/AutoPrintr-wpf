@@ -68,9 +68,9 @@ namespace AutoPrintr
             SimpleIoc.Default.Register<INavigationService, NavigationService>();
 
             //Register ViewModels
-            SimpleIoc.Default.Register<TrayIconContextMenuViewModel>();
-            SimpleIoc.Default.Register<LoginViewModel>();
-            SimpleIoc.Default.Register<SettingsViewModel>();
+            SimpleIoc.Default.Register<TrayIconContextMenuViewModel>(true);
+            SimpleIoc.Default.Register<LoginViewModel>(true);
+            SimpleIoc.Default.Register<SettingsViewModel>(true);
         }
 
         private async void LoadSettings()

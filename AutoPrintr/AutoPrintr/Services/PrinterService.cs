@@ -2,6 +2,7 @@
 using AutoPrintr.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AutoPrintr.Services
@@ -20,21 +21,33 @@ namespace AutoPrintr.Services
         #endregion
 
         #region Methods
-        public IEnumerable<Printer> GetInstalledPrinters()
+        public async Task<IEnumerable<Printer>> GetPrintersAsync()
         {
-            foreach (string item in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
-                yield return new Printer { Name = item };
-        }
+            return await Task.Factory.StartNew<IEnumerable<Printer>>(() =>
+            {
+                var printers = GetInstalledPrinters();
 
-        public IEnumerable<Printer> GetPrintersFromSettings()
-        {
-            return _settingsService.Settings.Printers;
+                var result = new List<Printer>();
+                foreach (var printer in printers)
+                {
+                    var existing = _settingsService.Settings.Printers.SingleOrDefault(x => string.Compare(x.Name, printer.Name, true) == 0);
+                    result.Add(existing ?? printer);
+                }
+
+                return result;
+            });
         }
 
         public async Task<bool> PrintDocumentAsync(Document document)
         {
             //TODO: Print document. Just read file and print it
             throw new NotImplementedException();
+        }
+
+        private IEnumerable<Printer> GetInstalledPrinters()
+        {
+            foreach (string item in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
+                yield return new Printer { Name = item };
         }
         #endregion
     }

@@ -6,8 +6,7 @@ namespace AutoPrintr.IServices
 {
     public interface IPrinterService
     {
-        IEnumerable<Printer> GetInstalledPrinters();
-        IEnumerable<Printer> GetPrintersFromSettings();
+        Task<IEnumerable<Printer>> GetPrintersAsync();
         Task<bool> PrintDocumentAsync(Document document);
     }
 }

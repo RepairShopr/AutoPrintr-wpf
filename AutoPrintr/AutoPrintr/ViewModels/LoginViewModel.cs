@@ -3,6 +3,8 @@ using AutoPrintr.IServices;
 using AutoPrintr.Models;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Views;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AutoPrintr.ViewModels
 {
@@ -64,6 +66,17 @@ namespace AutoPrintr.ViewModels
                 return;
             }
 
+            await GetAndSaveChannelAsync(user);
+            await SaveDefaultLocationAsync(user);
+
+            HideBusyControl();
+
+            MessengerInstance.Send(user);
+            NavigateTo(ViewType.Settings);
+        }
+
+        private async Task GetAndSaveChannelAsync(User user)
+        {
             var channel = await _userService.GetChannelAsync(user);
             if (channel == null)
             {
@@ -76,11 +89,16 @@ namespace AutoPrintr.ViewModels
                 await _settingsService.SetSettingsAsync(user, channel);
             else
                 await _settingsService.SetSettingsAsync(null, channel);
+        }
 
-            HideBusyControl();
+        private async Task SaveDefaultLocationAsync(User user)
+        {
+            if (_settingsService.Settings.Locations.Any())
+                return;
 
-            MessengerInstance.Send(user);
-            NavigateTo(ViewType.Settings);
+            var defaultLocation = user.Locations.SingleOrDefault(x => x.Id == user.DefaulLocationId);
+            if (defaultLocation != null)
+                await _settingsService.AddLocationAsync(defaultLocation);
         }
         #endregion
     }

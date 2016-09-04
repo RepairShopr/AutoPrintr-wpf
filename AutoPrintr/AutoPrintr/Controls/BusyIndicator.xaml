@@ -1,0 +1,38 @@
+﻿<UserControl x:Class="AutoPrintr.Controls.BusyIndicator"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+
+    <UserControl.Resources>
+        <Storyboard x:Key="BusyAnimation" RepeatBehavior="Forever">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" Storyboard.TargetName="Path" Timeline.DesiredFrameRate="5">
+                <EasingDoubleKeyFrame KeyTime="0" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:1" Value="360"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <Border>
+        <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Ellipse Fill="White" Opacity="0.9" Margin="-70" Grid.RowSpan="2">
+                <Ellipse.Effect>
+                    <BlurEffect Radius="100"/>
+                </Ellipse.Effect>
+            </Ellipse>
+            <Grid Height="100" Width="100">
+                <Path Data="M26.5,5 C14.625878,5 5,14.625878 5,26.5 C5,38.374123 14.625878,48 26.5,48 C38.374123,48 48,38.374123 48,26.5 C48,14.625878 38.374123,5 26.5,5 z M26.5,0 C41.135548,0 53,11.864454 53,26.5 C53,41.135548 41.135548,53 26.5,53 C11.864454,53 0,41.135548 0,26.5 C0,11.864454 11.864454,0 26.5,0 z" Stretch="Fill" Fill="White" Stroke="LightBlue" />
+                <Path x:Name="Path" Data="M26.10096,0 C39.135746,2.3841858E-07 49.972462,9.4110384 52.187057,21.809059 L52.212196,21.960787 L50.184113,26.500002 L47.213848,22.426367 L47.164154,22.167 C45.159363,12.369812 36.490818,5 26.10096,5 C15.711102,5 7.0425577,12.369812 5.0377626,22.167 L5.0009041,22.359383 L2.8509645,20.250008 L0,21.898756 L0.014861107,21.809059 C2.2294593,9.4110384 13.066177,2.3841858E-07 26.10096,0 z" Fill="LightBlue" Height="50" Margin="1,0" Stretch="Fill" VerticalAlignment="Top" RenderTransformOrigin="0.5,1">
+                    <Path.RenderTransform>
+                        <RotateTransform />
+                    </Path.RenderTransform>
+                </Path>
+            </Grid>
+            <TextBlock x:Name="CaptionTextBlock" Grid.Row="1" HorizontalAlignment="Center" TextAlignment="Center" FontSize="24" Text="Please Wait..." Style="{StaticResource HeaderTextBlockStyle}" />
+        </Grid>
+    </Border>
+</UserControl>

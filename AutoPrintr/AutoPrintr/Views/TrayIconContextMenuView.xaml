@@ -10,10 +10,10 @@
 
     <UserControl.ContextMenu>
         <ContextMenu Placement="MousePoint">
-            <MenuItem Header="Login" Command="{Binding GoToLoginCommand}" Visibility="{Binding IsUserLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=false}" />
-            <MenuItem Header="Jobs" Command="{Binding GoToJobsCommand}" Visibility="{Binding IsUserLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
-            <MenuItem Header="Settings" Command="{Binding GoToSettingsCommand}" Visibility="{Binding IsUserLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
-            <MenuItem Header="Logout" Command="{Binding LogoutCommand}" Visibility="{Binding IsUserLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
+            <MenuItem Header="Login" Command="{Binding GoToLoginCommand, Mode=OneTime}" Visibility="{Binding IsUserLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=false}" />
+            <MenuItem Header="Jobs" Command="{Binding GoToJobsCommand, Mode=OneTime}" Visibility="{Binding IsUserLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
+            <MenuItem Header="Settings" Command="{Binding GoToSettingsCommand, Mode=OneTime}" Visibility="{Binding IsUserLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
+            <MenuItem Header="Logout" Command="{Binding LogoutCommand, Mode=OneTime}" Visibility="{Binding IsUserLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
             <MenuItem Header="Exit" Click="ExitMenuItem_Click" />
         </ContextMenu>
     </UserControl.ContextMenu>
