@@ -2,7 +2,7 @@
 
 namespace AutoPrintr.Models
 {
-    public class Channel
+    public class Channel : BaseModel
     {
         [JsonProperty("messaging_channel")]
         public string Value { get; set; }

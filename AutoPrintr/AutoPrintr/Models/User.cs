@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AutoPrintr.Models
 {
-    public class User
+    public class User : BaseModel
     {
         [JsonProperty("user_token")]
         public string Token { get; set; }

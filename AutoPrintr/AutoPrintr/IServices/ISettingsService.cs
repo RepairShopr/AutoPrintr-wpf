@@ -10,5 +10,8 @@ namespace AutoPrintr.IServices
         Task SetSettingsAsync(User user, Channel channel = null);
         Task AddLocationAsync(Location location);
         Task RemoveLocationAsync(Location location);
+        Task AddPrinterAsync(Printer printer);
+        Task UpdatePrinterAsync(Printer printer);
+        Task RemovePrinterAsync(Printer printer);
     }
 }

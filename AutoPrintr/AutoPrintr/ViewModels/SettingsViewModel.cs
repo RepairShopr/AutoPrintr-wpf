@@ -1,6 +1,7 @@
 ﻿using AutoPrintr.Helpers;
 using AutoPrintr.IServices;
 using AutoPrintr.Models;
+using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Views;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,8 @@ namespace AutoPrintr.ViewModels
         public IEnumerable<Printer> Printers { get; private set; }
 
         public override ViewType Type => ViewType.Settings;
+
+        public RelayCommand<Printer> UpdatePrinterCommand { get; private set; }
         #endregion
 
         #region Constructors
@@ -41,6 +44,8 @@ namespace AutoPrintr.ViewModels
                 .ToList();
 
             MessengerInstance.Register<User>(this, OnUserChanged);
+
+            UpdatePrinterCommand = new RelayCommand<Printer>(OnUpdatePrinter);
         }
         #endregion
 
@@ -103,6 +108,8 @@ namespace AutoPrintr.ViewModels
 
             foreach (var printer in Printers)
             {
+                printer.DocumentTypes.ToList().ForEach(x => x.Enabled = true);
+
                 var documentTypesToAdd = documentTypes
                     .Where(x => !printer.DocumentTypes.Any(p => p.DocumentType == x))
                     .Select(x => new DocumentTypeSettings { DocumentType = x })
@@ -114,6 +121,20 @@ namespace AutoPrintr.ViewModels
                     .ToList();
             }
             RaisePropertyChanged(nameof(Printers));
+        }
+
+        private async void OnUpdatePrinter(Printer obj)
+        {
+            ShowBusyControl();
+
+            if (!_settingsService.Settings.Printers.Any(x => string.Compare(x.Name, obj.Name) == 0) && obj.DocumentTypes.Any(x => x.Enabled))
+                await _settingsService.AddPrinterAsync(obj);
+            else if (_settingsService.Settings.Printers.Any(x => string.Compare(x.Name, obj.Name) == 0) && !obj.DocumentTypes.Any(x => x.Enabled))
+                await _settingsService.RemovePrinterAsync(obj);
+            else
+                await _settingsService.UpdatePrinterAsync(obj);
+
+            HideBusyControl();
         }
         #endregion
     }

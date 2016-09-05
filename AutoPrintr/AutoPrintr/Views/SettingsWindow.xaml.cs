@@ -1,4 +1,5 @@
-﻿using AutoPrintr.Models;
+﻿using AutoPrintr.Helpers;
+using AutoPrintr.Models;
 using AutoPrintr.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
@@ -32,6 +33,15 @@ namespace AutoPrintr.Views
                 listView.SelectedItems.Add(item);
 
             listView.SelectionChanged += ListView_SelectionChanged;
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var textBox = (TextBox)sender;
+            var parent = textBox.FindParent<ItemsControl>();
+            var printer = (Printer)parent.DataContext;
+
+            ViewModel.UpdatePrinterCommand.Execute(printer);
         }
     }
 }

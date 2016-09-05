@@ -1,6 +1,6 @@
 ﻿namespace AutoPrintr.Models
 {
-    public class DocumentTypeSettings
+    public class DocumentTypeSettings : BaseModel
     {
         public bool Enabled { get; set; }
         public int Quantity { get; set; }

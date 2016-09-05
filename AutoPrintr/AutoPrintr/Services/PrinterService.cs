@@ -31,7 +31,8 @@ namespace AutoPrintr.Services
                 foreach (var printer in printers)
                 {
                     var existing = _settingsService.Settings.Printers.SingleOrDefault(x => string.Compare(x.Name, printer.Name, true) == 0);
-                    result.Add(existing ?? printer);
+                    var existingCopy = existing?.Clone() as Printer;
+                    result.Add(existingCopy ?? printer);
                 }
 
                 return result;

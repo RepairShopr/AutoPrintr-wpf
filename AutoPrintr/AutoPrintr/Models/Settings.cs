@@ -2,7 +2,7 @@
 
 namespace AutoPrintr.Models
 {
-    public class Settings
+    public class Settings : BaseModel
     {
         public Channel Channel { get; set; }
         public User User { get; set; }

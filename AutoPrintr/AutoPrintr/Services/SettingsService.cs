@@ -56,6 +56,39 @@ namespace AutoPrintr.Services
             await SaveSettingsAsync();
         }
 
+        public async Task AddPrinterAsync(Printer printer)
+        {
+            if (Settings.Printers.Any(x => string.Compare(x.Name, printer.Name) == 0))
+                return;
+
+            var newPrinter = new Printer();
+            newPrinter.Name = printer.Name;
+            newPrinter.DocumentTypes = printer.DocumentTypes.Where(x => x.Enabled == true).ToList();
+
+            Settings.Printers = Settings.Printers.Union(new[] { newPrinter }).ToList();
+            await SaveSettingsAsync();
+        }
+
+        public async Task UpdatePrinterAsync(Printer printer)
+        {
+            var originalPrinter = Settings.Printers.SingleOrDefault(x => string.Compare(x.Name, printer.Name) == 0);
+            if (originalPrinter == null)
+                return;
+
+            originalPrinter.DocumentTypes = printer.DocumentTypes.Where(x => x.Enabled == true).ToList();
+            await SaveSettingsAsync();
+        }
+
+        public async Task RemovePrinterAsync(Printer printer)
+        {
+            var oldPrinter = Settings.Printers.SingleOrDefault(x => string.Compare(x.Name, printer.Name) == 0);
+            if (oldPrinter == null)
+                return;
+
+            Settings.Printers = Settings.Printers.Except(new[] { oldPrinter }).ToList();
+            await SaveSettingsAsync();
+        }
+
         private async Task SaveSettingsAsync()
         {
             await _fileService.SaveObjectAsync(nameof(Settings), Settings);

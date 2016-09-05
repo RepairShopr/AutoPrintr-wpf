@@ -2,7 +2,7 @@
 
 namespace AutoPrintr.Models
 {
-    public class Document
+    public class Document : BaseModel
     {
         public string Name { get; set; }
         public string Title => GetTitle(Type);

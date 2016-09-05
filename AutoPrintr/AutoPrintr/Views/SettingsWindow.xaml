@@ -39,9 +39,9 @@
                         <ColumnDefinition MinWidth="{StaticResource ColumnWidth}" />
                     </Grid.ColumnDefinitions>
 
-                    <CheckBox HorizontalAlignment="Left" IsChecked="{Binding Enabled, Mode=TwoWay}" />
-                    <TextBox Grid.Column="1" HorizontalAlignment="Left" Width="35" Margin="0" MaxLength="2" FontSize="11" Text="{Binding Quantity, Mode=TwoWay}" />
-                    <CheckBox Grid.Column="2" HorizontalAlignment="Left" IsChecked="{Binding AutoPrint, Mode=TwoWay}" />
+                    <CheckBox HorizontalAlignment="Left" IsChecked="{Binding Enabled, Mode=TwoWay}" Command="{Binding ElementName=LayoutRoot, Path=DataContext.UpdatePrinterCommand}" CommandParameter="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+                    <TextBox Grid.Column="1" HorizontalAlignment="Left" Width="35" Margin="0" MaxLength="2" FontSize="11" Text="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TextChanged="TextBox_TextChanged" />
+                    <CheckBox Grid.Column="2" HorizontalAlignment="Left" IsChecked="{Binding AutoPrint, Mode=TwoWay}" Command="{Binding ElementName=LayoutRoot, Path=DataContext.UpdatePrinterCommand}" CommandParameter="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
                 </Grid>
             </Border>
         </DataTemplate>
@@ -74,7 +74,7 @@
         </DataTemplate>
     </Window.Resources>
 
-    <Grid>
+    <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.3*" />
             <ColumnDefinition Width="0.7*" />

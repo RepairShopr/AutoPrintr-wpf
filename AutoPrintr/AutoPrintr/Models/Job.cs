@@ -2,7 +2,7 @@
 
 namespace AutoPrintr.Models
 {
-    public class Job
+    public class Job : BaseModel
     {
         public int Location { get; set; }
         public JobState State { get; set; }

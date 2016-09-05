@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 
 namespace AutoPrintr.Models
 {
-    public abstract class ValidatableBaseModel
+    public abstract class ValidatableBaseModel : BaseModel
     {
         private readonly BindableValidator _bindableValidator;
 
