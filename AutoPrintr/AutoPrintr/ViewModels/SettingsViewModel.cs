@@ -45,10 +45,22 @@ namespace AutoPrintr.ViewModels
         #endregion
 
         #region Methods
-        public override async void NavigatedTo(object parameter = null)
+        public override void NavigatedTo(object parameter = null)
         {
             base.NavigatedTo(parameter);
 
+            InitializeLocations();
+            InitializePrinters();
+        }
+
+        private void OnUserChanged(User obj)
+        {
+            User = obj;
+            RaisePropertyChanged(nameof(User));
+        }
+
+        private void InitializeLocations()
+        {
             SelectedLocations.CollectionChanged -= SelectedLocations_CollectionChanged;
             SelectedLocations.Clear();
 
@@ -57,18 +69,6 @@ namespace AutoPrintr.ViewModels
                     SelectedLocations.Add(location);
 
             SelectedLocations.CollectionChanged += SelectedLocations_CollectionChanged;
-
-            Printers = (await _printerService.GetPrintersAsync()).ToList();
-            foreach (var printer in Printers)
-            {
-            }
-            RaisePropertyChanged(nameof(Printers));
-        }
-
-        private void OnUserChanged(User obj)
-        {
-            User = obj;
-            RaisePropertyChanged(nameof(User));
         }
 
         private async void SelectedLocations_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -94,6 +94,26 @@ namespace AutoPrintr.ViewModels
             }
 
             SelectedLocations.CollectionChanged += SelectedLocations_CollectionChanged;
+        }
+
+        private async void InitializePrinters()
+        {
+            Printers = (await _printerService.GetPrintersAsync()).ToList();
+            var documentTypes = Enum.GetValues(typeof(DocumentType)).OfType<DocumentType>().ToList();
+
+            foreach (var printer in Printers)
+            {
+                var documentTypesToAdd = documentTypes
+                    .Where(x => !printer.DocumentTypes.Any(p => p.DocumentType == x))
+                    .Select(x => new DocumentTypeSettings { DocumentType = x })
+                    .ToList();
+
+                printer.DocumentTypes = printer.DocumentTypes
+                    .Union(documentTypesToAdd)
+                    .OrderBy(x => Document.GetTitle(x.DocumentType))
+                    .ToList();
+            }
+            RaisePropertyChanged(nameof(Printers));
         }
         #endregion
     }

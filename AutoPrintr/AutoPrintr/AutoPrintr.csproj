@@ -118,6 +118,7 @@
     <Compile Include="IServices\ISettingsService.cs" />
     <Compile Include="IServices\IUserService.cs" />
     <Compile Include="Models\Channel.cs" />
+    <Compile Include="Models\DocumentTypeSettings.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\ValidatableBaseModel.cs" />
     <Compile Include="Resources.Designer.cs">

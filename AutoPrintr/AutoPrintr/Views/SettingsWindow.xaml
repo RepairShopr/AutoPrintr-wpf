@@ -10,29 +10,68 @@
         Width="800">
 
     <Window.Resources>
+        <system:Double x:Key="RowHeight">35</system:Double>
+        <system:Double x:Key="ColumnWidth">65</system:Double>
+        <x:Array x:Key="HeaderItems" Type="{x:Type system:String}">
+            <system:String>Printers:</system:String>
+            <system:String>Documents:</system:String>
+        </x:Array>
+
+        <Style TargetType="Border" x:Key="SeparatorBorderStyle">
+            <Setter Property="BorderThickness" Value="1,1,0,0" />
+            <Setter Property="BorderBrush" Value="Black" />
+        </Style>
+
         <DataTemplate x:Key="LocationItemTemplate">
             <CheckBox Content="{Binding Name, Mode=OneTime}" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, Path=IsSelected}" />
         </DataTemplate>
         <DataTemplate x:Key="HeaderItemTemplate">
-            <Border BorderThickness="1,1,0,0" BorderBrush="Black">
+            <Border Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
                 <TextBlock Text="{Binding ., Mode=OneWay}" Margin="10,5" />
+            </Border>
+        </DataTemplate>
+        <DataTemplate x:Key="DocumentTypeItemTemplate">
+            <Border Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
+                <Grid Margin="10,2" HorizontalAlignment="Left">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition MinWidth="{StaticResource ColumnWidth}" />
+                        <ColumnDefinition MinWidth="{StaticResource ColumnWidth}" />
+                        <ColumnDefinition MinWidth="{StaticResource ColumnWidth}" />
+                    </Grid.ColumnDefinitions>
+
+                    <CheckBox HorizontalAlignment="Left" IsChecked="{Binding Enabled, Mode=TwoWay}" />
+                    <TextBox Grid.Column="1" HorizontalAlignment="Left" Width="35" Margin="0" MaxLength="2" FontSize="11" Text="{Binding Quantity, Mode=TwoWay}" />
+                    <CheckBox Grid.Column="2" HorizontalAlignment="Left" IsChecked="{Binding AutoPrint, Mode=TwoWay}" />
+                </Grid>
             </Border>
         </DataTemplate>
         <DataTemplate x:Key="PrinterItemTemplate">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <TextBlock Text="{Binding Name, Mode=OneTime}" />
-                <ItemsControl Grid.Row="1" ItemsSource="{Binding DocumentTypes, Mode=OneWay}" />
+                <Border Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
+                    <TextBlock Text="{Binding Name, Mode=OneTime}" Margin="10,5" />
+                </Border>
+                <Border Grid.Row="1" Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
+                    <Grid Margin="10,5" HorizontalAlignment="Left">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition MinWidth="{StaticResource ColumnWidth}" />
+                            <ColumnDefinition MinWidth="{StaticResource ColumnWidth}" />
+                            <ColumnDefinition MinWidth="{StaticResource ColumnWidth}" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock HorizontalAlignment="Left" Text="Enabled" />
+                        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="Quantity" />
+                        <TextBlock Grid.Column="2" HorizontalAlignment="Left" Text="Triggers" />
+                    </Grid>
+                </Border>
+                <ItemsControl Grid.Row="2" ItemsSource="{Binding DocumentTypes, Mode=OneWay}" ItemTemplate="{StaticResource DocumentTypeItemTemplate}" />
             </Grid>
         </DataTemplate>
-        <x:Array x:Key="HeaderItems" Type="{x:Type system:String}">
-            <system:String>Printers:</system:String>
-            <system:String>Documents:</system:String>
-        </x:Array>
     </Window.Resources>
 
     <Grid>
@@ -59,27 +98,31 @@
         <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" Margin="-3,10,0,10" HorizontalAlignment="Left" />
 
         <TextBlock Grid.Column="1" Margin="20,15,20,0" Text="Printers" FontSize="18" Style="{StaticResource HeaderTextBlockStyle}" />
-        <Grid Grid.Row="1" Grid.Column="1" Margin="10,10,20,10" Background="Transparent">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+        <ScrollViewer Grid.Row="1" Grid.Column="1" Margin="10,10,20,10">
+            <Border VerticalAlignment="Top" HorizontalAlignment="Left" Style="{StaticResource SeparatorBorderStyle}" BorderThickness="0,0,1,1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-            <ItemsControl ItemsSource="{StaticResource HeaderItems}" ItemTemplate="{StaticResource HeaderItemTemplate}" />
-            <ItemsControl Grid.Row="1" ItemsSource="{Binding DocumentTypes, Mode=OneTime}" ItemTemplate="{StaticResource HeaderItemTemplate}" />
+                    <ItemsControl ItemsSource="{StaticResource HeaderItems}" ItemTemplate="{StaticResource HeaderItemTemplate}" />
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding DocumentTypes, Mode=OneTime}" ItemTemplate="{StaticResource HeaderItemTemplate}" />
 
-            <ItemsControl Grid.RowSpan="2" Grid.Column="1" ItemsSource="{Binding Printers, Mode=OneWay}" ItemTemplate="{StaticResource PrinterItemTemplate}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-            </ItemsControl>
-        </Grid>
+                    <ItemsControl Grid.RowSpan="2" Grid.Column="1" ItemsSource="{Binding Printers, Mode=OneWay}" ItemTemplate="{StaticResource PrinterItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+            </Border>
+        </ScrollViewer>
 
         <controls:BusyIndicator />
     </Grid>
