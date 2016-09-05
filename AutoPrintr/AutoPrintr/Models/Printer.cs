@@ -6,6 +6,7 @@ namespace AutoPrintr.Models
     public class Printer : BaseModel
     {
         public string Name { get; set; }
+        public int Register { get; set; }
         public IEnumerable<DocumentTypeSettings> DocumentTypes { get; set; }
 
         public Printer()

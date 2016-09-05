@@ -7,7 +7,7 @@ namespace AutoPrintr.Services
     internal class UserService : IUserService
     {
         #region Properties
-        //TODO: Move host name into App.config file and inject in constructor
+        //TODO: Move host name into App.config file and inject it in the constructor
         private const string HOST_NAME = "repairshopr.com";
         private readonly IApiService _apiService;
         #endregion

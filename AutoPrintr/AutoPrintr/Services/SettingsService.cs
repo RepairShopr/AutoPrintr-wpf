@@ -9,6 +9,9 @@ namespace AutoPrintr.Services
     {
         #region Properties
         private readonly IFileService _fileService;
+        private readonly string _fileName = $"{nameof(Settings)}.json";
+
+        public event ChannelChangedEventHandler ChannelChangedEvent;
 
         public Settings Settings { get; private set; }
         #endregion
@@ -23,7 +26,7 @@ namespace AutoPrintr.Services
         #region Methods
         public async Task LoadSettingsAsync()
         {
-            Settings = await _fileService.ReadObjectAsync<Settings>(nameof(Settings));
+            Settings = await _fileService.ReadObjectAsync<Settings>(_fileName);
             if (Settings == null)
                 Settings = new Settings();
         }
@@ -32,7 +35,10 @@ namespace AutoPrintr.Services
         {
             Settings.User = user;
             if (channel != null)
+            {
                 Settings.Channel = channel;
+                ChannelChangedEvent?.Invoke(Settings.Channel);
+            }
 
             await SaveSettingsAsync();
         }
@@ -91,7 +97,7 @@ namespace AutoPrintr.Services
 
         private async Task SaveSettingsAsync()
         {
-            await _fileService.SaveObjectAsync(nameof(Settings), Settings);
+            await _fileService.SaveObjectAsync(_fileName, Settings);
         }
         #endregion
     }

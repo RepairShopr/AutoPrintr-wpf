@@ -7,20 +7,30 @@ using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Views;
 using Microsoft.Practices.ServiceLocation;
+using System;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace AutoPrintr
 {
     internal partial class App : Application
     {
+        #region Constructors
         public App()
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             Messenger.Default.Register<ShowControlMessage>(this, OnShowControl);
             Messenger.Default.Register<HideControlMessage>(this, OnHideControl);
-        }
 
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            Dispatcher.UnhandledException += Dispatcher_UnhandledException;
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+        }
+        #endregion
+
+        #region DataContext and Navigation
         public static BaseViewModel GetDataContext(ViewType view)
         {
             switch (view)
@@ -37,7 +47,9 @@ namespace AutoPrintr
             var dataContext = GetDataContext(view);
             dataContext.NavigatedTo(parm);
         }
+        #endregion
 
+        #region Startup and Exit
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -52,6 +64,8 @@ namespace AutoPrintr
         protected override void OnExit(ExitEventArgs e)
         {
             base.OnExit(e);
+
+            //Close Tray Icon
             TrayIconContextMenuView.Close();
         }
 
@@ -65,6 +79,7 @@ namespace AutoPrintr
             SimpleIoc.Default.Register<ISettingsService, SettingsService>();
             SimpleIoc.Default.Register<IUserService, UserService>();
             SimpleIoc.Default.Register<IPrinterService, PrinterService>();
+            SimpleIoc.Default.Register<IJobsService, JobsService>();
             SimpleIoc.Default.Register<INavigationService, NavigationService>();
 
             //Register ViewModels
@@ -79,8 +94,13 @@ namespace AutoPrintr
             await settingsService.LoadSettingsAsync();
 
             Messenger.Default.Send(settingsService.Settings.User);
-        }
 
+            var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
+            await jobsService.RunAsync();
+        }
+        #endregion
+
+        #region Messages
         private void OnShowControl(ShowControlMessage message)
         {
             switch (message.Type)
@@ -99,5 +119,28 @@ namespace AutoPrintr
                 default: break;
             }
         }
+        #endregion
+
+        #region Exceptions
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }
