@@ -16,6 +16,7 @@ namespace AutoPrintr.Services
         #region Properties
         private readonly ISettingsService _settingsService;
         private readonly IFileService _fileService;
+        private readonly IPrinterService _printerService;
         private readonly string _applicationKey;
         private readonly string _newJobsFileName = $"New{nameof(Job)}s.json";
         private readonly string _downloadedJobsFileName = $"Downloaded{nameof(Job)}s.json";
@@ -23,7 +24,9 @@ namespace AutoPrintr.Services
 
         private string _channel;
         private Pusher _pusher;
+        private bool _isJobsLoaded;
         private int _downloadingJobCount;
+        private int _printingJobCount;
 
         private ObservableCollection<Job> _newJobs;
         private ObservableCollection<Job> _downloadedJobs;
@@ -36,10 +39,12 @@ namespace AutoPrintr.Services
 
         #region Constructors
         public JobsService(ISettingsService settingsService,
-            IFileService fileService)
+            IFileService fileService,
+            IPrinterService printerService)
         {
             _settingsService = settingsService;
             _fileService = fileService;
+            _printerService = printerService;
             _applicationKey = "4a12d53c136a2d3dade7";
 
             _settingsService.ChannelChangedEvent += _settingsService_ChannelChangedEvent;
@@ -49,7 +54,11 @@ namespace AutoPrintr.Services
         #region Methods
         public async Task RunAsync()
         {
-            await ReadJobsFromFiles();
+            if (!_isJobsLoaded)
+            {
+                _isJobsLoaded = true;
+                await ReadJobsFromFiles();
+            }
             await RunPusherAsync();
         }
 
@@ -67,6 +76,26 @@ namespace AutoPrintr.Services
         {
             return _newJobs.Union(_downloadedJobs).Union(_doneJobs);
         }
+
+        #region Printer Methods
+        private void PrintDocument(Job job, bool manual = false)
+        {
+            if (!job.Document.AutoPrint && !manual)
+                return;
+
+            var printers = _settingsService.Settings.Printers.Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled == true && (d.AutoPrint || manual)));
+            if (!printers.Any())
+                return;
+
+            _printingJobCount++;
+            job.State = JobState.Printing;
+            job.UpdatedOn = DateTime.Now;
+            JobChangedEvent?.Invoke(job);
+
+            //TODO: Print document
+            //_printingJobCount--;
+        }
+        #endregion
 
         #region Files Methods
         private async Task ReadJobsFromFiles()
@@ -88,6 +117,9 @@ namespace AutoPrintr.Services
 
             foreach (var newJob in _newJobs)
                 DownloadDocument(newJob);
+
+            foreach (var newJob in _downloadedJobs)
+                PrintDocument(newJob);
         }
 
         private async void _doneJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -98,6 +130,12 @@ namespace AutoPrintr.Services
         private async void _downloadedJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             await _fileService.SaveObjectAsync(_downloadedJobsFileName, _downloadedJobs);
+
+            if (e.NewItems != null)
+            {
+                foreach (Job newJob in e.NewItems)
+                    PrintDocument(newJob);
+            }
         }
 
         private async void _newJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -115,7 +153,9 @@ namespace AutoPrintr.Services
         {
             _downloadingJobCount++;
             job.State = JobState.Processing;
+            job.UpdatedOn = DateTime.Now;
             job.Document.LocalFilePath = $"Documents/{Guid.NewGuid()}.pdf";
+            JobChangedEvent?.Invoke(job);
 
             _fileService.DownloadFileAsync(job.Document.FileUri,
                 job.Document.LocalFilePath,
@@ -123,6 +163,7 @@ namespace AutoPrintr.Services
                 {
                     job.DownloadProgress = p;
                     job.State = JobState.Downloading;
+                    job.UpdatedOn = DateTime.Now;
                     JobChangedEvent?.Invoke(job);
                 },
                 e =>
@@ -130,12 +171,12 @@ namespace AutoPrintr.Services
                     _downloadingJobCount--;
                     job.Error = e;
                     job.State = e == null ? JobState.Downloaded : JobState.Error;
+                    job.UpdatedOn = DateTime.Now;
                     JobChangedEvent?.Invoke(job);
 
                     if (_downloadingJobCount == 0)
                         MoveDownloadedJobs();
                 });
-            JobChangedEvent?.Invoke(job);
         }
 
         private void MoveDownloadedJobs()
