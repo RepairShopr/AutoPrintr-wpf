@@ -2,6 +2,7 @@
 using AutoPrintr.Models;
 using Newtonsoft.Json;
 using PusherClient;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -25,6 +26,8 @@ namespace AutoPrintr.Services
         private ObservableCollection<Job> _newJobs;
         private ObservableCollection<Job> _downloadedJobs;
         private ObservableCollection<Job> _doneJobs;
+
+        public IEnumerable<Job> Jobs => GetJobs();
         #endregion
 
         #region Constructors
@@ -54,6 +57,11 @@ namespace AutoPrintr.Services
         private async void _settingsService_ChannelChangedEvent(Models.Channel newChannel)
         {
             await RunAsync();
+        }
+
+        private IEnumerable<Job> GetJobs()
+        {
+            return _newJobs.Union(_downloadedJobs).Union(_doneJobs);
         }
 
         #region Files Methods

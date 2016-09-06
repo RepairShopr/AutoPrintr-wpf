@@ -5,6 +5,7 @@
         xmlns:controls="clr-namespace:AutoPrintr.Controls"
         Title="AutoPrintr Login"
         WindowStartupLocation="CenterScreen"
+        Icon="/AutoPrintr;component/Resources/Printer_32.png"
         Height="320"
         Width="470">
 

@@ -227,7 +227,9 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\Printer_32.png" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Printer_128.ico" />
     <None Include="Resources\Printer_32.ico" />

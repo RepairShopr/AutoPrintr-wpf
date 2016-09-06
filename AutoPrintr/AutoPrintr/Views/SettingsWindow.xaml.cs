@@ -35,10 +35,10 @@ namespace AutoPrintr.Views
             listView.SelectionChanged += ListView_SelectionChanged;
         }
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void Slider_LostFocus(object sender, RoutedEventArgs e)
         {
-            var textBox = (TextBox)sender;
-            var parent = textBox.FindParent<ItemsControl>();
+            var slider = (Slider)sender;
+            var parent = slider.FindParent<ItemsControl>();
             var printer = (Printer)parent.DataContext;
 
             ViewModel.UpdatePrinterCommand.Execute(printer);
