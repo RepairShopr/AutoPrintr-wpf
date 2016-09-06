@@ -26,7 +26,7 @@ namespace AutoPrintr.Services
         private Pusher _pusher;
         private bool _isJobsLoaded;
         private int _downloadingJobCount;
-        private int _printingJobCount;
+        private Dictionary<Printer, Job> _printingJobs;
 
         private ObservableCollection<Job> _newJobs;
         private ObservableCollection<Job> _downloadedJobs;
@@ -45,7 +45,9 @@ namespace AutoPrintr.Services
             _settingsService = settingsService;
             _fileService = fileService;
             _printerService = printerService;
+
             _applicationKey = "4a12d53c136a2d3dade7";
+            _printingJobs = new Dictionary<Printer, Job>();
 
             _settingsService.ChannelChangedEvent += _settingsService_ChannelChangedEvent;
         }
@@ -78,22 +80,46 @@ namespace AutoPrintr.Services
         }
 
         #region Printer Methods
-        private void PrintDocument(Job job, bool manual = false)
+        private async void PrintDocument(Job job, bool manual = false)
         {
             if (!job.Document.AutoPrint && !manual)
                 return;
 
-            var printers = _settingsService.Settings.Printers.Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled == true && (d.AutoPrint || manual)));
-            if (!printers.Any())
+            var installedPrinters = await _printerService.GetPrintersAsync();
+            var printerToPrint = installedPrinters
+                .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled == true && (d.AutoPrint || manual)))
+                .Where(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0))
+                .FirstOrDefault();
+            if (printerToPrint == null)
                 return;
 
-            _printingJobCount++;
+            _printingJobs.Add(printerToPrint, job);
+
             job.State = JobState.Printing;
             job.UpdatedOn = DateTime.Now;
             JobChangedEvent?.Invoke(job);
 
-            //TODO: Print document
-            //_printingJobCount--;
+            await _printerService.PrintDocumentAsync(printerToPrint, job.Document, (r, e) =>
+            {
+                job.Error = e;
+                job.State = r ? JobState.Printed : JobState.Error;
+                job.UpdatedOn = DateTime.Now;
+                JobChangedEvent?.Invoke(job);
+
+                _printingJobs.Remove(printerToPrint);
+                if (!_printingJobs.Any())
+                    MovePrintedJobs();
+            });
+        }
+
+        private void MovePrintedJobs()
+        {
+            var jobs = _downloadedJobs.Where(x => x.State == JobState.Printed || x.State == JobState.Error).ToList();
+            foreach (var job in jobs)
+            {
+                _downloadedJobs.Remove(job);
+                _doneJobs.Add(job);
+            }
         }
         #endregion
 
@@ -149,7 +175,7 @@ namespace AutoPrintr.Services
             }
         }
 
-        private void DownloadDocument(Job job)
+        private async void DownloadDocument(Job job)
         {
             _downloadingJobCount++;
             job.State = JobState.Processing;
@@ -157,7 +183,7 @@ namespace AutoPrintr.Services
             job.Document.LocalFilePath = $"Documents/{Guid.NewGuid()}.pdf";
             JobChangedEvent?.Invoke(job);
 
-            _fileService.DownloadFileAsync(job.Document.FileUri,
+            await _fileService.DownloadFileAsync(job.Document.FileUri,
                 job.Document.LocalFilePath,
                 p =>
                 {
@@ -166,11 +192,11 @@ namespace AutoPrintr.Services
                     job.UpdatedOn = DateTime.Now;
                     JobChangedEvent?.Invoke(job);
                 },
-                e =>
+                (r, e) =>
                 {
                     _downloadingJobCount--;
                     job.Error = e;
-                    job.State = e == null ? JobState.Downloaded : JobState.Error;
+                    job.State = r ? JobState.Downloaded : JobState.Error;
                     job.UpdatedOn = DateTime.Now;
                     JobChangedEvent?.Invoke(job);
 

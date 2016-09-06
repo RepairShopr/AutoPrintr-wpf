@@ -39,10 +39,9 @@ namespace AutoPrintr.Services
             });
         }
 
-        public async Task<bool> PrintDocumentAsync(Document document)
+        public async Task PrintDocumentAsync(Printer printer, Document document, Action<bool, Exception> completed = null)
         {
-            //TODO: Print document. Just read file and print it
-            throw new NotImplementedException();
+
         }
 
         private IEnumerable<Printer> GetInstalledPrinters()

@@ -97,7 +97,7 @@ namespace AutoPrintr.Services
             await SaveStringAsync(fileName, str);
         }
 
-        public async Task DownloadFileAsync(Uri fileUri, string localFilePath, Action<int> progressChanged = null, Action<Exception> completed = null)
+        public async Task DownloadFileAsync(Uri fileUri, string localFilePath, Action<int> progressChanged = null, Action<bool, Exception> completed = null)
         {
             var filePath = GetFilePath(localFilePath);
             var folderPath = Path.GetDirectoryName(filePath);
@@ -112,7 +112,7 @@ namespace AutoPrintr.Services
                 };
                 client.DownloadFileCompleted += (o, e) =>
                 {
-                    completed?.Invoke(e.Error);
+                    completed?.Invoke(!e.Cancelled && e.Error == null, e.Error);
                 };
                 await client.DownloadFileTaskAsync(fileUri, filePath);
             }
