@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -27,17 +28,16 @@ namespace AutoPrintr.Views
             if (_notifier != null)
                 throw new InvalidOperationException();
 
+            string appName = Assembly.GetEntryAssembly().GetName().Name;
             _notifier = new System.Windows.Forms.NotifyIcon()
             {
-                BalloonTipText = "The AutoPrintr service has been started",
-                BalloonTipTitle = "AutoPrintr",
-                Text = "AutoPrintr",
+                Text = appName,
                 Icon = AutoPrintr.Resources.Printer_32,
                 Visible = true
             };
             _notifier.Click += _notifier_Click;
 
-            _notifier.ShowBalloonTip(500);
+            _notifier.ShowBalloonTip(500, appName, $"The {appName} service has been started", System.Windows.Forms.ToolTipIcon.Info);
         }
 
         private void _notifier_Click(object sender, EventArgs e)
