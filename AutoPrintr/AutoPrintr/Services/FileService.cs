@@ -97,6 +97,27 @@ namespace AutoPrintr.Services
             await SaveStringAsync(fileName, str);
         }
 
+        public async Task DownloadFileAsync(Uri fileUri, string localFilePath, Action<int> progressChanged = null, Action<Exception> completed = null)
+        {
+            var filePath = GetFilePath(localFilePath);
+            var folderPath = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            using (var client = new System.Net.WebClient())
+            {
+                client.DownloadProgressChanged += (o, e) =>
+                {
+                    progressChanged?.Invoke(e.ProgressPercentage);
+                };
+                client.DownloadFileCompleted += (o, e) =>
+                {
+                    completed?.Invoke(e.Error);
+                };
+                await client.DownloadFileTaskAsync(fileUri, filePath);
+            }
+        }
+
         private string GetFilePath(string fileName)
         {
             var filePath = new StringBuilder(_folderPath.Replace('\\', '/'));

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace AutoPrintr.IServices
 {
@@ -11,5 +12,6 @@ namespace AutoPrintr.IServices
         Task SaveBytesAsync(string fileName, byte[] content);
         Task SaveObjectAsync<T>(string fileName, T content);
         Task DeleteFileAsync(string fileName);
+        Task DownloadFileAsync(Uri fileUri, string localFilePath, Action<int> progressChanged = null, Action<Exception> completed = null);
     }
 }

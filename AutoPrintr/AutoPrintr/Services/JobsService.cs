@@ -2,6 +2,7 @@
 using AutoPrintr.Models;
 using Newtonsoft.Json;
 using PusherClient;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -22,10 +23,13 @@ namespace AutoPrintr.Services
 
         private string _channel;
         private Pusher _pusher;
+        private int _downloadingJobCount;
 
         private ObservableCollection<Job> _newJobs;
         private ObservableCollection<Job> _downloadedJobs;
         private ObservableCollection<Job> _doneJobs;
+
+        public event JobChangedEventHandler JobChangedEvent;
 
         public IEnumerable<Job> Jobs => GetJobs();
         #endregion
@@ -81,6 +85,9 @@ namespace AutoPrintr.Services
             if (_doneJobs == null)
                 _doneJobs = new ObservableCollection<Job>();
             _doneJobs.CollectionChanged += _doneJobs_CollectionChanged;
+
+            foreach (var newJob in _newJobs)
+                DownloadDocument(newJob);
         }
 
         private async void _doneJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -96,6 +103,53 @@ namespace AutoPrintr.Services
         private async void _newJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             await _fileService.SaveObjectAsync(_newJobsFileName, _newJobs);
+
+            if (e.NewItems != null)
+            {
+                foreach (Job newJob in e.NewItems)
+                    DownloadDocument(newJob);
+            }
+        }
+
+        private void DownloadDocument(Job job)
+        {
+            _downloadingJobCount++;
+            job.State = JobState.Processing;
+            job.Document.LocalFilePath = $"Documents/{Guid.NewGuid()}.pdf";
+
+            _fileService.DownloadFileAsync(job.Document.FileUri,
+                job.Document.LocalFilePath,
+                p =>
+                {
+                    job.DownloadProgress = p;
+                    job.State = JobState.Downloading;
+                    JobChangedEvent?.Invoke(job);
+                },
+                e =>
+                {
+                    _downloadingJobCount--;
+                    job.Error = e;
+                    job.State = e == null ? JobState.Downloaded : JobState.Error;
+                    JobChangedEvent?.Invoke(job);
+
+                    if (_downloadingJobCount == 0)
+                        MoveDownloadedJobs();
+                });
+            JobChangedEvent?.Invoke(job);
+        }
+
+        private void MoveDownloadedJobs()
+        {
+            var jobs = _newJobs.Where(x => x.State == JobState.Downloaded || x.State == JobState.Error).ToList();
+            foreach (var job in jobs)
+            {
+                _newJobs.Remove(job);
+
+                if (job.State == JobState.Downloaded)
+                    _downloadedJobs.Add(job);
+                else if (job.State == JobState.Error)
+                    _doneJobs.Add(job);
+            }
         }
         #endregion
 
