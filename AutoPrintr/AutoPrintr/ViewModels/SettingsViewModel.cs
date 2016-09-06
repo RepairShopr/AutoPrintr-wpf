@@ -39,7 +39,7 @@ namespace AutoPrintr.ViewModels
             SelectedLocations = new ObservableCollection<Location>();
             DocumentTypes = Enum.GetValues(typeof(DocumentType))
                 .OfType<DocumentType>()
-                .Select(x => Document.GetTitle(x))
+                .Select(x => Document.GetTypeTitle(x))
                 .OrderBy(x => x)
                 .ToList();
 
@@ -117,7 +117,7 @@ namespace AutoPrintr.ViewModels
 
                 printer.DocumentTypes = printer.DocumentTypes
                     .Union(documentTypesToAdd)
-                    .OrderBy(x => Document.GetTitle(x.DocumentType))
+                    .OrderBy(x => Document.GetTypeTitle(x.DocumentType))
                     .ToList();
             }
             RaisePropertyChanged(nameof(Printers));

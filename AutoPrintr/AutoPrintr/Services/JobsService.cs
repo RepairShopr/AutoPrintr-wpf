@@ -1,6 +1,10 @@
 ﻿using AutoPrintr.IServices;
+using AutoPrintr.Models;
+using Newtonsoft.Json;
 using PusherClient;
-using System;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AutoPrintr.Services
@@ -9,17 +13,27 @@ namespace AutoPrintr.Services
     {
         #region Properties
         private readonly ISettingsService _settingsService;
+        private readonly IFileService _fileService;
         private readonly string _applicationKey;
+        private readonly string _newJobsFileName = $"New{nameof(Job)}s.json";
+        private readonly string _downloadedJobsFileName = $"Downloaded{nameof(Job)}s.json";
+        private readonly string _doneJobsFileName = $"Done{nameof(Job)}s.json";
 
         private string _channel;
         private Pusher _pusher;
+
+        private ObservableCollection<Job> _newJobs;
+        private ObservableCollection<Job> _downloadedJobs;
+        private ObservableCollection<Job> _doneJobs;
         #endregion
 
         #region Constructors
-        public JobsService(ISettingsService settingsService)
+        public JobsService(ISettingsService settingsService,
+            IFileService fileService)
         {
             _settingsService = settingsService;
-            _applicationKey = "";
+            _fileService = fileService;
+            _applicationKey = "4a12d53c136a2d3dade7";
 
             _settingsService.ChannelChangedEvent += _settingsService_ChannelChangedEvent;
         }
@@ -27,6 +41,58 @@ namespace AutoPrintr.Services
 
         #region Methods
         public async Task RunAsync()
+        {
+            await ReadJobsFromFiles();
+            await RunPusherAsync();
+        }
+
+        public async Task StopAsync()
+        {
+            await StopPusher();
+        }
+
+        private async void _settingsService_ChannelChangedEvent(Models.Channel newChannel)
+        {
+            await RunAsync();
+        }
+
+        #region Files Methods
+        private async Task ReadJobsFromFiles()
+        {
+            _newJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_newJobsFileName);
+            if (_newJobs == null)
+                _newJobs = new ObservableCollection<Job>();
+            _newJobs.CollectionChanged += _newJobs_CollectionChanged;
+
+            _downloadedJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_downloadedJobsFileName);
+            if (_downloadedJobs == null)
+                _downloadedJobs = new ObservableCollection<Job>();
+            _downloadedJobs.CollectionChanged += _downloadedJobs_CollectionChanged;
+
+            _doneJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_doneJobsFileName);
+            if (_doneJobs == null)
+                _doneJobs = new ObservableCollection<Job>();
+            _doneJobs.CollectionChanged += _doneJobs_CollectionChanged;
+        }
+
+        private async void _doneJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            await _fileService.SaveObjectAsync(_doneJobsFileName, _doneJobs);
+        }
+
+        private async void _downloadedJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            await _fileService.SaveObjectAsync(_downloadedJobsFileName, _downloadedJobs);
+        }
+
+        private async void _newJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            await _fileService.SaveObjectAsync(_newJobsFileName, _newJobs);
+        }
+        #endregion
+
+        #region Pusher Methods
+        public async Task RunPusherAsync()
         {
             if (_settingsService.Settings.Channel == null || string.IsNullOrEmpty(_settingsService.Settings.Channel.Value))
             {
@@ -47,11 +113,12 @@ namespace AutoPrintr.Services
         {
             await Task.Factory.StartNew(() =>
             {
-                if (_pusher == null)
+                if (_pusher != null)
                     return;
 
                 _pusher = new Pusher(_applicationKey);
                 _pusher.Error += _pusher_Error;
+                _pusher.ConnectionStateChanged += _pusher_ConnectionStateChanged;
                 _pusher.Subscribe(_channel)
                        .Bind("print-job", _pusher_ReadResponse);
 
@@ -73,18 +140,27 @@ namespace AutoPrintr.Services
 
         private void _pusher_ReadResponse(dynamic message)
         {
+            var stringMessage = message.ToString();
+            var document = JsonConvert.DeserializeObject<Document>(stringMessage);
+
+            if (_settingsService.Settings.Locations.Any(l => l.Id == document.Location))
+            {
+                var newJob = new Job { Document = document };
+                _newJobs.Add(newJob);
+            }
+        }
+
+        private void _pusher_ConnectionStateChanged(object sender, ConnectionState state)
+        {
 
         }
 
         private void _pusher_Error(object sender, PusherException error)
         {
-            throw new NotImplementedException();
-        }
 
-        private async void _settingsService_ChannelChangedEvent(Models.Channel newChannel)
-        {
-            await RunAsync();
         }
+        #endregion
+
         #endregion
     }
 }

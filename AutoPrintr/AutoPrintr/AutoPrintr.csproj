@@ -124,11 +124,13 @@
     <Compile Include="IServices\IApiService.cs" />
     <Compile Include="IServices\IFileService.cs" />
     <Compile Include="IServices\IJobsService.cs" />
+    <Compile Include="IServices\ILoggerService.cs" />
     <Compile Include="IServices\IPrinterService.cs" />
     <Compile Include="IServices\ISettingsService.cs" />
     <Compile Include="IServices\IUserService.cs" />
     <Compile Include="Models\BaseModel.cs" />
     <Compile Include="Models\Channel.cs" />
+    <Compile Include="Models\DocumentSize.cs" />
     <Compile Include="Models\DocumentTypeSettings.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\ValidatableBaseModel.cs" />
@@ -140,6 +142,7 @@
     <Compile Include="Services\ApiService.cs" />
     <Compile Include="Services\FileService.cs" />
     <Compile Include="Services\JobsService.cs" />
+    <Compile Include="Services\LoggerService.cs" />
     <Compile Include="Services\NavigationService.cs" />
     <Compile Include="Services\PrinterService.cs" />
     <Compile Include="Services\SettingsService.cs" />

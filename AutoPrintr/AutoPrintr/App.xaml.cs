@@ -50,12 +50,13 @@ namespace AutoPrintr
         #endregion
 
         #region Startup and Exit
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
             RegisterTypes();
-            LoadSettings();
+            await LoadSettingsAsync();
+            await RunJobsAsync();
 
             //Display Tray Icon
             new TrayIconContextMenuView();
@@ -67,6 +68,13 @@ namespace AutoPrintr
 
             //Close Tray Icon
             TrayIconContextMenuView.Close();
+        }
+
+        protected override async void OnSessionEnding(SessionEndingCancelEventArgs e)
+        {
+            await StopJobsAsync();
+
+            base.OnSessionEnding(e);
         }
 
         private void RegisterTypes()
@@ -88,15 +96,24 @@ namespace AutoPrintr
             SimpleIoc.Default.Register<SettingsViewModel>(true);
         }
 
-        private async void LoadSettings()
+        private async Task LoadSettingsAsync()
         {
             var settingsService = SimpleIoc.Default.GetInstance<ISettingsService>();
             await settingsService.LoadSettingsAsync();
 
             Messenger.Default.Send(settingsService.Settings.User);
+        }
 
+        private async Task RunJobsAsync()
+        {
             var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
             await jobsService.RunAsync();
+        }
+
+        private async Task StopJobsAsync()
+        {
+            var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
+            await jobsService.StopAsync();
         }
         #endregion
 

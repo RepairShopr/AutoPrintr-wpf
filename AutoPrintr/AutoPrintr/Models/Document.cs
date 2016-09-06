@@ -1,16 +1,35 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace AutoPrintr.Models
 {
     public class Document : BaseModel
     {
-        public string Name { get; set; }
-        public string Title => GetTitle(Type);
+        public string TypeTitle => GetTypeTitle(Type);
+
+        public string SizeTitle => GetSizeTitle(Size);
+
         public string LocalFilePath { get; set; }
+
+        [JsonProperty("file")]
         public Uri FileUri { get; set; }
+
+        [JsonProperty("autoprinted")]
+        public bool AutoPrint { get; set; }
+
+        [JsonProperty("document")]
         public DocumentType Type { get; set; }
 
-        public static string GetTitle(DocumentType type)
+        [JsonProperty("location")]
+        public int Location { get; set; }
+
+        [JsonProperty("register")]
+        public int? Register { get; set; }
+
+        [JsonProperty("type")]
+        public DocumentSize Size { get; set; }
+
+        public static string GetTypeTitle(DocumentType type)
         {
             switch (type)
             {
@@ -26,6 +45,17 @@ namespace AutoPrintr.Models
                 case DocumentType.CustomerID: return "Customer ID";
                 case DocumentType.Asset: return "Asset";
                 case DocumentType.TicketLabel: return "Ticket Label";
+                default: return null;
+            }
+        }
+
+        public static string GetSizeTitle(DocumentSize type)
+        {
+            switch (type)
+            {
+                case DocumentSize.FullSize: return "Size: Letter";
+                case DocumentSize.Label: return "Size: 1.1x3";
+                case DocumentSize.Receipt: return "Size: 80mm";
                 default: return null;
             }
         }
