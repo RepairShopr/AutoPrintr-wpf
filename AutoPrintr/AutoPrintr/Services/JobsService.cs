@@ -120,6 +120,10 @@ namespace AutoPrintr.Services
                 _downloadedJobs.Remove(job);
                 _doneJobs.Add(job);
             }
+
+            var newPrintingJobs = _downloadedJobs.Where(x => x.State == JobState.Downloaded).ToList();
+            foreach (var newJob in newPrintingJobs)
+                PrintDocument(newJob);
         }
         #endregion
 
