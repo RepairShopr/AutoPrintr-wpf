@@ -13,5 +13,6 @@ namespace AutoPrintr.IServices
         Task SaveObjectAsync<T>(string fileName, T content);
         Task DeleteFileAsync(string fileName);
         Task DownloadFileAsync(Uri fileUri, string localFilePath, Action<int> progressChanged = null, Action<bool, Exception> completed = null);
+        string GetFilePath(string fileName);
     }
 }

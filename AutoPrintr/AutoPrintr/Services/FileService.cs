@@ -118,7 +118,7 @@ namespace AutoPrintr.Services
             }
         }
 
-        private string GetFilePath(string fileName)
+        public string GetFilePath(string fileName)
         {
             var filePath = new StringBuilder(_folderPath.Replace('\\', '/'));
             if (_folderPath.Last() != '/')

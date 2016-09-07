@@ -2,6 +2,7 @@
 using AutoPrintr.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,12 +12,15 @@ namespace AutoPrintr.Services
     {
         #region Properties
         private readonly ISettingsService _settingsService;
+        private readonly IFileService _fileService;
         #endregion
 
         #region Constructors
-        public PrinterService(ISettingsService settingsService)
+        public PrinterService(ISettingsService settingsService,
+            IFileService fileService)
         {
             _settingsService = settingsService;
+            _fileService = fileService;
         }
         #endregion
 
@@ -41,7 +45,26 @@ namespace AutoPrintr.Services
 
         public async Task PrintDocumentAsync(Printer printer, Document document, Action<bool, Exception> completed = null)
         {
+            await Task.Factory.StartNew(() =>
+            {
+                Exception exception = null;
+                try
+                {
+                    if (string.IsNullOrEmpty(document.LocalFilePath))
+                        throw new InvalidOperationException("LocalFilePath is required");
 
+                    var printProcess = Process.Start("SumatraPDF.exe", $"-silent -exit-on-print -print-to \"{printer.Name}\" \"{_fileService.GetFilePath(document.LocalFilePath)}\"");
+                    printProcess.WaitForExit();
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                }
+                finally
+                {
+                    completed?.Invoke(exception == null, exception);
+                }
+            });
         }
 
         private IEnumerable<Printer> GetInstalledPrinters()
