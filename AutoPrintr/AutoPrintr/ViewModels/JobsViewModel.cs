@@ -17,7 +17,7 @@ namespace AutoPrintr.ViewModels
 
         public ObservableCollection<Job> Jobs { get; private set; }
 
-        public IEnumerable<JobState?> JobStates { get; private set; }
+        public IEnumerable<KeyValuePair<JobState?, string>> JobStates { get; private set; }
 
         private JobState? _selectedJobState;
         public JobState? SelectedJobState
@@ -26,7 +26,7 @@ namespace AutoPrintr.ViewModels
             set { Set(ref _selectedJobState, value); LoadJobs(); }
         }
 
-        public IEnumerable<DocumentType?> DocumentTypes { get; private set; }
+        public IEnumerable<KeyValuePair<DocumentType?, string>> DocumentTypes { get; private set; }
 
         private DocumentType? _selectedDocumentType;
         public DocumentType? SelectedDocumentType
@@ -47,15 +47,16 @@ namespace AutoPrintr.ViewModels
         {
             _jobsService = jobsService;
 
-            Jobs = new ObservableCollection<Job>();
             JobStates = Enum.GetValues(typeof(JobState))
                 .OfType<JobState?>()
                 .Union(new[] { (JobState?)null })
+                .Select(x => new KeyValuePair<JobState?, string>(x, x.HasValue ? x.ToString() : "All"))
                 .ToList();
             DocumentTypes = Enum.GetValues(typeof(DocumentType))
                 .OfType<DocumentType?>()
                 .OrderBy(x => Document.GetTypeTitle(x.Value))
                 .Union(new[] { (DocumentType?)null })
+                .Select(x => new KeyValuePair<DocumentType?, string>(x, x.HasValue ? Document.GetTypeTitle(x.Value) : "All"))
                 .ToList();
 
             PrintCommand = new RelayCommand<Job>(OnPrint);
@@ -67,24 +68,32 @@ namespace AutoPrintr.ViewModels
         {
             base.NavigatedTo(parameter);
 
-            Jobs.Clear();
+            Jobs = new ObservableCollection<Job>();
+
             _selectedJobState = null;
             _selectedDocumentType = null;
+
+            LoadJobs();
         }
 
         public void NavigatedFrom()
         {
-            Jobs.Clear();
+            Jobs = null;
         }
 
         private void LoadJobs()
         {
+            ShowBusyControl();
+
+            Jobs.Clear();
             var jobs = _jobsService.Jobs
                 .Where(x => SelectedJobState.HasValue ? x.State == SelectedJobState.Value : true)
                 .Where(x => SelectedDocumentType.HasValue ? x.Document.Type == SelectedDocumentType.Value : true)
                 .OrderByDescending(x => x.UpdatedOn);
             foreach (var job in jobs)
                 Jobs.Add(job);
+
+            HideBusyControl();
         }
 
         private void OnPrint(Job obj)

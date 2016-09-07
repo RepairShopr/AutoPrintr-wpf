@@ -38,6 +38,7 @@ namespace AutoPrintr
                 case ViewType.ContextMenu: return SimpleIoc.Default.GetInstance<TrayIconContextMenuViewModel>();
                 case ViewType.Login: return SimpleIoc.Default.GetInstance<LoginViewModel>();
                 case ViewType.Settings: return SimpleIoc.Default.GetInstance<SettingsViewModel>();
+                case ViewType.Jobs: return SimpleIoc.Default.GetInstance<JobsViewModel>();
                 default: return null;
             }
         }
@@ -94,6 +95,7 @@ namespace AutoPrintr
             SimpleIoc.Default.Register<TrayIconContextMenuViewModel>(true);
             SimpleIoc.Default.Register<LoginViewModel>(true);
             SimpleIoc.Default.Register<SettingsViewModel>(true);
+            SimpleIoc.Default.Register<JobsViewModel>(true);
         }
 
         private async Task LoadSettingsAsync()

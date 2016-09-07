@@ -70,4 +70,36 @@
         <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
         <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
     </Style>
+
+    <!--ComboBox Styles-->
+    <Style TargetType="ComboBox" x:Key="BaseComboBoxStyle">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Padding" Value="7,3" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style TargetType="ComboBox" BasedOn="{StaticResource BaseComboBoxStyle}">
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="10,5" />
+    </Style>
+
+    <!--ScrollViewer Styles-->
+    <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="AlternatingRowBackground" Value="LightGray" />
+        <Setter Property="AutoGenerateColumns" Value="False" />
+        <Setter Property="CanUserAddRows" Value="False" />
+        <Setter Property="CanUserDeleteRows" Value="False" />
+        <Setter Property="CanUserReorderColumns" Value="True" />
+        <Setter Property="CanUserResizeColumns" Value="True" />
+        <Setter Property="CanUserResizeRows" Value="False" />
+        <Setter Property="CanUserSortColumns" Value="False" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="GridLinesVisibility" Value="All" />
+        <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="SelectionMode" Value="Single" />
+        <Setter Property="SelectionUnit" Value="FullRow" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
 </ResourceDictionary>

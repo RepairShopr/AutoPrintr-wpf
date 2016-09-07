@@ -17,7 +17,7 @@ namespace AutoPrintr.Views
             Loaded -= LoginWindow_Loaded;
 #if DEBUG
             UsernameTextBox.Text = "geruch.vitaliy@gmail.com";
-            PasswordBox.Password = "test@123";
+            PasswordBox.Password = "work@2016";
 #endif
         }
 

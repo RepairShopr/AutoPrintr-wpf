@@ -152,6 +152,9 @@
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="ViewModels\TrayIconContextMenuViewModel.cs" />
+    <Compile Include="Views\JobsWindow.xaml.cs">
+      <DependentUpon>JobsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
@@ -166,6 +169,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Controls\BusyIndicator.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\JobsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

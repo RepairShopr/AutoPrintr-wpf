@@ -8,7 +8,8 @@ namespace AutoPrintr.Models
         public DateTime? UpdatedOn { get; set; }
         public JobState State { get; set; }
         public Document Document { get; set; }
-        public Printer Printer { get; set; }
+        public string Printer { get; set; }
+        public int Quantity { get; set; }
         public double DownloadProgress { get; set; }
         public Exception Error { get; set; }
 
