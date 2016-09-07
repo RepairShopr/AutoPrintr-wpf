@@ -12,6 +12,7 @@ namespace AutoPrintr.IServices
 
         IEnumerable<Job> Jobs { get; }
         Task RunAsync();
+        void Print(Job job);
         Task StopAsync();
     }
 }

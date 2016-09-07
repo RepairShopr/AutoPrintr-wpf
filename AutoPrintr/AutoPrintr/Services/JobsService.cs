@@ -64,6 +64,11 @@ namespace AutoPrintr.Services
             await RunPusherAsync();
         }
 
+        public void Print(Job job)
+        {
+            PrintDocument(job, true);
+        }
+
         public async Task StopAsync()
         {
             await StopPusher();
@@ -281,6 +286,7 @@ namespace AutoPrintr.Services
             {
                 var newJob = new Job { Document = document };
                 _newJobs.Add(newJob);
+                JobChangedEvent?.Invoke(newJob);
             }
         }
 

@@ -70,6 +70,9 @@ namespace AutoPrintr.ViewModels
 
             Jobs = new ObservableCollection<Job>();
 
+            _jobsService.JobChangedEvent -= _jobsService_JobChangedEvent;
+            _jobsService.JobChangedEvent += _jobsService_JobChangedEvent;
+
             _selectedJobState = null;
             _selectedDocumentType = null;
 
@@ -78,6 +81,7 @@ namespace AutoPrintr.ViewModels
 
         public void NavigatedFrom()
         {
+            _jobsService.JobChangedEvent -= _jobsService_JobChangedEvent;
             Jobs = null;
         }
 
@@ -96,9 +100,20 @@ namespace AutoPrintr.ViewModels
             HideBusyControl();
         }
 
+        private void _jobsService_JobChangedEvent(Job job)
+        {
+            App.Current.Dispatcher.BeginInvoke((Action)(() =>
+            {
+                if (Jobs.Contains(job))
+                    Jobs.Remove(job);
+
+                Jobs.Insert(0, job);
+            }));
+        }
+
         private void OnPrint(Job obj)
         {
-
+            _jobsService.Print(obj);
         }
         #endregion
     }
