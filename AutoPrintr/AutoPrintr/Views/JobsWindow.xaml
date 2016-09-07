@@ -4,6 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:AutoPrintr.Controls"
+        xmlns:converters="clr-namespace:AutoPrintr.Converters"
         Title="AutoPrintr Jobs"
         WindowStartupLocation="CenterScreen"
         Icon="/AutoPrintr;component/Resources/Printer_32.png"
@@ -11,7 +12,7 @@
         Width="900">
 
     <Window.Resources>
-
+        <converters:ObjectToVisibilityConverter x:Key="ObjectToVisibilityConverter" />
     </Window.Resources>
 
     <Grid x:Name="LayoutRoot">
@@ -80,7 +81,12 @@
                 <DataGridTemplateColumn Header="Action" MinWidth="100" Width="auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Margin="10,3" VerticalAlignment="Center" Content="Print" />
+                            <Button Margin="10,3"
+                                    VerticalAlignment="Center"
+                                    Content="Print"
+                                    Command="{Binding ElementName=LayoutRoot, Path=DataContext.PrintCommand}"
+                                    CommandParameter="{Binding .}"
+                                    Visibility="{Binding Document.LocalFilePath, Converter={StaticResource ObjectToVisibilityConverter}}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

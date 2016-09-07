@@ -190,11 +190,11 @@ namespace AutoPrintr.Services
             _downloadingJobCount++;
             job.State = JobState.Processing;
             job.UpdatedOn = DateTime.Now;
-            job.Document.LocalFilePath = $"Documents/{Guid.NewGuid()}.pdf";
             JobChangedEvent?.Invoke(job);
 
+            var localFilePath = $"Documents/{Guid.NewGuid()}.pdf";
             await _fileService.DownloadFileAsync(job.Document.FileUri,
-                job.Document.LocalFilePath,
+                localFilePath,
                 p =>
                 {
                     job.DownloadProgress = p;
@@ -207,6 +207,7 @@ namespace AutoPrintr.Services
                     _downloadingJobCount--;
                     job.Error = e;
                     job.State = r ? JobState.Downloaded : JobState.Error;
+                    job.Document.LocalFilePath = r ? localFilePath : null;
                     job.UpdatedOn = DateTime.Now;
                     JobChangedEvent?.Invoke(job);
 
