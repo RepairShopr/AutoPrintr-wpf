@@ -95,6 +95,7 @@ namespace AutoPrintr.Services
 
             _printingJobs.Add(printerToPrint, job);
 
+            job.Printer = printerToPrint;
             job.State = JobState.Printing;
             job.UpdatedOn = DateTime.Now;
             JobChangedEvent?.Invoke(job);

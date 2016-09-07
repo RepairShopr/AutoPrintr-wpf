@@ -5,8 +5,10 @@ namespace AutoPrintr.Models
 {
     public class Document : BaseModel
     {
+        [JsonIgnore]
         public string TypeTitle => GetTypeTitle(Type);
 
+        [JsonIgnore]
         public string SizeTitle => GetSizeTitle(Size);
 
         public string LocalFilePath { get; set; }
