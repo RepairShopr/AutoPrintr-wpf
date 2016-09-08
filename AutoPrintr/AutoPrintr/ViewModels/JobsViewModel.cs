@@ -120,29 +120,34 @@ namespace AutoPrintr.ViewModels
             _jobsService.Print(obj);
         }
 
-        private void OnDeleteJob(Job obj)
+        private async void OnDeleteJob(Job obj)
         {
-            _jobsService.DeleteJob(obj);
+            await _jobsService.DeleteJob(obj);
             Jobs.Remove(obj);
         }
 
-        private void OnDeleteJobs(DeleteJobAmount obj)
+        private async void OnDeleteJobs(DeleteJobAmount obj)
         {
+            ShowBusyControl();
+
             switch (obj)
             {
                 case DeleteJobAmount.PreviousWeek:
                     var previousMonday = GetPreviousMonday();
-                    _jobsService.DeleteJobs(previousMonday, previousMonday.AddDays(7));
+                    await _jobsService.DeleteJobs(previousMonday, previousMonday.AddDays(7));
                     break;
                 case DeleteJobAmount.PreviousMonth:
                     var previousMonthStartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month - 1, 1);
-                    _jobsService.DeleteJobs(previousMonthStartDate, previousMonthStartDate.AddMonths(1));
+                    await _jobsService.DeleteJobs(previousMonthStartDate, previousMonthStartDate.AddMonths(1));
                     break;
                 case DeleteJobAmount.AllPast:
-                    _jobsService.DeleteJobs(DateTime.MinValue, DateTime.Now.Date.AddDays(-1));
+                    await _jobsService.DeleteJobs(DateTime.MinValue, DateTime.Now.Date);
                     break;
                 default: break;
             }
+
+            HideBusyControl();
+
             LoadJobs();
         }
 

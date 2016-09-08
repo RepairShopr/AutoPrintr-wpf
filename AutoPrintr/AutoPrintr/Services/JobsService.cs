@@ -22,6 +22,10 @@ namespace AutoPrintr.Services
         private readonly string _downloadedJobsFileName = $"Downloaded{nameof(Job)}s.json";
         private readonly string _doneJobsFileName = $"Done{nameof(Job)}s.json";
 
+        private readonly ICollection<Task> _saveNewJobsTasks;
+        private readonly ICollection<Task> _saveDownloadedJobsTasks;
+        private readonly ICollection<Task> _saveDoneJobsTasks;
+
         private string _channel;
         private Pusher _pusher;
         private bool _isJobsLoaded;
@@ -49,6 +53,10 @@ namespace AutoPrintr.Services
             _applicationKey = "4a12d53c136a2d3dade7";
             _printingJobs = new Dictionary<Printer, Job>();
 
+            _saveNewJobsTasks = new List<Task>();
+            _saveDownloadedJobsTasks = new List<Task>();
+            _saveDoneJobsTasks = new List<Task>();
+
             _settingsService.ChannelChangedEvent += _settingsService_ChannelChangedEvent;
         }
         #endregion
@@ -69,8 +77,11 @@ namespace AutoPrintr.Services
             PrintDocument(job, true);
         }
 
-        public void DeleteJob(Job job)
+        public async Task DeleteJob(Job job)
         {
+            if (!string.IsNullOrEmpty(job.Document.LocalFilePath))
+                await _fileService.DeleteFileAsync(job.Document.LocalFilePath);
+
             if (_doneJobs.Contains(job))
                 _doneJobs.Remove(job);
             else if (_downloadedJobs.Contains(job))
@@ -79,11 +90,11 @@ namespace AutoPrintr.Services
                 _newJobs.Remove(job);
         }
 
-        public void DeleteJobs(DateTime startDate, DateTime endDate)
+        public async Task DeleteJobs(DateTime startDate, DateTime endDate)
         {
-            _doneJobs.Where(x => x.CreatedOn >= startDate && x.CreatedOn < endDate)
-                .ToList()
-                .ForEach(x => DeleteJob(x));
+            var jobsToRemove = GetJobs().Where(x => x.CreatedOn >= startDate && x.CreatedOn < endDate).ToList();
+            foreach (var item in jobsToRemove)
+                await DeleteJob(item);
         }
 
         public async Task StopAsync()
@@ -177,12 +188,22 @@ namespace AutoPrintr.Services
 
         private async void _doneJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            await _fileService.SaveObjectAsync(_doneJobsFileName, _doneJobs);
+            await Task.WhenAll(_saveDoneJobsTasks);
+            _saveDoneJobsTasks.Clear();
+
+            var task = _fileService.SaveObjectAsync(_doneJobsFileName, _doneJobs);
+            _saveDoneJobsTasks.Add(task);
+            await task;
         }
 
         private async void _downloadedJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            await _fileService.SaveObjectAsync(_downloadedJobsFileName, _downloadedJobs);
+            await Task.WhenAll(_saveDownloadedJobsTasks);
+            _saveDownloadedJobsTasks.Clear();
+
+            var task = _fileService.SaveObjectAsync(_downloadedJobsFileName, _downloadedJobs);
+            _saveDownloadedJobsTasks.Add(task);
+            await task;
 
             if (e.NewItems != null)
             {
@@ -193,7 +214,12 @@ namespace AutoPrintr.Services
 
         private async void _newJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            await _fileService.SaveObjectAsync(_newJobsFileName, _newJobs);
+            await Task.WhenAll(_saveNewJobsTasks);
+            _saveNewJobsTasks.Clear();
+
+            var task = _fileService.SaveObjectAsync(_newJobsFileName, _newJobs);
+            _saveNewJobsTasks.Add(task);
+            await task;
 
             if (e.NewItems != null)
             {
