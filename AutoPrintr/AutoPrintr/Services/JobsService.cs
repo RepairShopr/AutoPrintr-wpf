@@ -138,6 +138,8 @@ namespace AutoPrintr.Services
                 job.Error = e;
                 job.State = r ? JobState.Printed : JobState.Error;
                 job.UpdatedOn = DateTime.Now;
+                if (r)
+                    job.Quantity++;
                 JobChangedEvent?.Invoke(job);
 
                 _printingJobs.Remove(printerToPrint);

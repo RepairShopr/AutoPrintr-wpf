@@ -129,7 +129,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <Button Grid.Column="0"
-                                        Padding="0"
+                                        Padding="2"
                                         MinWidth="0"
                                         VerticalAlignment="Center"
                                         Command="{Binding ElementName=LayoutRoot, Path=DataContext.PrintCommand}"
@@ -139,7 +139,7 @@
                                     </Button>
 
                                     <Button Grid.Column="2"
-                                        Padding="0"
+                                        Padding="2"
                                         MinWidth="0"
                                         VerticalAlignment="Center"
                                         Command="{Binding ElementName=LayoutRoot, Path=DataContext.DeleteJobCommand}"
