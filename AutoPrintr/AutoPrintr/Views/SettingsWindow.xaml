@@ -8,7 +8,7 @@
         WindowStartupLocation="CenterScreen"
         Icon="/AutoPrintr;component/Resources/Printer_32.png"
         Height="600"
-        Width="800">
+        Width="950">
 
     <Window.Resources>
         <system:Double x:Key="RowHeight">35</system:Double>
@@ -40,9 +40,9 @@
                         <ColumnDefinition MinWidth="{StaticResource ColumnWidth}" />
                     </Grid.ColumnDefinitions>
 
-                    <CheckBox HorizontalAlignment="Left" IsChecked="{Binding Enabled, Mode=TwoWay}" Command="{Binding ElementName=LayoutRoot, Path=DataContext.UpdatePrinterCommand}" CommandParameter="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+                    <ToggleButton HorizontalAlignment="Left" Width="45" Height="20" IsChecked="{Binding Enabled, Mode=TwoWay}" Command="{Binding ElementName=LayoutRoot, Path=DataContext.UpdatePrinterCommand}" CommandParameter="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" Style="{StaticResource ToggleSwitchToggleButtonStyle}" />
                     <Slider Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="45" Minimum="1" Maximum="10" ToolTipService.ToolTip="{Binding Value, RelativeSource={RelativeSource Self}}" Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" LostFocus="Slider_LostFocus" />
-                    <CheckBox Grid.Column="2" HorizontalAlignment="Left" IsChecked="{Binding AutoPrint, Mode=TwoWay}" Command="{Binding ElementName=LayoutRoot, Path=DataContext.UpdatePrinterCommand}" CommandParameter="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+                    <CheckBox Grid.Column="2" HorizontalAlignment="Left" Width="45" Height="20" IsChecked="{Binding AutoPrint, Mode=TwoWay}" Command="{Binding ElementName=LayoutRoot, Path=DataContext.UpdatePrinterCommand}" CommandParameter="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" Style="{StaticResource ToggleSwitchToggleButtonStyle}" />
                 </Grid>
             </Border>
         </DataTemplate>
@@ -77,8 +77,8 @@
 
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.3*" />
-            <ColumnDefinition Width="0.7*" />
+            <ColumnDefinition Width="0.25*" />
+            <ColumnDefinition Width="0.75*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
