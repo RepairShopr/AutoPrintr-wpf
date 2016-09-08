@@ -38,6 +38,8 @@ namespace AutoPrintr.ViewModels
         public override ViewType Type => ViewType.Jobs;
 
         public RelayCommand<Job> PrintCommand { get; private set; }
+        public RelayCommand<Job> DeleteJobCommand { get; private set; }
+        public RelayCommand<DeleteJobAmount> DeleteJobsCommand { get; private set; }
         #endregion
 
         #region Constructors
@@ -60,6 +62,8 @@ namespace AutoPrintr.ViewModels
                 .ToList();
 
             PrintCommand = new RelayCommand<Job>(OnPrint);
+            DeleteJobCommand = new RelayCommand<Job>(OnDeleteJob);
+            DeleteJobsCommand = new RelayCommand<DeleteJobAmount>(OnDeleteJobs);
         }
         #endregion
 
@@ -114,6 +118,43 @@ namespace AutoPrintr.ViewModels
         private void OnPrint(Job obj)
         {
             _jobsService.Print(obj);
+        }
+
+        private void OnDeleteJob(Job obj)
+        {
+            _jobsService.DeleteJob(obj);
+            Jobs.Remove(obj);
+        }
+
+        private void OnDeleteJobs(DeleteJobAmount obj)
+        {
+            switch (obj)
+            {
+                case DeleteJobAmount.PreviousWeek:
+                    var previousMonday = GetPreviousMonday();
+                    _jobsService.DeleteJobs(previousMonday, previousMonday.AddDays(7));
+                    break;
+                case DeleteJobAmount.PreviousMonth:
+                    var previousMonthStartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month - 1, 1);
+                    _jobsService.DeleteJobs(previousMonthStartDate, previousMonthStartDate.AddMonths(1));
+                    break;
+                case DeleteJobAmount.AllPast:
+                    _jobsService.DeleteJobs(DateTime.MinValue, DateTime.Now.Date.AddDays(-1));
+                    break;
+                default: break;
+            }
+            LoadJobs();
+        }
+
+        private DateTime GetPreviousMonday()
+        {
+            var weekStart = DayOfWeek.Monday;
+            var startingDate = DateTime.Today;
+
+            while (startingDate.DayOfWeek != weekStart)
+                startingDate = startingDate.AddDays(-1);
+
+            return startingDate.AddDays(-7);
         }
         #endregion
     }

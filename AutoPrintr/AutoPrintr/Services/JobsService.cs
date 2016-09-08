@@ -69,6 +69,23 @@ namespace AutoPrintr.Services
             PrintDocument(job, true);
         }
 
+        public void DeleteJob(Job job)
+        {
+            if (_doneJobs.Contains(job))
+                _doneJobs.Remove(job);
+            else if (_downloadedJobs.Contains(job))
+                _downloadedJobs.Remove(job);
+            else if (_newJobs.Contains(job))
+                _newJobs.Remove(job);
+        }
+
+        public void DeleteJobs(DateTime startDate, DateTime endDate)
+        {
+            _doneJobs.Where(x => x.CreatedOn >= startDate && x.CreatedOn < endDate)
+                .ToList()
+                .ForEach(x => DeleteJob(x));
+        }
+
         public async Task StopAsync()
         {
             await StopPusher();
