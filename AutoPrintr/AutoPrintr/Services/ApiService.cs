@@ -13,11 +13,15 @@ namespace AutoPrintr.Services
     {
         #region Properties
         private const int TIMEOUT = 30;
+
+        private readonly ILoggerService _loggingService;
         #endregion
 
         #region Constructors
-        public ApiService()
-        { }
+        public ApiService(ILoggerService loggingService)
+        {
+            _loggingService = loggingService;
+        }
         #endregion
 
         #region Methods
@@ -124,7 +128,8 @@ namespace AutoPrintr.Services
             if (!response.IsSuccessStatusCode)
             {
                 var message = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine($"Error with code #{response.StatusCode} in {nameof(ApiService)}: {message}");
+                Debug.WriteLine($"Error with code #{response.StatusCode} in {nameof(ApiService.ReadResponseAsync)}: {message}");
+                _loggingService.WriteError(message);
             }
             else
                 result.Result = await response.Content.ReadAsAsync<T>();
@@ -135,6 +140,7 @@ namespace AutoPrintr.Services
         private ApiResult<T> CreateHttpRequestExceptionResult<T>(HttpRequestException ex)
         {
             Debug.WriteLine($"Error in {nameof(ApiService)}: {ex.ToString()}");
+            _loggingService.WriteError(ex);
 
             return new ApiResult<T>
             {

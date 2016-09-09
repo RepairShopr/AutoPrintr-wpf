@@ -133,6 +133,7 @@
     <Compile Include="Models\Channel.cs" />
     <Compile Include="Models\DocumentSize.cs" />
     <Compile Include="Models\DocumentTypeSettings.cs" />
+    <Compile Include="Models\Log.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\ValidatableBaseModel.cs" />
     <Compile Include="Resources.Designer.cs">

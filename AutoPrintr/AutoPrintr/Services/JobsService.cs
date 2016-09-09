@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -17,6 +18,8 @@ namespace AutoPrintr.Services
         private readonly ISettingsService _settingsService;
         private readonly IFileService _fileService;
         private readonly IPrinterService _printerService;
+        private readonly ILoggerService _loggingService;
+
         private readonly string _applicationKey;
         private readonly string _newJobsFileName = $"New{nameof(Job)}s.json";
         private readonly string _downloadedJobsFileName = $"Downloaded{nameof(Job)}s.json";
@@ -44,11 +47,13 @@ namespace AutoPrintr.Services
         #region Constructors
         public JobsService(ISettingsService settingsService,
             IFileService fileService,
-            IPrinterService printerService)
+            IPrinterService printerService,
+            ILoggerService loggingService)
         {
             _settingsService = settingsService;
             _fileService = fileService;
             _printerService = printerService;
+            _loggingService = loggingService;
 
             _applicationKey = "4a12d53c136a2d3dade7";
             _printingJobs = new Dictionary<Printer, Job>();
@@ -64,12 +69,16 @@ namespace AutoPrintr.Services
         #region Methods
         public async Task RunAsync()
         {
+            _loggingService.WriteInformation($"Startring {nameof(JobsService)}");
+
             if (!_isJobsLoaded)
             {
                 _isJobsLoaded = true;
                 await ReadJobsFromFiles();
             }
             await RunPusherAsync();
+
+            _loggingService.WriteInformation($"{nameof(JobsService)} is started");
         }
 
         public void Print(Job job)
@@ -79,6 +88,8 @@ namespace AutoPrintr.Services
 
         public async Task DeleteJob(Job job)
         {
+            _loggingService.WriteInformation($"Starting remove job {job.Document.TypeTitle}");
+
             if (!string.IsNullOrEmpty(job.Document.LocalFilePath))
                 await _fileService.DeleteFileAsync(job.Document.LocalFilePath);
 
@@ -88,6 +99,8 @@ namespace AutoPrintr.Services
                 _downloadedJobs.Remove(job);
             else if (_newJobs.Contains(job))
                 _newJobs.Remove(job);
+
+            _loggingService.WriteInformation($"Job {job.Document.TypeTitle} is removed");
         }
 
         public async Task DeleteJobs(DateTime startDate, DateTime endDate)
@@ -99,7 +112,11 @@ namespace AutoPrintr.Services
 
         public async Task StopAsync()
         {
+            _loggingService.WriteInformation($"Stopping {nameof(JobsService)}");
+
             await StopPusher();
+
+            _loggingService.WriteInformation($"{nameof(JobsService)} is stopped");
         }
 
         private async void _settingsService_ChannelChangedEvent(Models.Channel newChannel)
@@ -126,6 +143,8 @@ namespace AutoPrintr.Services
             if (printerToPrint == null)
                 return;
 
+            _loggingService.WriteInformation($"Starting print document {job.Document.TypeTitle} on {printerToPrint.Name}");
+
             _printingJobs.Add(printerToPrint, job);
 
             job.Printer = printerToPrint.Name;
@@ -135,6 +154,15 @@ namespace AutoPrintr.Services
 
             await _printerService.PrintDocumentAsync(printerToPrint, job.Document, (r, e) =>
             {
+                if (r)
+                    _loggingService.WriteInformation($"Document {job.Document.TypeTitle} is printed on {printerToPrint.Name}");
+                else
+                {
+                    Debug.WriteLine($"Error in {nameof(JobsService.PrintDocument)}: {e.ToString()}");
+                    _loggingService.WriteInformation($"Printing document {job.Document.TypeTitle} on {printerToPrint.Name} is failed");
+                    _loggingService.WriteError(e.ToString());
+                }
+
                 job.Error = e;
                 job.State = r ? JobState.Printed : JobState.Error;
                 job.UpdatedOn = DateTime.Now;
@@ -166,6 +194,8 @@ namespace AutoPrintr.Services
         #region Files Methods
         private async Task ReadJobsFromFiles()
         {
+            _loggingService.WriteInformation($"Starting read jobs");
+
             _newJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_newJobsFileName);
             if (_newJobs == null)
                 _newJobs = new ObservableCollection<Job>();
@@ -180,6 +210,8 @@ namespace AutoPrintr.Services
             if (_doneJobs == null)
                 _doneJobs = new ObservableCollection<Job>();
             _doneJobs.CollectionChanged += _doneJobs_CollectionChanged;
+
+            _loggingService.WriteInformation($"Jobs are read");
 
             foreach (var newJob in _newJobs)
                 DownloadDocument(newJob);
@@ -232,6 +264,8 @@ namespace AutoPrintr.Services
 
         private async void DownloadDocument(Job job)
         {
+            _loggingService.WriteInformation($"Starting download document {job.Document.TypeTitle}");
+
             _downloadingJobCount++;
             job.State = JobState.Processing;
             job.UpdatedOn = DateTime.Now;
@@ -249,6 +283,15 @@ namespace AutoPrintr.Services
                 },
                 (r, e) =>
                 {
+                    if (r)
+                        _loggingService.WriteInformation($"Document {job.Document.TypeTitle} is downloaded to {localFilePath}");
+                    else
+                    {
+                        Debug.WriteLine($"Error in {nameof(JobsService.DownloadDocument)}: {e.ToString()}");
+                        _loggingService.WriteInformation($"Downloading document {job.Document.TypeTitle} is failed");
+                        _loggingService.WriteError(e.ToString());
+                    }
+
                     _downloadingJobCount--;
                     job.Error = e;
                     job.State = r ? JobState.Downloaded : JobState.Error;
@@ -301,6 +344,8 @@ namespace AutoPrintr.Services
                 if (_pusher != null)
                     return;
 
+                _loggingService.WriteInformation($"Starting Pusher");
+
                 _pusher = new Pusher(_applicationKey);
                 _pusher.Error += _pusher_Error;
                 _pusher.ConnectionStateChanged += _pusher_ConnectionStateChanged;
@@ -308,6 +353,8 @@ namespace AutoPrintr.Services
                        .Bind("print-job", _pusher_ReadResponse);
 
                 _pusher.Connect();
+
+                _loggingService.WriteInformation($"Pusher is started");
             });
         }
 
@@ -318,13 +365,19 @@ namespace AutoPrintr.Services
                 if (_pusher == null)
                     return;
 
+                _loggingService.WriteInformation($"Stopping Pusher");
+
                 _pusher.Disconnect();
                 _pusher = null;
+
+                _loggingService.WriteInformation($"Pusher is stopped");
             });
         }
 
         private void _pusher_ReadResponse(dynamic message)
         {
+            _loggingService.WriteInformation($"Starting read Pusher response: {message.ToString()}");
+
             var stringMessage = message.ToString();
             var document = JsonConvert.DeserializeObject<Document>(stringMessage);
 
@@ -333,17 +386,20 @@ namespace AutoPrintr.Services
                 var newJob = new Job { Document = document };
                 _newJobs.Add(newJob);
                 JobChangedEvent?.Invoke(newJob);
+
+                _loggingService.WriteInformation($"New job {newJob.Document.TypeTitle} is added");
             }
         }
 
         private void _pusher_ConnectionStateChanged(object sender, ConnectionState state)
         {
-
+            _loggingService.WriteInformation($"Pusher is {state}");
         }
 
         private void _pusher_Error(object sender, PusherException error)
         {
-
+            Debug.WriteLine($"Error in Pusher: {error.ToString()}");
+            _loggingService.WriteError(error);
         }
         #endregion
 

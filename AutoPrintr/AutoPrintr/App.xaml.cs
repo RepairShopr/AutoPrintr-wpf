@@ -8,8 +8,10 @@ using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Views;
 using Microsoft.Practices.ServiceLocation;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace AutoPrintr
 {
@@ -50,7 +52,7 @@ namespace AutoPrintr
         }
         #endregion
 
-        #region Startup and Exit
+        #region Startup and Exit and Types
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -83,6 +85,7 @@ namespace AutoPrintr
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
             //Register Services
+            SimpleIoc.Default.Register<ILoggerService, LoggerService>();
             SimpleIoc.Default.Register<IApiService, ApiService>();
             SimpleIoc.Default.Register<IFileService>(() => new FileService());
             SimpleIoc.Default.Register<ISettingsService, SettingsService>();
@@ -143,22 +146,37 @@ namespace AutoPrintr
         #region Exceptions
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            throw new NotImplementedException();
+            Debug.WriteLine($"Error in {nameof(App)}: {((Exception)e.ExceptionObject).ToString()}");
+
+            var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
+            loggingService.WriteError((Exception)e.ExceptionObject);
         }
 
-        private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        private void Dispatcher_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            throw new NotImplementedException();
+            Debug.WriteLine($"Error in {nameof(App)}: {e.Exception.ToString()}");
+
+            var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
+            loggingService.WriteError(e.Exception);
+            e.Handled = true;
         }
 
-        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            throw new NotImplementedException();
+            Debug.WriteLine($"Error in {nameof(App)}: {e.Exception.ToString()}");
+
+            var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
+            loggingService.WriteError(e.Exception);
+            e.Handled = true;
         }
 
         private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
-            throw new NotImplementedException();
+            Debug.WriteLine($"Error in {nameof(App)}: {e.Exception.ToString()}");
+
+            var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
+            loggingService.WriteError(e.Exception);
+            e.SetObserved();
         }
         #endregion
     }
