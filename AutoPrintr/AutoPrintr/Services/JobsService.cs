@@ -137,6 +137,7 @@ namespace AutoPrintr.Services
 
             var installedPrinters = await _printerService.GetPrintersAsync();
             var printerToPrint = installedPrinters
+                .Where(x => job.Document.Register.HasValue ? job.Document.Register == x.Register : true)
                 .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled == true && (d.AutoPrint || manual)))
                 .Where(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0))
                 .FirstOrDefault();

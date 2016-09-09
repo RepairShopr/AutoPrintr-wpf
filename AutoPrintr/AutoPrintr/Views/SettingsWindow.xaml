@@ -17,6 +17,9 @@
             <system:String>Printers:</system:String>
             <system:String>Documents:</system:String>
         </x:Array>
+        <x:Array x:Key="AdditionalItems" Type="{x:Type system:String}">
+            <system:String>Register</system:String>
+        </x:Array>
 
         <Style TargetType="Border" x:Key="SeparatorBorderStyle">
             <Setter Property="BorderThickness" Value="1,1,0,0" />
@@ -52,6 +55,7 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
                 <Border Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
@@ -71,6 +75,9 @@
                     </Grid>
                 </Border>
                 <ItemsControl Grid.Row="2" ItemsSource="{Binding DocumentTypes, Mode=OneWay}" ItemTemplate="{StaticResource DocumentTypeItemTemplate}" />
+                <Border Grid.Row="3" Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
+                    <TextBox Text="{Binding Register, Mode=TwoWay}" Margin="10,5" MaxLength="10" FontSize="12" TextChanged="TextBox_TextChanged" LostFocus="TextBox_LostFocus" />
+                </Border>
             </Grid>
         </DataTemplate>
     </Window.Resources>
@@ -109,12 +116,14 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
 
                     <ItemsControl ItemsSource="{StaticResource HeaderItems}" ItemTemplate="{StaticResource HeaderItemTemplate}" />
                     <ItemsControl Grid.Row="1" ItemsSource="{Binding DocumentTypes, Mode=OneTime}" ItemTemplate="{StaticResource HeaderItemTemplate}" />
+                    <ItemsControl Grid.Row="2" ItemsSource="{StaticResource AdditionalItems}" ItemTemplate="{StaticResource HeaderItemTemplate}" />
 
-                    <ItemsControl Grid.RowSpan="2" Grid.Column="1" ItemsSource="{Binding Printers, Mode=OneWay}" ItemTemplate="{StaticResource PrinterItemTemplate}">
+                    <ItemsControl Grid.RowSpan="3" Grid.Column="1" ItemsSource="{Binding Printers, Mode=OneWay}" ItemTemplate="{StaticResource PrinterItemTemplate}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Horizontal" />

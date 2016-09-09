@@ -82,6 +82,7 @@ namespace AutoPrintr.Services
 
             var newPrinter = new Printer();
             newPrinter.Name = printer.Name;
+            newPrinter.Register = printer.Register;
             newPrinter.DocumentTypes = printer.DocumentTypes.Where(x => x.Enabled == true).ToList();
 
             Settings.Printers = Settings.Printers.Union(new[] { newPrinter }).ToList();
@@ -97,6 +98,7 @@ namespace AutoPrintr.Services
                 return;
 
             originalPrinter.DocumentTypes = printer.DocumentTypes.Where(x => x.Enabled == true).ToList();
+            originalPrinter.Register = printer.Register;
             await SaveSettingsAsync();
 
             _loggingService.WriteInformation($"Printer {printer.Name} is updated");
