@@ -24,6 +24,7 @@ namespace AutoPrintr.ViewModels
         public RelayCommand GoToSettingsCommand { get; private set; }
         public RelayCommand GoToJobsCommand { get; private set; }
         public RelayCommand GoToLogsCommand { get; private set; }
+        public RelayCommand GoToAboutCommand { get; private set; }
         public RelayCommand LogoutCommand { get; private set; }
         #endregion
 
@@ -38,6 +39,7 @@ namespace AutoPrintr.ViewModels
             GoToSettingsCommand = new RelayCommand(OnGoToSettings);
             GoToJobsCommand = new RelayCommand(OnGoToJobs);
             GoToLogsCommand = new RelayCommand(OnGoToLogs);
+            GoToAboutCommand = new RelayCommand(OnGoToAbout);
             LogoutCommand = new RelayCommand(OnLogout);
 
             MessengerInstance.Register<User>(this, OnUserChanged);
@@ -68,6 +70,11 @@ namespace AutoPrintr.ViewModels
         private void OnGoToLogs()
         {
             NavigateTo(ViewType.Logs);
+        }
+
+        private void OnGoToAbout()
+        {
+            NavigateTo(ViewType.About);
         }
 
         private async void OnLogout()

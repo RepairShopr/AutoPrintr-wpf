@@ -49,6 +49,8 @@ namespace AutoPrintr.Services
                     window = new JobsWindow(); break;
                 case ViewType.Logs:
                     window = new LogsWindow(); break;
+                case ViewType.About:
+                    window = new AboutWindow(); break;
                 default: throw new NotImplementedException();
             }
             window.DataContext = App.GetDataContext(viewType);

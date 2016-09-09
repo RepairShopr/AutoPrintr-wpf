@@ -7,6 +7,7 @@
         Login,
         Settings,
         Jobs,
-        Logs
+        Logs,
+        About
     }
 }
