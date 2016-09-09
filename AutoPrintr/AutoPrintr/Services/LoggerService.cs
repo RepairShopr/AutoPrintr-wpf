@@ -34,7 +34,12 @@ namespace AutoPrintr.Services
                 {
                     return logger.Entries
                         .OfType<EventLogEntry>()
-                        .Select(x => new Log { DateTime = x.TimeWritten, Event = x.Message })
+                        .Select(x => new Log
+                        {
+                            DateTime = x.TimeWritten,
+                            Event = x.Message,
+                            Type = x.EntryType == EventLogEntryType.Error ? LogType.Error : x.EntryType == EventLogEntryType.Warning ? LogType.Warning : LogType.Information
+                        })
                         .OrderByDescending(x => x.DateTime)
                         .ToList();
                 }

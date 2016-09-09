@@ -6,5 +6,6 @@ namespace AutoPrintr.Models
     {
         public DateTime DateTime { get; set; }
         public string Event { get; set; }
+        public LogType Type { get; set; }
     }
 }
