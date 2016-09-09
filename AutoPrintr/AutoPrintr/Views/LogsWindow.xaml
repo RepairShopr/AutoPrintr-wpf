@@ -11,7 +11,20 @@
         Width="950">
 
     <Grid x:Name="LayoutRoot">
-        <DataGrid Grid.Row="1" Grid.ColumnSpan="9" ItemsSource="{Binding Logs, Mode=OneWay}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Margin="20,15,0,15" Text="Log Type:" />
+        <ComboBox Grid.Column="1" Width="150" ItemsSource="{Binding LogTypes, Mode=OneTime}" SelectedValue="{Binding SelectedLogType, Mode=TwoWay}" DisplayMemberPath="Value" SelectedValuePath="Key" />
+
+        <DataGrid Grid.Row="1" Grid.ColumnSpan="3" ItemsSource="{Binding Logs, Mode=OneWay}">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="Created On" MinWidth="150">
                     <DataGridTemplateColumn.CellTemplate>

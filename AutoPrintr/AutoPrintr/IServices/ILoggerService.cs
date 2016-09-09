@@ -7,7 +7,7 @@ namespace AutoPrintr.IServices
 {
     public interface ILoggerService
     {
-        Task<IEnumerable<Log>> GetLogsAsync();
+        Task<IEnumerable<Log>> GetLogsAsync(LogType? type = null);
         void WriteInformation(string message);
         void WriteWarning(string message);
         void WriteError(string message);

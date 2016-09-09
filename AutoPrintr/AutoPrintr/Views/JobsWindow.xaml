@@ -41,12 +41,12 @@
             <ComboBox Grid.Column="3" Width="150" ItemsSource="{Binding DocumentTypes, Mode=OneTime}" SelectedValue="{Binding SelectedDocumentType, Mode=TwoWay}" DisplayMemberPath="Value" SelectedValuePath="Key" />
 
             <TextBlock Grid.Column="4" Margin="20,15,0,15" Text="Delete:" />
-            <Button Grid.Column="5" Margin="10,0" MinWidth="0" VerticalAlignment="Center" Content="Prev Week" Command="{Binding DeleteJobsCommand}">
+            <Button Grid.Column="5" Margin="10,0" MinWidth="0" VerticalAlignment="Center" Content="Previous Week" Command="{Binding DeleteJobsCommand}">
                 <Button.CommandParameter>
                     <helpers:DeleteJobAmount>PreviousWeek</helpers:DeleteJobAmount>
                 </Button.CommandParameter>
             </Button>
-            <Button Grid.Column="6" Margin="10,0" MinWidth="0" VerticalAlignment="Center" Content="Prev Month" Command="{Binding DeleteJobsCommand}" >
+            <Button Grid.Column="6" Margin="10,0" MinWidth="0" VerticalAlignment="Center" Content="Previous Month" Command="{Binding DeleteJobsCommand}" >
                 <Button.CommandParameter>
                     <helpers:DeleteJobAmount>PreviousMonth</helpers:DeleteJobAmount>
                 </Button.CommandParameter>

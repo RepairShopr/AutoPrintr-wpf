@@ -26,7 +26,7 @@ namespace AutoPrintr.Services
         #endregion
 
         #region Methods
-        public async Task<IEnumerable<Log>> GetLogsAsync()
+        public async Task<IEnumerable<Log>> GetLogsAsync(LogType? type = null)
         {
             return await Task.Factory.StartNew<IEnumerable<Log>>(() =>
             {
@@ -40,6 +40,7 @@ namespace AutoPrintr.Services
                             Event = x.Message,
                             Type = x.EntryType == EventLogEntryType.Error ? LogType.Error : x.EntryType == EventLogEntryType.Warning ? LogType.Warning : LogType.Information
                         })
+                        .Where(x => type.HasValue ? x.Type == type : true)
                         .OrderByDescending(x => x.DateTime)
                         .ToList();
                 }
