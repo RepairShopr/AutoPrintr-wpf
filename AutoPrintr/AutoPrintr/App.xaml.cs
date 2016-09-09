@@ -41,6 +41,7 @@ namespace AutoPrintr
                 case ViewType.Login: return SimpleIoc.Default.GetInstance<LoginViewModel>();
                 case ViewType.Settings: return SimpleIoc.Default.GetInstance<SettingsViewModel>();
                 case ViewType.Jobs: return SimpleIoc.Default.GetInstance<JobsViewModel>();
+                case ViewType.Logs: return SimpleIoc.Default.GetInstance<LogsViewModel>();
                 default: return null;
             }
         }
@@ -99,6 +100,7 @@ namespace AutoPrintr
             SimpleIoc.Default.Register<LoginViewModel>(true);
             SimpleIoc.Default.Register<SettingsViewModel>(true);
             SimpleIoc.Default.Register<JobsViewModel>(true);
+            SimpleIoc.Default.Register<LogsViewModel>(true);
         }
 
         private async Task LoadSettingsAsync()

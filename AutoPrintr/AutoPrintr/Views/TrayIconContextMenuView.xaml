@@ -13,6 +13,7 @@
             <MenuItem Header="Login" Command="{Binding GoToLoginCommand, Mode=OneTime}" Visibility="{Binding IsUserLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=false}" />
             <MenuItem Header="Jobs" Command="{Binding GoToJobsCommand, Mode=OneTime}" Visibility="{Binding IsUserLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
             <MenuItem Header="Settings" Command="{Binding GoToSettingsCommand, Mode=OneTime}" Visibility="{Binding IsUserLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
+            <MenuItem Header="Logs" Command="{Binding GoToLogsCommand, Mode=OneTime}" Visibility="{Binding IsUserLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
             <MenuItem Header="Logout" Command="{Binding LogoutCommand, Mode=OneTime}" Visibility="{Binding IsUserLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
             <MenuItem Header="Exit" Click="ExitMenuItem_Click" />
         </ContextMenu>

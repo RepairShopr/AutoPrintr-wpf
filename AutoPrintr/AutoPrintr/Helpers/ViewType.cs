@@ -6,6 +6,7 @@
         ContextMenu,
         Login,
         Settings,
-        Jobs
+        Jobs,
+        Logs
     }
 }

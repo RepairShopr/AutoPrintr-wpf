@@ -1,0 +1,35 @@
+﻿<Window x:Class="AutoPrintr.Views.LogsWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        xmlns:controls="clr-namespace:AutoPrintr.Controls"
+        Title="AutoPrintr Logs"
+        WindowStartupLocation="CenterScreen"
+        Icon="/AutoPrintr;component/Resources/Printer_32.png"
+        Height="600"
+        Width="950">
+
+    <Grid x:Name="LayoutRoot">
+        <DataGrid Grid.Row="1" Grid.ColumnSpan="9" ItemsSource="{Binding Logs, Mode=OneWay}">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Created On" MinWidth="150">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Margin="10,3" VerticalAlignment="Center" Text="{Binding DateTime, Mode=OneWay}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Event" MinWidth="730" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Margin="10,3" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Event, Mode=OneWay}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <controls:BusyIndicator />
+    </Grid>
+</Window>
