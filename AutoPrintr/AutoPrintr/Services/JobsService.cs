@@ -25,10 +25,6 @@ namespace AutoPrintr.Services
         private readonly string _downloadedJobsFileName = $"Downloaded{nameof(Job)}s.json";
         private readonly string _doneJobsFileName = $"Done{nameof(Job)}s.json";
 
-        private readonly ICollection<Task> _saveNewJobsTasks;
-        private readonly ICollection<Task> _saveDownloadedJobsTasks;
-        private readonly ICollection<Task> _saveDoneJobsTasks;
-
         private string _channel;
         private Pusher _pusher;
         private bool _isJobsLoaded;
@@ -57,10 +53,6 @@ namespace AutoPrintr.Services
 
             _applicationKey = "4a12d53c136a2d3dade7";
             _printingJobs = new Dictionary<Printer, Job>();
-
-            _saveNewJobsTasks = new List<Task>();
-            _saveDownloadedJobsTasks = new List<Task>();
-            _saveDoneJobsTasks = new List<Task>();
 
             _settingsService.ChannelChangedEvent += _settingsService_ChannelChangedEvent;
         }
@@ -223,22 +215,12 @@ namespace AutoPrintr.Services
 
         private async void _doneJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            await Task.WhenAll(_saveDoneJobsTasks);
-            _saveDoneJobsTasks.Clear();
-
-            var task = _fileService.SaveObjectAsync(_doneJobsFileName, _doneJobs);
-            _saveDoneJobsTasks.Add(task);
-            await task;
+            await _fileService.SaveObjectAsync(_doneJobsFileName, _doneJobs);
         }
 
         private async void _downloadedJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            await Task.WhenAll(_saveDownloadedJobsTasks);
-            _saveDownloadedJobsTasks.Clear();
-
-            var task = _fileService.SaveObjectAsync(_downloadedJobsFileName, _downloadedJobs);
-            _saveDownloadedJobsTasks.Add(task);
-            await task;
+            await _fileService.SaveObjectAsync(_downloadedJobsFileName, _downloadedJobs);
 
             if (e.NewItems != null)
             {
@@ -249,12 +231,7 @@ namespace AutoPrintr.Services
 
         private async void _newJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            await Task.WhenAll(_saveNewJobsTasks);
-            _saveNewJobsTasks.Clear();
-
-            var task = _fileService.SaveObjectAsync(_newJobsFileName, _newJobs);
-            _saveNewJobsTasks.Add(task);
-            await task;
+            await _fileService.SaveObjectAsync(_newJobsFileName, _newJobs);
 
             if (e.NewItems != null)
             {

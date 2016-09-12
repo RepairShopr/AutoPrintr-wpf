@@ -12,6 +12,7 @@ namespace AutoPrintr.Services
     {
         #region Properties
         private readonly string _folderPath;
+        private static object _locker = new Object();
         #endregion
 
         #region Constructors
@@ -26,10 +27,13 @@ namespace AutoPrintr.Services
         {
             await Task.Factory.StartNew(() =>
             {
-                var filePath = GetFilePath(fileName);
+                lock (_locker)
+                {
+                    var filePath = GetFilePath(fileName);
 
-                if (File.Exists(filePath))
-                    File.Delete(filePath);
+                    if (File.Exists(filePath))
+                        File.Delete(filePath);
+                }
             });
         }
 
@@ -72,11 +76,15 @@ namespace AutoPrintr.Services
         {
             await Task.Factory.StartNew(() =>
             {
-                var filePath = GetFilePath(fileName);
-                using (var stream = File.Open(filePath, FileMode.Create))
+                lock (_locker)
                 {
-                    using (var writer = new StreamWriter(stream))
-                        writer.Write(content);
+                    var filePath = GetFilePath(fileName);
+
+                    using (var stream = File.Open(filePath, FileMode.Create))
+                    {
+                        using (var writer = new StreamWriter(stream))
+                            writer.Write(content);
+                    }
                 }
             });
         }
@@ -85,9 +93,13 @@ namespace AutoPrintr.Services
         {
             await Task.Factory.StartNew(() =>
             {
-                var filePath = GetFilePath(fileName);
-                using (var stream = File.Open(filePath, FileMode.Create))
-                    stream.Write(content, 0, content.Length);
+                lock (_locker)
+                {
+                    var filePath = GetFilePath(fileName);
+
+                    using (var stream = File.Open(filePath, FileMode.Create))
+                        stream.Write(content, 0, content.Length);
+                }
             });
         }
 
@@ -100,9 +112,6 @@ namespace AutoPrintr.Services
         public async Task DownloadFileAsync(Uri fileUri, string localFilePath, Action<int> progressChanged = null, Action<bool, Exception> completed = null)
         {
             var filePath = GetFilePath(localFilePath);
-            var folderPath = Path.GetDirectoryName(filePath);
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
 
             using (var client = new System.Net.WebClient())
             {
@@ -125,6 +134,11 @@ namespace AutoPrintr.Services
                 filePath.Append('/');
 
             filePath.Append(fileName);
+
+            var folderPath = Path.GetDirectoryName(filePath.ToString());
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
             return filePath.ToString();
         }
         #endregion

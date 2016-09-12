@@ -2,81 +2,76 @@
 using AutoPrintr.Models;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace AutoPrintr.Services
 {
     internal class LoggerService : ILoggerService
     {
         #region Properties
-        private readonly string _source;
+        private readonly IFileService _fileService;
+
+        private ICollection<Log> _logs;
+        public IEnumerable<Log> Logs => _logs;
         #endregion
 
         #region Constructors
-        public LoggerService()
+        public LoggerService(IFileService fileService)
         {
-            _source = Assembly.GetEntryAssembly().GetName().Name;
+            _fileService = fileService;
 
-            if (!EventLog.SourceExists(_source))
-                EventLog.CreateEventSource(_source, _source);
+            _logs = new List<Log>();
+
+            GetLogsAsync();
         }
         #endregion
 
         #region Methods
-        public async Task<IEnumerable<Log>> GetLogsAsync(LogType? type = null)
-        {
-            return await Task.Factory.StartNew<IEnumerable<Log>>(() =>
-            {
-                using (var logger = new EventLog(_source, Environment.MachineName, _source))
-                {
-                    return logger.Entries
-                        .OfType<EventLogEntry>()
-                        .Select(x => new Log
-                        {
-                            DateTime = x.TimeWritten,
-                            Event = x.Message,
-                            Type = x.EntryType == EventLogEntryType.Error ? LogType.Error : x.EntryType == EventLogEntryType.Warning ? LogType.Warning : LogType.Information
-                        })
-                        .Where(x => type.HasValue ? x.Type == type : true)
-                        .OrderByDescending(x => x.DateTime)
-                        .ToList();
-                }
-            });
-        }
-
         public void WriteInformation(string message)
         {
-            Task.Factory.StartNew(() =>
-            {
-                EventLog.WriteEntry(_source, message, EventLogEntryType.Information);
-            });
+            AddLog(message, LogType.Information);
+            SaveLogsAsync();
         }
 
         public void WriteWarning(string message)
         {
-            Task.Factory.StartNew(() =>
-            {
-                EventLog.WriteEntry(_source, message, EventLogEntryType.Warning);
-            });
+            AddLog(message, LogType.Warning);
+            SaveLogsAsync();
         }
 
         public void WriteError(string message)
         {
-            Task.Factory.StartNew(() =>
-            {
-                EventLog.WriteEntry(_source, message, EventLogEntryType.Error);
-            });
+            AddLog(message, LogType.Error);
+            SaveLogsAsync();
         }
 
         public void WriteError(Exception exception)
         {
-            Task.Factory.StartNew(() =>
-            {
-                EventLog.WriteEntry(_source, exception.ToString(), EventLogEntryType.Error);
-            });
+            AddLog(exception.ToString(), LogType.Error);
+            SaveLogsAsync();
+        }
+
+        private async void GetLogsAsync()
+        {
+            var existingLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(DateTime.Now));
+            if (existingLogs != null)
+                _logs = existingLogs.Union(_logs).ToList();
+        }
+
+        private void AddLog(string message, LogType type)
+        {
+            var newLogItem = new Log { DateTime = DateTime.Now, Event = message, Type = type };
+            _logs.Add(newLogItem);
+        }
+
+        private async void SaveLogsAsync()
+        {
+            await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now), _logs);
+        }
+
+        private string GetLogFileName(DateTime date)
+        {
+            return $"Logs/{DateTime.Now.Day}_{DateTime.Now.Month}_{DateTime.Now.Year}_Logs.json";
         }
         #endregion
     }
