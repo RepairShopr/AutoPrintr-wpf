@@ -3,6 +3,7 @@ using AutoPrintr.IServices;
 using AutoPrintr.Models;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Views;
+using System.Diagnostics;
 
 namespace AutoPrintr.ViewModels
 {
@@ -10,6 +11,8 @@ namespace AutoPrintr.ViewModels
     {
         #region Properties
         private readonly ISettingsService _settingsService;
+        private readonly ILoggerService _loggerService;
+        private readonly EmailSettings _emailSettings;
 
         public override ViewType Type => ViewType.ContextMenu;
 
@@ -26,14 +29,19 @@ namespace AutoPrintr.ViewModels
         public RelayCommand GoToLogsCommand { get; private set; }
         public RelayCommand GoToAboutCommand { get; private set; }
         public RelayCommand LogoutCommand { get; private set; }
+        public RelayCommand RequestHelpCommand { get; private set; }
         #endregion
 
         #region Constructors
         public TrayIconContextMenuViewModel(INavigationService navigationService,
-            ISettingsService settingsService)
+            ISettingsService settingsService,
+            ILoggerService loggerService,
+            EmailSettings emailSettings)
             : base(navigationService)
         {
             _settingsService = settingsService;
+            _loggerService = loggerService;
+            _emailSettings = emailSettings;
 
             GoToLoginCommand = new RelayCommand(OnGoToLogin);
             GoToSettingsCommand = new RelayCommand(OnGoToSettings);
@@ -41,6 +49,7 @@ namespace AutoPrintr.ViewModels
             GoToLogsCommand = new RelayCommand(OnGoToLogs);
             GoToAboutCommand = new RelayCommand(OnGoToAbout);
             LogoutCommand = new RelayCommand(OnLogout);
+            RequestHelpCommand = new RelayCommand(OnRequestHelp);
 
             MessengerInstance.Register<User>(this, OnUserChanged);
         }
@@ -83,6 +92,11 @@ namespace AutoPrintr.ViewModels
                 await _settingsService.SetSettingsAsync(null);
 
             MessengerInstance.Send<User>(null);
+        }
+
+        private void OnRequestHelp()
+        {
+            Process.Start($"mailto:{_emailSettings.SupportEmailAddress}?subject={_emailSettings.SupportEmailSubject}&Attach={_loggerService.TodayLogsFilePath}");
         }
         #endregion
     }

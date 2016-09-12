@@ -13,6 +13,7 @@ namespace AutoPrintr.Services
 
         private ICollection<Log> _logs;
         public IEnumerable<Log> Logs => _logs;
+        public string TodayLogsFilePath => _fileService.GetFilePath(GetLogFileName(DateTime.Now));
         #endregion
 
         #region Constructors

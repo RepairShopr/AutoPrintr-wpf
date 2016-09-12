@@ -86,6 +86,13 @@ namespace AutoPrintr
         {
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
+            var emailSettings = new EmailSettings
+            {
+                SupportEmailAddress = (string)Resources[nameof(EmailSettings.SupportEmailAddress)],
+                SupportEmailSubject = (string)Resources[nameof(EmailSettings.SupportEmailSubject)]
+            };
+            SimpleIoc.Default.Register(() => emailSettings);
+
             //Register Services
             SimpleIoc.Default.Register<ILoggerService, LoggerService>();
             SimpleIoc.Default.Register<IApiService, ApiService>();
