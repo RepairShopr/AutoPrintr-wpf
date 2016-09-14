@@ -1,6 +1,6 @@
 ﻿namespace AutoPrintr.Helpers
 {
-    public enum ControlMessageType
+    internal enum ControlMessageType
     {
         Unknown,
         Busy,

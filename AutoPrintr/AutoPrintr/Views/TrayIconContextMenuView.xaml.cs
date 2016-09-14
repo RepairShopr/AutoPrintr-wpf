@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoPrintr.Helpers;
+using System;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,7 +15,7 @@ namespace AutoPrintr.Views
             InitializeComponent();
             CreateTrayIcon();
 
-            ContextMenu.DataContext = App.GetDataContext(Helpers.ViewType.ContextMenu);
+            ContextMenu.DataContext = WpfApp.Instance.GetDataContext(ViewType.ContextMenu);
         }
 
         public static void Close()

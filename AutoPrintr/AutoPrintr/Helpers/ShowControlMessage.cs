@@ -1,6 +1,6 @@
 ﻿namespace AutoPrintr.Helpers
 {
-    public class ShowControlMessage
+    internal class ShowControlMessage
     {
         public string Caption { get; set; }
         public object Data { get; set; }

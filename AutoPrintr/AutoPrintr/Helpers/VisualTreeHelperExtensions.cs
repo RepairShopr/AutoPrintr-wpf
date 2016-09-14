@@ -3,7 +3,7 @@ using System.Windows.Media;
 
 namespace AutoPrintr.Helpers
 {
-    public static class VisualTreeHelperExtensions
+    internal static class VisualTreeHelperExtensions
     {
         public static T FindParent<T>(this DependencyObject dependencyObject)
             where T : DependencyObject

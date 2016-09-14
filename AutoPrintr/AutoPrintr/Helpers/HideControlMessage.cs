@@ -1,6 +1,6 @@
 ﻿namespace AutoPrintr.Helpers
 {
-    public class HideControlMessage
+    internal class HideControlMessage
     {
         public ControlMessageType Type { get; set; }
 

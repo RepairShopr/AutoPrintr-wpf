@@ -53,7 +53,7 @@ namespace AutoPrintr.Services
                     window = new AboutWindow(); break;
                 default: throw new NotImplementedException();
             }
-            window.DataContext = App.GetDataContext(viewType);
+            window.DataContext = WpfApp.Instance.GetDataContext(viewType);
 
             ((BaseViewModel)window.DataContext).NavigatedTo();
             return window;

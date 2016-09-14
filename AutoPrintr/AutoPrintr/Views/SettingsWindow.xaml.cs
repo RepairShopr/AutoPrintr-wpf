@@ -1,5 +1,5 @@
-﻿using AutoPrintr.Helpers;
-using AutoPrintr.Models;
+﻿using AutoPrintr.Core.Models;
+using AutoPrintr.Helpers;
 using AutoPrintr.ViewModels;
 using System.Linq;
 using System.Windows;

@@ -8,9 +8,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Views/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
-            <system:String x:Key="SupportEmailAddress">help@repairshopr.com</system:String>
-            <system:String x:Key="SupportEmailSubject">Support request from AutoPrintr</system:String>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,6 +1,6 @@
-﻿using AutoPrintr.Helpers;
-using AutoPrintr.IServices;
-using AutoPrintr.Models;
+﻿using AutoPrintr.Core.IServices;
+using AutoPrintr.Core.Models;
+using AutoPrintr.Helpers;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Views;
 using System;
