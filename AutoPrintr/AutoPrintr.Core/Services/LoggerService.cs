@@ -67,7 +67,7 @@ namespace AutoPrintr.Core.Services
 
         private async void SaveLogsAsync()
         {
-            await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now), _logs);
+            await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now), _logs.ToArray());
         }
 
         private string GetLogFileName(DateTime date)

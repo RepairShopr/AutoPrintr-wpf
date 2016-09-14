@@ -124,13 +124,10 @@ namespace AutoPrintr.Core.Services
         #region Printer Methods
         private async void PrintDocument(Job job, bool manual = false)
         {
-            if (!job.Document.AutoPrint && !manual)
-                return;
-
             var installedPrinters = await _printerService.GetPrintersAsync();
             var printerToPrint = installedPrinters
                 .Where(x => job.Document.Register.HasValue ? job.Document.Register == x.Register : true)
-                .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled == true && (d.AutoPrint || manual)))
+                .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled == true))
                 .Where(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0))
                 .FirstOrDefault();
             if (printerToPrint == null)
