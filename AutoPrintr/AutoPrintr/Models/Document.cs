@@ -23,7 +23,7 @@ namespace AutoPrintr.Models
         public DocumentType Type { get; set; }
 
         [JsonProperty("location")]
-        public int Location { get; set; }
+        public int? Location { get; set; }
 
         [JsonProperty("register")]
         public int? Register { get; set; }
@@ -55,7 +55,7 @@ namespace AutoPrintr.Models
         {
             switch (type)
             {
-                case DocumentSize.FullSize: return "Size: Letter";
+                case DocumentSize.Letter: return "Size: Letter";
                 case DocumentSize.Label: return "Size: 1.1x3";
                 case DocumentSize.Receipt: return "Size: 80mm";
                 default: return null;

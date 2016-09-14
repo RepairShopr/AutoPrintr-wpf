@@ -2,7 +2,7 @@
 {
     public enum DocumentSize
     {
-        FullSize,
+        Letter,
         Label,
         Receipt
     }

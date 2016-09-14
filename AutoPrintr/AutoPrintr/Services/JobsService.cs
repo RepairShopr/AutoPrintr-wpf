@@ -357,9 +357,9 @@ namespace AutoPrintr.Services
             _loggingService.WriteInformation($"Starting read Pusher response: {message.ToString()}");
 
             var stringMessage = message.ToString();
-            var document = JsonConvert.DeserializeObject<Document>(stringMessage);
+            Document document = JsonConvert.DeserializeObject<Document>(stringMessage);
 
-            if (_settingsService.Settings.Locations.Any(l => l.Id == document.Location))
+            if (!document.Location.HasValue && !_settingsService.Settings.Locations.Any() || _settingsService.Settings.Locations.Any(l => l.Id == document.Location))
             {
                 var newJob = new Job { Document = document };
                 _newJobs.Add(newJob);
