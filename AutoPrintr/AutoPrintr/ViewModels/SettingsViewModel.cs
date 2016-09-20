@@ -17,6 +17,12 @@ namespace AutoPrintr.ViewModels
         private readonly ISettingsService _settingsService;
         private readonly IPrinterService _printerService;
 
+        public bool AddToStartup
+        {
+            get { return _settingsService.Settings.AddToStartup; }
+            set { _settingsService.AddToStartup(value); }
+        }
+
         public User User { get; private set; }
         public ObservableCollection<Location> SelectedLocations { get; private set; }
         public IEnumerable<string> DocumentTypes { get; private set; }

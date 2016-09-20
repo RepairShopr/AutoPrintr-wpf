@@ -103,10 +103,12 @@
                   Loaded="ListView_Loaded"
                   SelectionChanged="ListView_SelectionChanged" />
 
+        <CheckBox Grid.Row="2" Margin="20,0,10,10" Content="Add to Startup" IsChecked="{Binding AddToStartup, Mode=TwoWay}" />
+
         <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" Margin="-3,10,0,10" HorizontalAlignment="Left" />
 
         <TextBlock Grid.Column="1" Margin="20,15,20,0" Text="Printers" FontSize="18" Style="{StaticResource HeaderTextBlockStyle}" />
-        <ScrollViewer Grid.Row="1" Grid.Column="1" Margin="10,10,20,10">
+        <ScrollViewer Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Margin="10,10,20,10">
             <Border VerticalAlignment="Top" HorizontalAlignment="Left" Style="{StaticResource SeparatorBorderStyle}" BorderThickness="0,0,1,1">
                 <Grid>
                     <Grid.ColumnDefinitions>

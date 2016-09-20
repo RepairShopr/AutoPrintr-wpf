@@ -17,5 +17,6 @@ namespace AutoPrintr.Core.IServices
         Task AddPrinterAsync(Printer printer);
         Task UpdatePrinterAsync(Printer printer);
         Task RemovePrinterAsync(Printer printer);
+        void AddToStartup(bool startup);
     }
 }

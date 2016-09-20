@@ -4,6 +4,7 @@ namespace AutoPrintr.Core.Models
 {
     public class Settings : BaseModel
     {
+        public bool AddToStartup { get; set; }
         public Channel Channel { get; set; }
         public User User { get; set; }
         public IEnumerable<Printer> Printers { get; set; }
@@ -11,6 +12,7 @@ namespace AutoPrintr.Core.Models
 
         public Settings()
         {
+            AddToStartup = true;
             Printers = new List<Printer>();
             Locations = new List<Location>();
         }

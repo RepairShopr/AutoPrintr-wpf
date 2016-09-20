@@ -1,5 +1,6 @@
 ﻿using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -33,7 +34,11 @@ namespace AutoPrintr.Core.Services
 
             Settings = await _fileService.ReadObjectAsync<Settings>(_fileName);
             if (Settings == null)
+            {
                 Settings = new Settings();
+                if (Settings.AddToStartup)
+                    OnAddToStartup();
+            }
 
             _loggingService.WriteInformation("Settings is loaded");
         }
@@ -116,9 +121,54 @@ namespace AutoPrintr.Core.Services
             _loggingService.WriteInformation($"Printer {printer.Name} is removed");
         }
 
+        public async void AddToStartup(bool startup)
+        {
+            Settings.AddToStartup = startup;
+            await SaveSettingsAsync();
+
+            if (Settings.AddToStartup)
+                OnAddToStartup();
+            else
+                OnRemoveFromStartup();
+        }
+
         private async Task SaveSettingsAsync()
         {
             await _fileService.SaveObjectAsync(_fileName, Settings);
+        }
+
+        private void OnAddToStartup()
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/C REG ADD \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"{ Process.GetCurrentProcess().ProcessName}\" /T REG_SZ /F /D \"{System.Reflection.Assembly.GetEntryAssembly().Location}\"",
+                Verb = "runas",
+                UseShellExecute = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+
+            var process = Process.Start(psi);
+            process.WaitForExit();
+
+            _loggingService.WriteInformation($"An application is added to Startup");
+        }
+
+        private void OnRemoveFromStartup()
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/C REG DELETE \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"{ Process.GetCurrentProcess().ProcessName}\" /F",
+                Verb = "runas",
+                UseShellExecute = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+
+            var process = Process.Start(psi);
+            process.WaitForExit();
+
+            _loggingService.WriteInformation($"An application is removed from Startup");
         }
         #endregion
     }
