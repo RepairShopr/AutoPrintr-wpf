@@ -3,6 +3,7 @@ using AutoPrintr.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -53,7 +54,8 @@ namespace AutoPrintr.Core.Services
                     if (string.IsNullOrEmpty(document.LocalFilePath))
                         throw new InvalidOperationException("LocalFilePath is required");
 
-                    var printProcess = Process.Start("SumatraPDF.exe", $"-silent -exit-on-print -print-to \"{printer.Name}\" \"{_fileService.GetFilePath(document.LocalFilePath)}\"");
+                    var processPath = ExtractSumatraPDF();
+                    var printProcess = Process.Start(processPath, $"-silent -exit-on-print -print-to \"{printer.Name}\" \"{_fileService.GetFilePath(document.LocalFilePath)}\"");
                     printProcess.WaitForExit();
                 }
                 catch (Exception ex)
@@ -71,6 +73,16 @@ namespace AutoPrintr.Core.Services
         {
             foreach (string item in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
                 yield return new Printer { Name = item };
+        }
+
+        private string ExtractSumatraPDF()
+        {
+            string path = Path.Combine(Path.GetTempPath(), $"{nameof(Resources.SumatraPDF)}.exe");
+
+            if (!File.Exists(path))
+                File.WriteAllBytes(path, Resources.SumatraPDF);
+
+            return path;
         }
         #endregion
     }
