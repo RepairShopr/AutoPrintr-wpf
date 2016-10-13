@@ -65,5 +65,15 @@ namespace AutoPrintr.Views
                 textBox.Select(textBox.Text.Count(), 0);
             }
         }
+
+        private void CheckBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var checkBox = (CheckBox)sender;
+            var printer = (Printer)checkBox.DataContext;
+
+            printer.Rotation = checkBox.IsChecked == true;
+
+            ViewModel.UpdatePrinterCommand.Execute(printer);
+        }
     }
 }

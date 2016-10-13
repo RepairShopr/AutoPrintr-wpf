@@ -59,6 +59,8 @@ namespace AutoPrintr.Core.Services
         #endregion
 
         #region Methods
+
+        #region Jobs Methods
         public async Task RunAsync()
         {
             _loggingService.WriteInformation($"Startring {nameof(JobsService)}");
@@ -120,16 +122,13 @@ namespace AutoPrintr.Core.Services
         {
             return _newJobs.Union(_downloadedJobs).Union(_doneJobs);
         }
+        #endregion
 
         #region Printer Methods
         private async void PrintDocument(Job job, bool manual = false)
         {
-            var installedPrinters = await _printerService.GetPrintersAsync();
-            var printerToPrint = installedPrinters
-                .Where(x => job.Document.Register.HasValue ? job.Document.Register == x.Register : true)
-                .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled == true))
-                .Where(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0))
-                .FirstOrDefault();
+            var jobPrinters = await GetPrintersForJob(job);
+            var printerToPrint = jobPrinters.FirstOrDefault(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0));
             if (printerToPrint == null)
                 return;
 
@@ -164,6 +163,15 @@ namespace AutoPrintr.Core.Services
                 if (!_printingJobs.Any())
                     MovePrintedJobs();
             });
+        }
+
+        private async Task<IEnumerable<Printer>> GetPrintersForJob(Job job)
+        {
+            var installedPrinters = await _printerService.GetPrintersAsync();
+            return installedPrinters
+                .Where(x => job.Document.Register.HasValue ? job.Document.Register == x.Register : true)
+                .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled == true))
+                .ToList();
         }
 
         private void MovePrintedJobs()
@@ -239,7 +247,12 @@ namespace AutoPrintr.Core.Services
 
         private async void DownloadDocument(Job job)
         {
-            _loggingService.WriteInformation($"Starting download document {job.Document.TypeTitle}");
+            var jobPrinters = await GetPrintersForJob(job);
+            var rotation = jobPrinters.Any(x => x.Rotation);
+            if (rotation)
+                job.Document.FileUri = new Uri($"{job.Document.FileUri}&rotation=portrait");
+
+            _loggingService.WriteInformation($"Starting download document {job.Document.TypeTitle} from {job.Document.FileUri}");
 
             _downloadingJobCount++;
             job.State = JobState.Processing;

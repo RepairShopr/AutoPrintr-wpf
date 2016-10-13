@@ -19,6 +19,7 @@
         </x:Array>
         <x:Array x:Key="AdditionalItems" Type="{x:Type system:String}">
             <system:String>Register</system:String>
+            <system:String>Rotation</system:String>
         </x:Array>
 
         <Style TargetType="Border" x:Key="SeparatorBorderStyle">
@@ -56,6 +57,7 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
                 <Border Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
@@ -77,6 +79,9 @@
                 <ItemsControl Grid.Row="2" ItemsSource="{Binding DocumentTypes, Mode=OneWay}" ItemTemplate="{StaticResource DocumentTypeItemTemplate}" />
                 <Border Grid.Row="3" Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
                     <TextBox Text="{Binding Register, Mode=TwoWay}" Margin="10,5" MaxLength="10" FontSize="12" TextChanged="TextBox_TextChanged" LostFocus="TextBox_LostFocus" />
+                </Border>
+                <Border Grid.Row="4" Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
+                    <CheckBox IsChecked="{Binding Rotation, Mode=TwoWay}" Margin="10,5" FontSize="12" Content="Rotate" LostFocus="CheckBox_LostFocus" />
                 </Border>
             </Grid>
         </DataTemplate>

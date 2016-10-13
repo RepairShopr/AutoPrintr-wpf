@@ -7,6 +7,7 @@ namespace AutoPrintr.Core.Models
     {
         public string Name { get; set; }
         public int? Register { get; set; }
+        public bool Rotation { get; set; }
         public IEnumerable<DocumentTypeSettings> DocumentTypes { get; set; }
 
         public Printer()
