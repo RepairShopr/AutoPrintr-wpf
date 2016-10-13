@@ -55,7 +55,7 @@ namespace AutoPrintr.Core.Services
                         throw new InvalidOperationException("LocalFilePath is required");
 
                     var processPath = ExtractSumatraPDF();
-                    var printProcess = Process.Start(processPath, $"-silent -exit-on-print -print-to \"{printer.Name}\" \"{_fileService.GetFilePath(document.LocalFilePath)}\"");
+                    var printProcess = Process.Start(processPath, $"-silent -print-settings \"noscale\" -exit-on-print -print-to \"{printer.Name}\" \"{_fileService.GetFilePath(document.LocalFilePath)}\"");
                     printProcess.WaitForExit();
                 }
                 catch (Exception ex)
