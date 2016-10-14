@@ -11,6 +11,19 @@
 
     <ScrollViewer>
         <TextBlock x:Name="DescriptionTextBlock" Margin="20" TextWrapping="Wrap">
+            <Run Text="Product: " />
+            <Run Text="{Binding Product, Mode=OneTime}" />
+            <LineBreak />
+            <Run Text="Version: " />
+            <Run Text="{Binding Version, Mode=OneTime}" />
+            <LineBreak />
+            <Run Text="Description: " />
+            <Run Text="{Binding Description, Mode=OneTime}" />
+            <LineBreak />
+            <LineBreak />
+            <Run Text="{Binding Copyright, Mode=OneTime}" />
+            <LineBreak />
+            <LineBreak />
             <Run Text="{Binding Licence, Mode=OneTime}" />
             <LineBreak />
             <LineBreak />
