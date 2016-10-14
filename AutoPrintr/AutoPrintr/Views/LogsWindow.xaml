@@ -4,11 +4,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:AutoPrintr.Controls"
+        xmlns:converters="clr-namespace:AutoPrintr.Converters"
         Title="AutoPrintr Logs"
         WindowStartupLocation="CenterScreen"
         Icon="/AutoPrintr;component/Resources/Printer_32.png"
         Height="720"
         Width="1280">
+
+    <Window.Resources>
+        <converters:ForegroundConverter x:Key="ForegroundConverter" />
+    </Window.Resources>
 
     <Grid x:Name="LayoutRoot">
         <Grid.RowDefinitions>
@@ -29,14 +34,14 @@
                 <DataGridTemplateColumn Header="Created On" MinWidth="150">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Margin="10,3" VerticalAlignment="Center" Text="{Binding DateTime, Mode=OneWay}" />
+                            <TextBlock Margin="10,3" VerticalAlignment="Center" Text="{Binding DateTime, Mode=OneTime}" Foreground="{Binding Type, Mode=OneTime, Converter={StaticResource ForegroundConverter}}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Event" MinWidth="730" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Margin="10,3" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Event, Mode=OneWay}" />
+                            <TextBlock Margin="10,3" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Event, Mode=OneTime}" Foreground="{Binding Type, Mode=OneTime, Converter={StaticResource ForegroundConverter}}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
