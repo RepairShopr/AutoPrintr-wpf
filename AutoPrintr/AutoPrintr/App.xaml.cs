@@ -27,6 +27,10 @@ namespace AutoPrintr
         #region Startup and Exit
         protected override async void OnStartup(StartupEventArgs e)
         {
+            var processName = Process.GetCurrentProcess().ProcessName;
+            if (Process.GetProcessesByName(processName).LongLength > 1)
+                Process.GetCurrentProcess().Kill();
+
             base.OnStartup(e);
             await WpfApp.Instance.Startup();
             new TrayIconContextMenuView();
