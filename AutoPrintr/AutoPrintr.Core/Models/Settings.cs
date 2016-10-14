@@ -12,7 +12,6 @@ namespace AutoPrintr.Core.Models
 
         public Settings()
         {
-            AddToStartup = true;
             Printers = new List<Printer>();
             Locations = new List<Location>();
         }

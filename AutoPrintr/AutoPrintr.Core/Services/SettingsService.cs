@@ -1,5 +1,6 @@
 ﻿using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,8 +37,7 @@ namespace AutoPrintr.Core.Services
             if (Settings == null)
             {
                 Settings = new Settings();
-                if (Settings.AddToStartup)
-                    OnAddToStartup();
+                Settings.AddToStartup = OnAddToStartup();
                 await SaveSettingsAsync();
             }
 
@@ -49,7 +49,7 @@ namespace AutoPrintr.Core.Services
             Settings.User = user;
             if (channel != null)
             {
-                _loggingService.WriteInformation($"Updated channel from {Settings.Channel} to {channel}");
+                _loggingService.WriteInformation($"Updated channel from {Settings.Channel} to {channel?.Value}");
 
                 Settings.Channel = channel;
                 ChannelChangedEvent?.Invoke(Settings.Channel);
@@ -126,13 +126,17 @@ namespace AutoPrintr.Core.Services
 
         public async void AddToStartup(bool startup)
         {
-            Settings.AddToStartup = startup;
-            await SaveSettingsAsync();
-
-            if (Settings.AddToStartup)
-                OnAddToStartup();
+            bool result;
+            if (startup)
+                result = OnAddToStartup();
             else
-                OnRemoveFromStartup();
+                result = OnRemoveFromStartup();
+
+            if (result)
+            {
+                Settings.AddToStartup = startup;
+                await SaveSettingsAsync();
+            }
         }
 
         private async Task SaveSettingsAsync()
@@ -140,38 +144,66 @@ namespace AutoPrintr.Core.Services
             await _fileService.SaveObjectAsync(_fileName, Settings);
         }
 
-        private void OnAddToStartup()
+        private bool OnAddToStartup()
         {
-            var psi = new ProcessStartInfo
+            try
             {
-                FileName = "cmd.exe",
-                Arguments = $"/C REG ADD \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"{ Process.GetCurrentProcess().ProcessName}\" /T REG_SZ /F /D \"{System.Reflection.Assembly.GetEntryAssembly().Location}\"",
-                Verb = "runas",
-                UseShellExecute = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            };
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/C REG ADD \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"{ Process.GetCurrentProcess().ProcessName}\" /T REG_SZ /F /D \"{System.Reflection.Assembly.GetEntryAssembly().Location}\"",
+                    Verb = "runas",
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
 
-            var process = Process.Start(psi);
-            process.WaitForExit();
+                var process = Process.Start(psi);
+                process.WaitForExit();
 
-            _loggingService.WriteInformation($"An application is added to Startup");
+                _loggingService.WriteInformation($"An application is added to Startup");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _loggingService.WriteInformation($"An application is not added to Startup");
+
+                Debug.WriteLine($"Error in {nameof(SettingsService)}: {ex.ToString()}");
+                _loggingService.WriteError(ex);
+
+                return false;
+            }
         }
 
-        private void OnRemoveFromStartup()
+        private bool OnRemoveFromStartup()
         {
-            var psi = new ProcessStartInfo
+            try
             {
-                FileName = "cmd.exe",
-                Arguments = $"/C REG DELETE \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"{ Process.GetCurrentProcess().ProcessName}\" /F",
-                Verb = "runas",
-                UseShellExecute = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            };
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/C REG DELETE \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"{ Process.GetCurrentProcess().ProcessName}\" /F",
+                    Verb = "runas",
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
 
-            var process = Process.Start(psi);
-            process.WaitForExit();
+                var process = Process.Start(psi);
+                process.WaitForExit();
 
-            _loggingService.WriteInformation($"An application is removed from Startup");
+                _loggingService.WriteInformation($"An application is removed from Startup");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _loggingService.WriteInformation($"An application is not removed from Startup");
+
+                Debug.WriteLine($"Error in {nameof(SettingsService)}: {ex.ToString()}");
+                _loggingService.WriteError(ex);
+
+                return false;
+            }
         }
         #endregion
     }
