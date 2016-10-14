@@ -38,6 +38,7 @@ namespace AutoPrintr.Core.Services
                 Settings = new Settings();
                 if (Settings.AddToStartup)
                     OnAddToStartup();
+                await SaveSettingsAsync();
             }
 
             _loggingService.WriteInformation("Settings is loaded");
