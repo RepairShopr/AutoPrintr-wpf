@@ -9,9 +9,11 @@ namespace AutoPrintr.Core.IServices
 
     public interface IJobsService
     {
+        bool IsRunning { get; }
+        IEnumerable<Job> Jobs { get; }
+
         event JobChangedEventHandler JobChangedEvent;
 
-        IEnumerable<Job> Jobs { get; }
         Task RunAsync();
         void Print(Job job);
         Task DeleteJob(Job job);

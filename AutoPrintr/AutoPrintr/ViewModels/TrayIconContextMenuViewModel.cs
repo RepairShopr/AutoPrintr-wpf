@@ -11,6 +11,7 @@ namespace AutoPrintr.ViewModels
     {
         #region Properties
         private readonly ISettingsService _settingsService;
+        private readonly IJobsService _jobsService;
         private readonly ILoggerService _loggerService;
         private readonly EmailSettings _emailSettings;
 
@@ -30,16 +31,20 @@ namespace AutoPrintr.ViewModels
         public RelayCommand GoToAboutCommand { get; private set; }
         public RelayCommand LogoutCommand { get; private set; }
         public RelayCommand RequestHelpCommand { get; private set; }
+        public RelayCommand StartServiceCommand { get; private set; }
+        public RelayCommand StopServiceCommand { get; private set; }
         #endregion
 
         #region Constructors
         public TrayIconContextMenuViewModel(INavigationService navigationService,
             ISettingsService settingsService,
+            IJobsService jobsService,
             ILoggerService loggerService,
             EmailSettings emailSettings)
             : base(navigationService)
         {
             _settingsService = settingsService;
+            _jobsService = jobsService;
             _loggerService = loggerService;
             _emailSettings = emailSettings;
 
@@ -50,6 +55,8 @@ namespace AutoPrintr.ViewModels
             GoToAboutCommand = new RelayCommand(OnGoToAbout);
             LogoutCommand = new RelayCommand(OnLogout);
             RequestHelpCommand = new RelayCommand(OnRequestHelp);
+            StartServiceCommand = new RelayCommand(OnStartService, CanStartService);
+            StopServiceCommand = new RelayCommand(OnStopService, CanStopService);
 
             MessengerInstance.Register<User>(this, OnUserChanged);
         }
@@ -97,6 +104,30 @@ namespace AutoPrintr.ViewModels
         private void OnRequestHelp()
         {
             Process.Start($"mailto:{_emailSettings.SupportEmailAddress}?subject={_emailSettings.SupportEmailSubject}&Attach={_loggerService.TodayLogsFilePath}");
+        }
+
+        private bool CanStartService()
+        {
+            return !_jobsService.IsRunning;
+        }
+
+        private async void OnStartService()
+        {
+            await _jobsService.RunAsync();
+            StartServiceCommand.RaiseCanExecuteChanged();
+            StopServiceCommand.RaiseCanExecuteChanged();
+        }
+
+        private bool CanStopService()
+        {
+            return _jobsService.IsRunning;
+        }
+
+        private async void OnStopService()
+        {
+            await _jobsService.StopAsync();
+            StartServiceCommand.RaiseCanExecuteChanged();
+            StopServiceCommand.RaiseCanExecuteChanged();
         }
         #endregion
     }

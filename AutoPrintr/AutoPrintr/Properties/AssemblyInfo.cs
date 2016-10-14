@@ -8,9 +8,9 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("AutoPrintr")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Automatically print to the desired printer")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("RepairShopr")]
 [assembly: AssemblyProduct("AutoPrintr")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]

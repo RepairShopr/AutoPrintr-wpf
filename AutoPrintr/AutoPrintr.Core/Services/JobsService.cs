@@ -35,9 +35,10 @@ namespace AutoPrintr.Core.Services
         private ObservableCollection<Job> _downloadedJobs;
         private ObservableCollection<Job> _doneJobs;
 
-        public event JobChangedEventHandler JobChangedEvent;
-
+        public bool IsRunning { get; private set; }
         public IEnumerable<Job> Jobs => GetJobs();
+
+        public event JobChangedEventHandler JobChangedEvent;
         #endregion
 
         #region Constructors
@@ -63,6 +64,9 @@ namespace AutoPrintr.Core.Services
         #region Jobs Methods
         public async Task RunAsync()
         {
+            if (IsRunning)
+                return;
+
             _loggingService.WriteInformation($"Startring {nameof(JobsService)}");
 
             if (!_isJobsLoaded)
@@ -73,6 +77,8 @@ namespace AutoPrintr.Core.Services
             await RunPusherAsync();
 
             _loggingService.WriteInformation($"{nameof(JobsService)} is started");
+
+            IsRunning = true;
         }
 
         public void Print(Job job)
@@ -106,11 +112,16 @@ namespace AutoPrintr.Core.Services
 
         public async Task StopAsync()
         {
+            if (!IsRunning)
+                return;
+
             _loggingService.WriteInformation($"Stopping {nameof(JobsService)}");
 
             await StopPusher();
 
             _loggingService.WriteInformation($"{nameof(JobsService)} is stopped");
+
+            IsRunning = false;
         }
 
         private async void _settingsService_ChannelChangedEvent(Models.Channel newChannel)
@@ -318,11 +329,10 @@ namespace AutoPrintr.Core.Services
             }
 
             if (string.Compare(_channel, _settingsService.Settings.Channel.Value, true) != 0)
-            {
                 _channel = _settingsService.Settings.Channel.Value;
-                await StopPusher();
-                await StartPusher();
-            }
+
+            await StopPusher();
+            await StartPusher();
         }
 
         private async Task StartPusher()

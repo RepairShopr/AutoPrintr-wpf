@@ -7,8 +7,8 @@
         Title="AutoPrintr Logs"
         WindowStartupLocation="CenterScreen"
         Icon="/AutoPrintr;component/Resources/Printer_32.png"
-        Height="600"
-        Width="950">
+        Height="720"
+        Width="1280">
 
     <Grid x:Name="LayoutRoot">
         <Grid.RowDefinitions>

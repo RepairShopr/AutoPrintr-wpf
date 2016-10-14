@@ -7,8 +7,8 @@
         Title="AutoPrintr Settings"
         WindowStartupLocation="CenterScreen"
         Icon="/AutoPrintr;component/Resources/Printer_32.png"
-        Height="600"
-        Width="950">
+        Height="720"
+        Width="1280">
 
     <Window.Resources>
         <system:Double x:Key="RowHeight">35</system:Double>
@@ -89,8 +89,8 @@
 
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.25*" />
-            <ColumnDefinition Width="0.75*" />
+            <ColumnDefinition Width="0.15*" />
+            <ColumnDefinition Width="0.85*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />

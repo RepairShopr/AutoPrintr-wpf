@@ -9,8 +9,8 @@
         Title="AutoPrintr Jobs"
         WindowStartupLocation="CenterScreen"
         Icon="/AutoPrintr;component/Resources/Printer_32.png"
-        Height="600"
-        Width="950">
+        Height="720"
+        Width="1280">
 
     <Window.Resources>
         <converters:ObjectToVisibilityConverter x:Key="ObjectToVisibilityConverter" />
@@ -59,7 +59,7 @@
 
             <DataGrid Grid.Row="1" Grid.ColumnSpan="9" ItemsSource="{Binding Jobs, Mode=OneWay}">
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Document" MinWidth="150">
+                    <DataGridTemplateColumn Header="Document" MinWidth="130">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Margin="10,3" VerticalAlignment="Center" Text="{Binding Document.TypeTitle, Mode=OneWay}" />
@@ -87,7 +87,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Quantity" MinWidth="100">
+                    <DataGridTemplateColumn Header="Quantity" MinWidth="75">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Margin="10,3" VerticalAlignment="Center" Text="{Binding Quantity, Mode=OneWay}" />
