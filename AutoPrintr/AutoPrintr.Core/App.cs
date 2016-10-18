@@ -1,7 +1,6 @@
 ﻿using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Services;
 using GalaSoft.MvvmLight.Ioc;
-using GalaSoft.MvvmLight.Messaging;
 using Microsoft.Practices.ServiceLocation;
 using System.Threading.Tasks;
 
@@ -22,12 +21,18 @@ namespace AutoPrintr.Core
         {
             RegisterTypes();
             await LoadSettingsAsync();
-            await RunJobsAsync();
         }
 
-        public virtual async Task Exit()
+        public virtual async Task RunJobs()
         {
-            await StopJobsAsync();
+            var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
+            await jobsService.RunAsync();
+        }
+
+        public virtual async Task StopJobs()
+        {
+            var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
+            await jobsService.StopAsync();
         }
 
         protected virtual void RegisterTypes()
@@ -44,24 +49,10 @@ namespace AutoPrintr.Core
             SimpleIoc.Default.Register<IJobsService, JobsService>();
         }
 
-        private async Task LoadSettingsAsync()
+        protected virtual async Task<bool> LoadSettingsAsync()
         {
             var settingsService = SimpleIoc.Default.GetInstance<ISettingsService>();
-            await settingsService.LoadSettingsAsync();
-
-            Messenger.Default.Send(settingsService.Settings.User);
-        }
-
-        private async Task RunJobsAsync()
-        {
-            var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
-            await jobsService.RunAsync();
-        }
-
-        private async Task StopJobsAsync()
-        {
-            var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
-            await jobsService.StopAsync();
+            return await settingsService.LoadSettingsAsync();
         }
         #endregion
     }

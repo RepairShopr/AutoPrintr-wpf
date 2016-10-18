@@ -41,12 +41,6 @@ namespace AutoPrintr
             TrayIconContextMenuView.Close();
             base.OnExit(e);
         }
-
-        protected override async void OnSessionEnding(SessionEndingCancelEventArgs e)
-        {
-            await WpfApp.Instance.Exit();
-            base.OnSessionEnding(e);
-        }
         #endregion
 
         #region Exceptions

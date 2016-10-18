@@ -1,8 +1,12 @@
-﻿using AutoPrintr.Services;
+﻿using AutoPrintr.Core.IServices;
+using AutoPrintr.Services;
 using AutoPrintr.ViewModels;
 using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Views;
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace AutoPrintr.Helpers
 {
@@ -40,6 +44,22 @@ namespace AutoPrintr.Helpers
             SimpleIoc.Default.Register<JobsViewModel>(true);
             SimpleIoc.Default.Register<LogsViewModel>(true);
             SimpleIoc.Default.Register<AboutViewModel>(true);
+        }
+
+        protected override async Task<bool> LoadSettingsAsync()
+        {
+            var settingsService = SimpleIoc.Default.GetInstance<ISettingsService>();
+
+            var result = await base.LoadSettingsAsync();
+            if (!result)
+            {
+                settingsService.AddToStartup(true);
+                InstallService();
+            }
+
+            Messenger.Default.Send(settingsService.Settings.User);
+
+            return result;
         }
 
         #region DataContext and Navigation
@@ -81,6 +101,36 @@ namespace AutoPrintr.Helpers
             {
                 //case ControlMessageType.Busy: BusyControl.Hide(); break;
                 default: break;
+            }
+        }
+        #endregion
+
+        #region Service
+        private void InstallService()
+        {
+            var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = typeof(Service.Installer).Assembly.Location,
+                    Arguments = $"/{Service.Helpers.Commands.Stop} /{Service.Helpers.Commands.Uninstall} /{Service.Helpers.Commands.Install} /{Service.Helpers.Commands.Start}",
+                    Verb = "runas",
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                };
+
+                var process = Process.Start(psi);
+                process.WaitForExit();
+
+                loggingService.WriteInformation($"Service is installed");
+            }
+            catch (Exception ex)
+            {
+                loggingService.WriteWarning($"Service is not installed");
+
+                Debug.WriteLine($"Error in {nameof(WpfApp)}: {ex.ToString()}");
+                loggingService.WriteError(ex);
             }
         }
         #endregion

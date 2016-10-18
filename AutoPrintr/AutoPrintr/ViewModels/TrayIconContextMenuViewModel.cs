@@ -11,7 +11,6 @@ namespace AutoPrintr.ViewModels
     {
         #region Properties
         private readonly ISettingsService _settingsService;
-        private readonly IJobsService _jobsService;
         private readonly ILoggerService _loggerService;
         private readonly EmailSettings _emailSettings;
 
@@ -38,13 +37,11 @@ namespace AutoPrintr.ViewModels
         #region Constructors
         public TrayIconContextMenuViewModel(INavigationService navigationService,
             ISettingsService settingsService,
-            IJobsService jobsService,
             ILoggerService loggerService,
             EmailSettings emailSettings)
             : base(navigationService)
         {
             _settingsService = settingsService;
-            _jobsService = jobsService;
             _loggerService = loggerService;
             _emailSettings = emailSettings;
 
@@ -108,24 +105,24 @@ namespace AutoPrintr.ViewModels
 
         private bool CanStartService()
         {
-            return !_jobsService.IsRunning;
+            return false; //!WpfApp.IsServiceRunning();
         }
 
-        private async void OnStartService()
+        private void OnStartService()
         {
-            await _jobsService.RunAsync();
+            //WpfApp.StartService();
             StartServiceCommand.RaiseCanExecuteChanged();
             StopServiceCommand.RaiseCanExecuteChanged();
         }
 
         private bool CanStopService()
         {
-            return _jobsService.IsRunning;
+            return false; //WpfApp.IsServiceRunning();
         }
 
-        private async void OnStopService()
+        private void OnStopService()
         {
-            await _jobsService.StopAsync();
+            //WpfApp.StopService();
             StartServiceCommand.RaiseCanExecuteChanged();
             StopServiceCommand.RaiseCanExecuteChanged();
         }

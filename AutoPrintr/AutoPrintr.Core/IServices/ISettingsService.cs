@@ -10,7 +10,7 @@ namespace AutoPrintr.Core.IServices
         event ChannelChangedEventHandler ChannelChangedEvent;
 
         Settings Settings { get; }
-        Task LoadSettingsAsync();
+        Task<bool> LoadSettingsAsync();
         Task SetSettingsAsync(User user, Channel channel = null);
         Task AddLocationAsync(Location location);
         Task RemoveLocationAsync(Location location);

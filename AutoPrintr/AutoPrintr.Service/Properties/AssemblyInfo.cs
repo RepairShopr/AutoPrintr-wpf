@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AutoPrintr Core")]
-[assembly: AssemblyDescription("Core classes for AutoPrintr apps")]
+[assembly: AssemblyTitle("AutoPrintr Service")]
+[assembly: AssemblyDescription("Service for AutoPrintr apps")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("RepairShopr")]
-[assembly: AssemblyProduct("AutoPrintr Core")]
+[assembly: AssemblyProduct("AutoPrintr Service")]
 [assembly: AssemblyCopyright("Copyright © 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("66486e33-03c5-4205-9adf-486ffbabc67d")]
+[assembly: Guid("638ac5d5-242d-4733-a930-64a91bf8225a")]
 
 // Version information for an assembly consists of the following four values:
 //

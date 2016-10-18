@@ -89,12 +89,12 @@ namespace AutoPrintr.ViewModels
             Jobs = null;
         }
 
-        private void LoadJobs()
+        private async void LoadJobs()
         {
             ShowBusyControl();
 
             Jobs.Clear();
-            var jobs = _jobsService.Jobs
+            var jobs = (await _jobsService.GetJobs())
                 .Where(x => SelectedJobState.HasValue ? x.State == SelectedJobState.Value : true)
                 .Where(x => SelectedDocumentType.HasValue ? x.Document.Type == SelectedDocumentType.Value : true)
                 .OrderByDescending(x => x.UpdatedOn);

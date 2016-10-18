@@ -17,8 +17,8 @@
             <MenuItem Header="About" Command="{Binding GoToAboutCommand, Mode=OneTime}" />
             <MenuItem Header="Logout" Command="{Binding LogoutCommand, Mode=OneTime}" Visibility="{Binding IsUserLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
             <MenuItem Header="Request Help" Command="{Binding RequestHelpCommand, Mode=OneTime}" />
-            <MenuItem Header="Start Service" Command="{Binding StartServiceCommand, Mode=OneTime}" />
-            <MenuItem Header="Stop Service" Command="{Binding StopServiceCommand, Mode=OneTime}" />
+            <!--<MenuItem Header="Start Service" Command="{Binding StartServiceCommand, Mode=OneTime}" />-->
+            <!--<MenuItem Header="Stop Service" Command="{Binding StopServiceCommand, Mode=OneTime}" />-->
             <MenuItem Header="Exit" Click="ExitMenuItem_Click" />
         </ContextMenu>
     </UserControl.ContextMenu>

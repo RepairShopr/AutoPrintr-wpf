@@ -21,13 +21,12 @@ namespace AutoPrintr.Core.Services
         private readonly ILoggerService _loggingService;
 
         private readonly string _applicationKey;
-        private readonly string _newJobsFileName = $"New{nameof(Job)}s.json";
-        private readonly string _downloadedJobsFileName = $"Downloaded{nameof(Job)}s.json";
-        private readonly string _doneJobsFileName = $"Done{nameof(Job)}s.json";
+        private readonly string _newJobsFileName = $"Data/New{nameof(Job)}s.json";
+        private readonly string _downloadedJobsFileName = $"Data/Downloaded{nameof(Job)}s.json";
+        private readonly string _doneJobsFileName = $"Data/Done{nameof(Job)}s.json";
 
         private string _channel;
         private Pusher _pusher;
-        private bool _isJobsLoaded;
         private int _downloadingJobCount;
         private Dictionary<Printer, Job> _printingJobs;
 
@@ -36,7 +35,6 @@ namespace AutoPrintr.Core.Services
         private ObservableCollection<Job> _doneJobs;
 
         public bool IsRunning { get; private set; }
-        public IEnumerable<Job> Jobs => GetJobs();
 
         public event JobChangedEventHandler JobChangedEvent;
         #endregion
@@ -62,6 +60,12 @@ namespace AutoPrintr.Core.Services
         #region Methods
 
         #region Jobs Methods
+        public async Task<IEnumerable<Job>> GetJobs()
+        {
+            await ReadJobsFromFiles();
+            return _newJobs.Union(_downloadedJobs).Union(_doneJobs);
+        }
+
         public async Task RunAsync()
         {
             if (IsRunning)
@@ -69,11 +73,7 @@ namespace AutoPrintr.Core.Services
 
             _loggingService.WriteInformation($"Startring {nameof(JobsService)}");
 
-            if (!_isJobsLoaded)
-            {
-                _isJobsLoaded = true;
-                await ReadJobsFromFiles();
-            }
+            await ReadJobsFromFiles();
             await RunPusherAsync();
 
             _loggingService.WriteInformation($"{nameof(JobsService)} is started");
@@ -105,7 +105,7 @@ namespace AutoPrintr.Core.Services
 
         public async Task DeleteJobs(DateTime startDate, DateTime endDate)
         {
-            var jobsToRemove = GetJobs().Where(x => x.CreatedOn >= startDate && x.CreatedOn < endDate).ToList();
+            var jobsToRemove = (await GetJobs()).Where(x => x.CreatedOn >= startDate && x.CreatedOn < endDate).ToList();
             foreach (var item in jobsToRemove)
                 await DeleteJob(item);
         }
@@ -126,12 +126,10 @@ namespace AutoPrintr.Core.Services
 
         private async void _settingsService_ChannelChangedEvent(Models.Channel newChannel)
         {
-            await RunAsync();
-        }
+            if (!IsRunning)
+                return;
 
-        private IEnumerable<Job> GetJobs()
-        {
-            return _newJobs.Union(_downloadedJobs).Union(_doneJobs);
+            await RunAsync();
         }
         #endregion
 
@@ -221,6 +219,9 @@ namespace AutoPrintr.Core.Services
             _doneJobs.CollectionChanged += _doneJobs_CollectionChanged;
 
             _loggingService.WriteInformation($"Jobs are read");
+
+            if (!IsRunning)
+                return;
 
             foreach (var newJob in _newJobs)
                 DownloadDocument(newJob);
@@ -319,7 +320,7 @@ namespace AutoPrintr.Core.Services
         #endregion
 
         #region Pusher Methods
-        public async Task RunPusherAsync()
+        private async Task RunPusherAsync()
         {
             if (_settingsService.Settings.Channel == null || string.IsNullOrEmpty(_settingsService.Settings.Channel.Value))
             {

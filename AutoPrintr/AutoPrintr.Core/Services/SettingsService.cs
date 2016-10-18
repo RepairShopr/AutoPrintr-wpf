@@ -12,7 +12,7 @@ namespace AutoPrintr.Core.Services
         #region Properties
         private readonly IFileService _fileService;
         private readonly ILoggerService _loggingService;
-        private readonly string _fileName = $"{nameof(Settings)}.json";
+        private readonly string _fileName = $"Data/{nameof(Settings)}.json";
 
         public event ChannelChangedEventHandler ChannelChangedEvent;
 
@@ -29,7 +29,7 @@ namespace AutoPrintr.Core.Services
         #endregion
 
         #region Methods
-        public async Task LoadSettingsAsync()
+        public async Task<bool> LoadSettingsAsync()
         {
             _loggingService.WriteInformation("Starting load settings");
 
@@ -37,11 +37,12 @@ namespace AutoPrintr.Core.Services
             if (Settings == null)
             {
                 Settings = new Settings();
-                Settings.AddToStartup = OnAddToStartup();
                 await SaveSettingsAsync();
+                return false;
             }
 
             _loggingService.WriteInformation("Settings is loaded");
+            return true;
         }
 
         public async Task SetSettingsAsync(User user, Channel channel = null)
@@ -166,7 +167,7 @@ namespace AutoPrintr.Core.Services
             }
             catch (Exception ex)
             {
-                _loggingService.WriteInformation($"An application is not added to Startup");
+                _loggingService.WriteWarning($"An application is not added to Startup");
 
                 Debug.WriteLine($"Error in {nameof(SettingsService)}: {ex.ToString()}");
                 _loggingService.WriteError(ex);
@@ -197,7 +198,7 @@ namespace AutoPrintr.Core.Services
             }
             catch (Exception ex)
             {
-                _loggingService.WriteInformation($"An application is not removed from Startup");
+                _loggingService.WriteWarning($"An application is not removed from Startup");
 
                 Debug.WriteLine($"Error in {nameof(SettingsService)}: {ex.ToString()}");
                 _loggingService.WriteError(ex);
