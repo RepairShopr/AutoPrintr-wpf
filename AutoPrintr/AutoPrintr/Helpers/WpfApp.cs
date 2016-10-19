@@ -62,6 +62,12 @@ namespace AutoPrintr.Helpers
             return result;
         }
 
+        protected override Task InitializeLogsAsync()
+        {
+            var loggerService = SimpleIoc.Default.GetInstance<ILoggerService>();
+            return loggerService.InitializeAppLogsAsync();
+        }
+
         #region DataContext and Navigation
         public BaseViewModel GetDataContext(ViewType view)
         {

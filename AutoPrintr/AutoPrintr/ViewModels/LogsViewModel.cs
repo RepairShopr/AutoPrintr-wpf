@@ -53,11 +53,11 @@ namespace AutoPrintr.ViewModels
             LoadLogs();
         }
 
-        private void LoadLogs()
+        private async void LoadLogs()
         {
             ShowBusyControl();
 
-            Logs = _logsService.Logs
+            Logs = (await _logsService.GetLogsAsync())
                 .Where(x => SelectedLogType.HasValue ? x.Type == SelectedLogType.Value : true)
                 .OrderByDescending(x => x.DateTime)
                 .ToList();

@@ -3,17 +3,25 @@ using AutoPrintr.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AutoPrintr.Core.Services
 {
     internal class LoggerService : ILoggerService
     {
+        private enum AppType
+        {
+            App,
+            Service
+        }
+
         #region Properties
         private readonly IFileService _fileService;
 
+        private AppType _appType;
         private ICollection<Log> _logs;
-        public IEnumerable<Log> Logs => _logs;
-        public string TodayLogsFilePath => _fileService.GetFilePath(GetLogFileName(DateTime.Now));
+
+        public string TodayLogsFilePath => _fileService.GetFilePath(GetLogFileName(DateTime.Now, _appType));
         #endregion
 
         #region Constructors
@@ -22,12 +30,43 @@ namespace AutoPrintr.Core.Services
             _fileService = fileService;
 
             _logs = new List<Log>();
-
-            GetLogsAsync();
         }
         #endregion
 
         #region Methods
+        public async Task InitializeAppLogsAsync()
+        {
+            _appType = AppType.App;
+
+            var existingLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(DateTime.Now, _appType));
+            if (existingLogs != null)
+                _logs = existingLogs.Union(_logs).ToList();
+        }
+
+        public async Task InitializeServiceLogsAsync()
+        {
+            _appType = AppType.Service;
+
+            var existingLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(DateTime.Now, _appType));
+            if (existingLogs != null)
+                _logs = existingLogs.Union(_logs).ToList();
+        }
+
+        public async Task<IEnumerable<Log>> GetLogsAsync()
+        {
+            var logs = new List<Log>();
+
+            var appTypes = Enum.GetValues(typeof(AppType)).OfType<AppType>();
+            foreach (var type in appTypes)
+            {
+                var existingLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(DateTime.Now, type));
+                if (existingLogs != null)
+                    logs = existingLogs.Union(logs).ToList();
+            }
+
+            return logs.OrderByDescending(x => x.DateTime).ToList();
+        }
+
         public void WriteInformation(string message)
         {
             AddLog(message, LogType.Information);
@@ -52,13 +91,6 @@ namespace AutoPrintr.Core.Services
             SaveLogsAsync();
         }
 
-        private async void GetLogsAsync()
-        {
-            var existingLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(DateTime.Now));
-            if (existingLogs != null)
-                _logs = existingLogs.Union(_logs).ToList();
-        }
-
         private void AddLog(string message, LogType type)
         {
             var newLogItem = new Log { DateTime = DateTime.Now, Event = message, Type = type };
@@ -67,12 +99,12 @@ namespace AutoPrintr.Core.Services
 
         private async void SaveLogsAsync()
         {
-            await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now), _logs.ToArray());
+            await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now, _appType), _logs.ToArray());
         }
 
-        private string GetLogFileName(DateTime date)
+        private string GetLogFileName(DateTime date, AppType type)
         {
-            return $"Logs/{DateTime.Now.Day}_{DateTime.Now.Month}_{DateTime.Now.Year}_Logs.json";
+            return $"Logs/{date.Day}_{date.Month}_{date.Year}_{type}_Logs.json";
         }
         #endregion
     }

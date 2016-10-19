@@ -39,28 +39,50 @@ namespace AutoPrintr.Core.Services
 
         public async Task<string> ReadStringAsync(string fileName)
         {
-            return await Task.Factory.StartNew(() =>
-            {
-                var filePath = GetFilePath(fileName);
+            string result = null;
 
-                if (File.Exists(filePath))
-                    return File.ReadAllText(filePath);
-                else
-                    return null;
-            });
+            try
+            {
+                result = await Task.Factory.StartNew(() =>
+                {
+                    var filePath = GetFilePath(fileName);
+
+                    if (File.Exists(filePath))
+                        return File.ReadAllText(filePath);
+                    else
+                        return null;
+                });
+            }
+            catch (IOException)
+            {
+                result = await ReadStringAsync(fileName);
+            }
+
+            return result;
         }
 
         public async Task<byte[]> ReadBytesAsync(string fileName)
         {
-            return await Task.Factory.StartNew(() =>
-            {
-                var filePath = GetFilePath(fileName);
+            byte[] result = null;
 
-                if (File.Exists(filePath))
-                    return File.ReadAllBytes(filePath);
-                else
-                    return null;
-            });
+            try
+            {
+                result = await Task.Factory.StartNew(() =>
+                {
+                    var filePath = GetFilePath(fileName);
+
+                    if (File.Exists(filePath))
+                        return File.ReadAllBytes(filePath);
+                    else
+                        return null;
+                });
+            }
+            catch (IOException)
+            {
+                result = await ReadBytesAsync(fileName);
+            }
+
+            return result;
         }
 
         public async Task<T> ReadObjectAsync<T>(string fileName)

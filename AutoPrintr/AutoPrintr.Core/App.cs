@@ -20,6 +20,7 @@ namespace AutoPrintr.Core
         public virtual async Task Startup()
         {
             RegisterTypes();
+            await InitializeLogsAsync();
             await LoadSettingsAsync();
         }
 
@@ -54,6 +55,8 @@ namespace AutoPrintr.Core
             var settingsService = SimpleIoc.Default.GetInstance<ISettingsService>();
             return await settingsService.LoadSettingsAsync();
         }
+
+        protected abstract Task InitializeLogsAsync();
         #endregion
     }
 }

@@ -30,6 +30,12 @@ namespace AutoPrintr.Service.Helpers
 
             return result;
         }
+
+        protected override Task InitializeLogsAsync()
+        {
+            var loggerService = SimpleIoc.Default.GetInstance<ILoggerService>();
+            return loggerService.InitializeServiceLogsAsync();
+        }
         #endregion
     }
 }
