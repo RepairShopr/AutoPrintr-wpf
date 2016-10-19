@@ -2,6 +2,7 @@
 using AutoPrintr.Core.Models;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,8 +14,11 @@ namespace AutoPrintr.Core.Services
         private readonly IFileService _fileService;
         private readonly ILoggerService _loggingService;
         private readonly string _fileName = $"Data/{nameof(Settings)}.json";
+        private static object _locker = new Object();
 
         public event ChannelChangedEventHandler ChannelChangedEvent;
+
+        private FileSystemWatcher _watcher;
 
         public Settings Settings { get; private set; }
         #endregion
@@ -45,15 +49,30 @@ namespace AutoPrintr.Core.Services
             return true;
         }
 
+        public void MonitorSettingsChanges()
+        {
+            if (_watcher != null)
+                return;
+
+            _watcher = new FileSystemWatcher
+            {
+                Path = Path.GetDirectoryName(_fileService.GetFilePath(_fileName)),
+                EnableRaisingEvents = true,
+                Filter = "*.*",
+                IncludeSubdirectories = false,
+                NotifyFilter = NotifyFilters.LastWrite
+            };
+            _watcher.Changed += _watcher_Changed;
+        }
+
         public async Task SetSettingsAsync(User user, Channel channel = null)
         {
             Settings.User = user;
             if (channel != null)
             {
-                _loggingService.WriteInformation($"Updated channel from {Settings.Channel} to {channel?.Value}");
+                _loggingService.WriteInformation($"Updated channel from {Settings.Channel?.Value} to {channel?.Value}");
 
                 Settings.Channel = channel;
-                ChannelChangedEvent?.Invoke(Settings.Channel);
             }
 
             await SaveSettingsAsync();
@@ -137,6 +156,21 @@ namespace AutoPrintr.Core.Services
             {
                 Settings.AddToStartup = startup;
                 await SaveSettingsAsync();
+            }
+        }
+
+        private void _watcher_Changed(object sender, FileSystemEventArgs e)
+        {
+            lock (_locker)
+            {
+                var oldSettings = Settings;
+
+                var task = _fileService.ReadObjectAsync<Settings>(_fileName);
+                task.Wait();
+                Settings = task.Result;
+
+                if (oldSettings.Channel?.Value != Settings.Channel?.Value)
+                    ChannelChangedEvent?.Invoke(Settings.Channel);
             }
         }
 

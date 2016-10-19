@@ -129,7 +129,7 @@ namespace AutoPrintr.Core.Services
             if (!IsRunning)
                 return;
 
-            await RunAsync();
+            await RunPusherAsync();
         }
         #endregion
 
@@ -338,11 +338,11 @@ namespace AutoPrintr.Core.Services
 
         private async Task StartPusher()
         {
+            if (_pusher != null)
+                return;
+
             await Task.Factory.StartNew(() =>
             {
-                if (_pusher != null)
-                    return;
-
                 _loggingService.WriteInformation($"Starting Pusher");
 
                 _pusher = new Pusher(_applicationKey);
@@ -359,11 +359,11 @@ namespace AutoPrintr.Core.Services
 
         private async Task StopPusher()
         {
+            if (_pusher == null)
+                return;
+
             await Task.Factory.StartNew(() =>
             {
-                if (_pusher == null)
-                    return;
-
                 _loggingService.WriteInformation($"Stopping Pusher");
 
                 _pusher.Disconnect();

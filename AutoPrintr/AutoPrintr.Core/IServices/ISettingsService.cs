@@ -11,6 +11,7 @@ namespace AutoPrintr.Core.IServices
 
         Settings Settings { get; }
         Task<bool> LoadSettingsAsync();
+        void MonitorSettingsChanges();
         Task SetSettingsAsync(User user, Channel channel = null);
         Task AddLocationAsync(Location location);
         Task RemoveLocationAsync(Location location);

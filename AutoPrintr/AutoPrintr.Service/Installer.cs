@@ -14,6 +14,7 @@ namespace AutoPrintr.Service
             processInstaller.Account = ServiceAccount.LocalSystem;
 
             serviceInstaller.DisplayName = Service.SERVICE_NAME;
+            serviceInstaller.Description = "Service for AutoPrintr apps";
             serviceInstaller.StartType = ServiceStartMode.Automatic;
 
             serviceInstaller.ServiceName = Service.SERVICE_NAME;
