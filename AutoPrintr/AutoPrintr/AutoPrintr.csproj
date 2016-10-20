@@ -19,14 +19,13 @@
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>true</UpdateEnabled>
+    <UpdateEnabled>false</UpdateEnabled>
     <UpdateMode>Background</UpdateMode>
     <UpdateInterval>7</UpdateInterval>
     <UpdateIntervalUnits>Days</UpdateIntervalUnits>
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>false</MapFileExtensions>
-    <UpdateUrl>https://www.dropbox.com/sh/77k7k63dggz8v5p/AADGwVDoTQdp0B4vZrQDioe4a/</UpdateUrl>
     <SupportUrl>http://www.repairshopr.com/</SupportUrl>
     <ProductName>AutoPrintr</ProductName>
     <PublisherName>RepairShopr</PublisherName>
@@ -233,10 +232,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="..\AutoPrintr.Service\bin\Debug\AutoPrintr.Service.exe.config">
+    <Content Include="..\AutoPrintr.Service\bin\Debug\AutoPrintr.Service.exe.config">
       <Link>AutoPrintr.Service.exe.config</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
     <None Include="AutoPrintr_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
