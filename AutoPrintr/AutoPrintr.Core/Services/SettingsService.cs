@@ -144,17 +144,40 @@ namespace AutoPrintr.Core.Services
             _loggingService.WriteInformation($"Printer {printer.Name} is removed");
         }
 
-        public async void AddToStartup(bool startup)
+        public async Task AddToStartup(bool startup)
         {
-            bool result;
-            if (startup)
-                result = OnAddToStartup();
-            else
-                result = OnRemoveFromStartup();
+            bool result = false;
+
+            await Task.Factory.StartNew(() =>
+            {
+                if (startup)
+                    result = OnAddToStartup();
+                else
+                    result = OnRemoveFromStartup();
+            });
 
             if (result)
             {
-                Settings.AddToStartup = startup;
+                Settings.AddedToStartup = startup;
+                await SaveSettingsAsync();
+            }
+        }
+
+        public async Task InstallService(bool install)
+        {
+            bool result = false;
+
+            await Task.Factory.StartNew(() =>
+            {
+                if (install)
+                    result = OnInstallService();
+                else
+                    result = OnUninstallService();
+            });
+
+            if (result)
+            {
+                Settings.InstalledService = install;
                 await SaveSettingsAsync();
             }
         }
@@ -179,6 +202,11 @@ namespace AutoPrintr.Core.Services
             await _fileService.SaveObjectAsync(_fileName, Settings);
         }
 
+        private string GetAppLocation()
+        {
+            return System.Reflection.Assembly.GetEntryAssembly().Location;
+        }
+
         private bool OnAddToStartup()
         {
             try
@@ -186,7 +214,7 @@ namespace AutoPrintr.Core.Services
                 var psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = $"/C REG ADD \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"{ Process.GetCurrentProcess().ProcessName}\" /T REG_SZ /F /D \"{System.Reflection.Assembly.GetEntryAssembly().Location}\"",
+                    Arguments = $"/C REG ADD \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"{ Process.GetCurrentProcess().ProcessName}\" /T REG_SZ /F /D \"{ GetAppLocation() }\"",
                     Verb = "runas",
                     UseShellExecute = true,
                     WindowStyle = ProcessWindowStyle.Hidden
@@ -217,7 +245,7 @@ namespace AutoPrintr.Core.Services
                 var psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = $"/C REG DELETE \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"{ Process.GetCurrentProcess().ProcessName}\" /F",
+                    Arguments = $"/C REG DELETE \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"{ Process.GetCurrentProcess().ProcessName }\" /F",
                     Verb = "runas",
                     UseShellExecute = true,
                     WindowStyle = ProcessWindowStyle.Hidden
@@ -233,6 +261,75 @@ namespace AutoPrintr.Core.Services
             catch (Exception ex)
             {
                 _loggingService.WriteWarning($"An application is not removed from Startup");
+
+                Debug.WriteLine($"Error in {nameof(SettingsService)}: {ex.ToString()}");
+                _loggingService.WriteError(ex);
+
+                return false;
+            }
+        }
+
+        private string GetServiceLocation()
+        {
+            var appLocation = GetAppLocation();
+            var serviceLocation = $"{ Path.GetDirectoryName(appLocation) }\\AutoPrintr.Service.exe";
+            return serviceLocation;
+        }
+
+        private bool OnInstallService()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = GetServiceLocation(),
+                    Arguments = "/Stop /Uninstall /Install /Start",
+                    Verb = "runas",
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                };
+
+                var process = Process.Start(psi);
+                process.WaitForExit();
+
+                _loggingService.WriteInformation($"Service is installed");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _loggingService.WriteWarning($"Service is not installed");
+
+                Debug.WriteLine($"Error in {nameof(SettingsService)}: {ex.ToString()}");
+                _loggingService.WriteError(ex);
+
+                return false;
+            }
+        }
+
+        private bool OnUninstallService()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = GetServiceLocation(),
+                    Arguments = "/Stop /Uninstall",
+                    Verb = "runas",
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                };
+
+                var process = Process.Start(psi);
+                process.WaitForExit();
+
+                _loggingService.WriteInformation($"Service is uninstalled");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _loggingService.WriteWarning($"Service is not uninstalled");
 
                 Debug.WriteLine($"Error in {nameof(SettingsService)}: {ex.ToString()}");
                 _loggingService.WriteError(ex);

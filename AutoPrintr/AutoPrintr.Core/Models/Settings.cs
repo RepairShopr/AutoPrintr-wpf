@@ -4,7 +4,8 @@ namespace AutoPrintr.Core.Models
 {
     public class Settings : BaseModel
     {
-        public bool AddToStartup { get; set; }
+        public bool AddedToStartup { get; set; }
+        public bool InstalledService { get; set; }
         public Channel Channel { get; set; }
         public User User { get; set; }
         public IEnumerable<Printer> Printers { get; set; }

@@ -1,6 +1,9 @@
-﻿using AutoPrintr.Service.Helpers;
+﻿using AutoPrintr.Core.IServices;
+using AutoPrintr.Service.Helpers;
+using GalaSoft.MvvmLight.Ioc;
 using System;
 using System.Configuration.Install;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
@@ -9,13 +12,18 @@ namespace AutoPrintr.Service
 {
     public class Service : ServiceBase
     {
+        #region Properties
         public const string SERVICE_NAME = "AutoPrintr Service";
+        #endregion
 
+        #region Constructors
         public Service()
         {
             ServiceName = SERVICE_NAME;
         }
+        #endregion
 
+        #region Methods
         protected override async void OnStart(string[] args)
         {
             base.OnStart(args);
@@ -30,9 +38,13 @@ namespace AutoPrintr.Service
 
             await ServiceApp.Instance.StopJobs();
         }
+        #endregion
 
+        #region Static Methods
         private static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             if (Environment.UserInteractive)
             {
                 foreach (var commandString in args)
@@ -50,6 +62,14 @@ namespace AutoPrintr.Service
             {
                 Run(new Service());
             }
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Debug.WriteLine($"Error in {nameof(Service)}: {((Exception)e.ExceptionObject).ToString()}");
+
+            var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
+            loggingService.WriteError((Exception)e.ExceptionObject);
         }
 
         private static void RunCommand(Commands command)
@@ -86,5 +106,6 @@ namespace AutoPrintr.Service
                     break;
             }
         }
+        #endregion
     }
 }

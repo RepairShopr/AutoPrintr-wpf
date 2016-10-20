@@ -1,6 +1,6 @@
 ﻿namespace AutoPrintr.Service.Helpers
 {
-    public enum Commands
+    internal enum Commands
     {
         Install,
         Uninstall,

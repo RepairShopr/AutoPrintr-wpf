@@ -30,8 +30,6 @@ namespace AutoPrintr.ViewModels
         public RelayCommand GoToAboutCommand { get; private set; }
         public RelayCommand LogoutCommand { get; private set; }
         public RelayCommand RequestHelpCommand { get; private set; }
-        public RelayCommand StartServiceCommand { get; private set; }
-        public RelayCommand StopServiceCommand { get; private set; }
         #endregion
 
         #region Constructors
@@ -52,8 +50,6 @@ namespace AutoPrintr.ViewModels
             GoToAboutCommand = new RelayCommand(OnGoToAbout);
             LogoutCommand = new RelayCommand(OnLogout);
             RequestHelpCommand = new RelayCommand(OnRequestHelp);
-            StartServiceCommand = new RelayCommand(OnStartService, CanStartService);
-            StopServiceCommand = new RelayCommand(OnStopService, CanStopService);
 
             MessengerInstance.Register<User>(this, OnUserChanged);
         }
@@ -101,30 +97,6 @@ namespace AutoPrintr.ViewModels
         private void OnRequestHelp()
         {
             Process.Start($"mailto:{_emailSettings.SupportEmailAddress}?subject={_emailSettings.SupportEmailSubject}&Attach={_loggerService.TodayLogsFilePath}");
-        }
-
-        private bool CanStartService()
-        {
-            return false; //!WpfApp.IsServiceRunning();
-        }
-
-        private void OnStartService()
-        {
-            //WpfApp.StartService();
-            StartServiceCommand.RaiseCanExecuteChanged();
-            StopServiceCommand.RaiseCanExecuteChanged();
-        }
-
-        private bool CanStopService()
-        {
-            return false; //WpfApp.IsServiceRunning();
-        }
-
-        private void OnStopService()
-        {
-            //WpfApp.StopService();
-            StartServiceCommand.RaiseCanExecuteChanged();
-            StopServiceCommand.RaiseCanExecuteChanged();
         }
         #endregion
     }

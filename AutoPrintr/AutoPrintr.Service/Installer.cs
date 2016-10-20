@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Linq;
+using System.Reflection;
 using System.ServiceProcess;
 
 namespace AutoPrintr.Service
@@ -14,7 +16,12 @@ namespace AutoPrintr.Service
             processInstaller.Account = ServiceAccount.LocalSystem;
 
             serviceInstaller.DisplayName = Service.SERVICE_NAME;
-            serviceInstaller.Description = "Service for AutoPrintr apps";
+            serviceInstaller.Description = Assembly
+                .GetExecutingAssembly()
+                .GetCustomAttributes(false)
+                .OfType<AssemblyDescriptionAttribute>()
+                .Select(x => x.Description)
+                .First();
             serviceInstaller.StartType = ServiceStartMode.Automatic;
 
             serviceInstaller.ServiceName = Service.SERVICE_NAME;

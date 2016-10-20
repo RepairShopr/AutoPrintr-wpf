@@ -4,8 +4,6 @@ using AutoPrintr.ViewModels;
 using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Views;
-using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace AutoPrintr.Helpers
@@ -53,8 +51,15 @@ namespace AutoPrintr.Helpers
             var result = await base.LoadSettingsAsync();
             if (!result)
             {
-                settingsService.AddToStartup(true);
-                InstallService();
+                var caption = "Application Startup";
+                var message = "It's a first run. Would you like to add an App to the windows startup?";
+                if (System.Windows.MessageBox.Show(message, caption, System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question) == System.Windows.MessageBoxResult.Yes)
+                    await settingsService.AddToStartup(true);
+
+                caption = "Install Service";
+                message = "Would you like to install the service?";
+                if (System.Windows.MessageBox.Show(message, caption, System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question) == System.Windows.MessageBoxResult.Yes)
+                    await settingsService.InstallService(true);
             }
 
             Messenger.Default.Send(settingsService.Settings.User);
@@ -107,36 +112,6 @@ namespace AutoPrintr.Helpers
             {
                 //case ControlMessageType.Busy: BusyControl.Hide(); break;
                 default: break;
-            }
-        }
-        #endregion
-
-        #region Service
-        private void InstallService()
-        {
-            var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
-            try
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = typeof(Service.Installer).Assembly.Location,
-                    Arguments = $"/{Service.Helpers.Commands.Stop} /{Service.Helpers.Commands.Uninstall} /{Service.Helpers.Commands.Install} /{Service.Helpers.Commands.Start}",
-                    Verb = "runas",
-                    UseShellExecute = true,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                };
-
-                var process = Process.Start(psi);
-                process.WaitForExit();
-
-                loggingService.WriteInformation($"Service is installed");
-            }
-            catch (Exception ex)
-            {
-                loggingService.WriteWarning($"Service is not installed");
-
-                Debug.WriteLine($"Error in {nameof(WpfApp)}: {ex.ToString()}");
-                loggingService.WriteError(ex);
             }
         }
         #endregion

@@ -19,8 +19,14 @@ namespace AutoPrintr.ViewModels
 
         public bool AddToStartup
         {
-            get { return _settingsService.Settings.AddToStartup; }
-            set { _settingsService.AddToStartup(value); }
+            get { return _settingsService.Settings.AddedToStartup; }
+            set { OnAddToStartup(value); }
+        }
+
+        public bool InstallService
+        {
+            get { return _settingsService.Settings.InstalledService; }
+            set { OnInstallService(value); }
         }
 
         public User User { get; private set; }
@@ -141,6 +147,24 @@ namespace AutoPrintr.ViewModels
                 await _settingsService.UpdatePrinterAsync(obj);
 
             HideBusyControl();
+        }
+
+        private async void OnAddToStartup(bool value)
+        {
+            ShowBusyControl();
+            await _settingsService.AddToStartup(value);
+            HideBusyControl();
+
+            RaisePropertyChanged(nameof(AddToStartup));
+        }
+
+        private async void OnInstallService(bool value)
+        {
+            ShowBusyControl();
+            await _settingsService.InstallService(value);
+            HideBusyControl();
+
+            RaisePropertyChanged(nameof(InstallService));
         }
         #endregion
     }
