@@ -17,7 +17,7 @@ namespace AutoPrintr.Core
         #endregion
 
         #region Methods
-        public virtual async Task Startup()
+        public virtual async Task Startup(string[] args)
         {
             RegisterTypes();
             await InitializeLogsAsync();

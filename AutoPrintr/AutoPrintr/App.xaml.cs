@@ -32,7 +32,7 @@ namespace AutoPrintr
                 Process.GetCurrentProcess().Kill();
 
             base.OnStartup(e);
-            await WpfApp.Instance.Startup();
+            await WpfApp.Instance.Startup(e.Args);
             new TrayIconContextMenuView();
         }
 

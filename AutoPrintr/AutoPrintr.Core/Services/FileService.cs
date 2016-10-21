@@ -18,7 +18,7 @@ namespace AutoPrintr.Core.Services
         #region Constructors
         public FileService()
         {
-            _folderPath = AppDomain.CurrentDomain.BaseDirectory;
+            _folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "AutoPrintr");
         }
         #endregion
 

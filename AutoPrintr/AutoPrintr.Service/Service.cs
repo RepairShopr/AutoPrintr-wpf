@@ -28,7 +28,7 @@ namespace AutoPrintr.Service
         {
             base.OnStart(args);
 
-            await ServiceApp.Instance.Startup();
+            await ServiceApp.Instance.Startup(args);
             await ServiceApp.Instance.RunJobs();
         }
 
