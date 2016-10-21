@@ -4,7 +4,10 @@ using AutoPrintr.ViewModels;
 using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Views;
+using System.Deployment.Application;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace AutoPrintr.Helpers
 {
@@ -28,6 +31,12 @@ namespace AutoPrintr.Helpers
         #endregion
 
         #region Methods
+        public override async Task Startup()
+        {
+            await base.Startup();
+            CheckForUpdates();
+        }
+
         protected override void RegisterTypes()
         {
             base.RegisterTypes();
@@ -53,12 +62,12 @@ namespace AutoPrintr.Helpers
             {
                 var caption = "Application Startup";
                 var message = "It's a first run. Would you like to add an App to the windows startup?";
-                if (System.Windows.MessageBox.Show(message, caption, System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question) == System.Windows.MessageBoxResult.Yes)
+                if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                     await settingsService.AddToStartup(true);
 
                 caption = "Install Service";
                 message = "Would you like to install the service?";
-                if (System.Windows.MessageBox.Show(message, caption, System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question) == System.Windows.MessageBoxResult.Yes)
+                if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                     await settingsService.InstallService(true);
             }
 
@@ -71,6 +80,83 @@ namespace AutoPrintr.Helpers
         {
             var loggerService = SimpleIoc.Default.GetInstance<ILoggerService>();
             return loggerService.InitializeAppLogsAsync();
+        }
+
+        private async void CheckForUpdates()
+        {
+            var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
+            var settingsService = SimpleIoc.Default.GetInstance<ISettingsService>();
+            UpdateCheckInfo info = null;
+
+            if (ApplicationDeployment.IsNetworkDeployed)
+            {
+                var deployment = ApplicationDeployment.CurrentDeployment;
+
+                try
+                {
+                    info = deployment.CheckForDetailedUpdate();
+                }
+                catch (DeploymentDownloadException dde)
+                {
+                    Debug.WriteLine($"Error in {nameof(App)}: {dde.ToString()}");
+
+                    loggingService.WriteWarning("The new version of the application cannot be downloaded at this time. Please check your network connection, or try again later");
+                    loggingService.WriteError(dde);
+
+                    return;
+                }
+                catch (InvalidDeploymentException ide)
+                {
+                    Debug.WriteLine($"Error in {nameof(App)}: {ide.ToString()}");
+
+                    loggingService.WriteWarning("Cannot check for a new version of the application. The ClickOnce deployment is corrupt. Please redeploy the application and try again");
+                    loggingService.WriteError(ide);
+
+                    return;
+                }
+
+                if (info.UpdateAvailable)
+                {
+                    var caption = "Updates are Available";
+                    var message = "A newer version of AutoPrintr is available. Would you like to install it now?";
+                    if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Information) != MessageBoxResult.Yes)
+                        return;
+
+                    try
+                    {
+                        var serviceWasRunning = settingsService.Settings.InstalledService;
+
+                        if (settingsService.Settings.InstalledService)
+                            await settingsService.InstallService(false);
+
+                        if (settingsService.Settings.InstalledService)
+                        {
+                            MessageBox.Show("AutoPrintr Service can not be stopped and uninstalled. Please uninstall service and try again", "Updates are not Installed", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                            loggingService.WriteWarning("Cannot install the latest version of the application. Service can not be stopped and uninstalled");
+
+                            return;
+                        }
+
+                        deployment.Update();
+
+                        if (serviceWasRunning)
+                            await settingsService.InstallService(true);
+
+                        Process.Start(Application.ResourceAssembly.Location);
+                        Application.Current.Shutdown();
+                    }
+                    catch (DeploymentDownloadException dde)
+                    {
+                        MessageBox.Show("Cannot install the latest version of the application. Please check your network connection, or try again later", "Updates are not Installed", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                        Debug.WriteLine($"Error in {nameof(App)}: {dde.ToString()}");
+
+                        loggingService.WriteWarning("Cannot install the latest version of the application. Please check your network connection, or try again later");
+                        loggingService.WriteError(dde);
+                    }
+                }
+            }
         }
 
         #region DataContext and Navigation
@@ -101,7 +187,7 @@ namespace AutoPrintr.Helpers
             switch (message.Type)
             {
                 //case ControlMessageType.Busy: BusyControl.Show(message.Caption); break;
-                case ControlMessageType.Message: System.Windows.MessageBox.Show((string)message.Data, message.Caption); break;
+                case ControlMessageType.Message: MessageBox.Show((string)message.Data, message.Caption, MessageBoxButton.OK, MessageBoxImage.Information); break;
                 default: break;
             }
         }
