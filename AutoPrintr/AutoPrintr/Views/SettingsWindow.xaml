@@ -111,7 +111,7 @@
 
         <CheckBox Grid.Row="2" Margin="20,0,10,10" Content="Add to Startup" IsChecked="{Binding AddToStartup, Mode=TwoWay}" />
 
-        <CheckBox Grid.Row="3" Margin="20,0,10,10" Content="Install Service" IsChecked="{Binding InstallService, Mode=TwoWay}" />
+        <CheckBox Grid.Row="3" Margin="20,0,10,10" Content="Run the Service" IsChecked="{Binding InstallService, Mode=TwoWay}" />
 
         <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" Margin="-3,10,0,10" HorizontalAlignment="Left" />
 

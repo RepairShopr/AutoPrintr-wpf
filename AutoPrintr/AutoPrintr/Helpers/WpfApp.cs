@@ -6,7 +6,6 @@ using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Views;
 using System.Deployment.Application;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -16,7 +15,6 @@ namespace AutoPrintr.Helpers
     {
         #region Properties
         private static readonly WpfApp _instance = new WpfApp();
-        private const string UPDATED_KEY = "/updated";
 
         public static WpfApp Instance => _instance;
         #endregion
@@ -35,20 +33,16 @@ namespace AutoPrintr.Helpers
         #region Methods
         public override async Task Startup(string[] args)
         {
+            var processName = Process.GetCurrentProcess().ProcessName;
+            if (Process.GetProcessesByName(processName).LongLength > 1)
+            {
+                Process.GetCurrentProcess().Kill();
+                return;
+            }
+
             await base.Startup(args);
 
-            var updated = args?.Any(x => x == UPDATED_KEY);
-            if (updated == true)
-            {
-                var settingsService = SimpleIoc.Default.GetInstance<ISettingsService>();
-                await settingsService.InstallService(true);
-
-                var caption = "Application is Updated";
-                var message = "The latest version of AutoPrintr is installed";
-                MessageBox.Show(message, caption, MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else
-                CheckForUpdates();
+            CheckForUpdates();
         }
 
         protected override void RegisterTypes()
@@ -78,9 +72,12 @@ namespace AutoPrintr.Helpers
                 var message = "It's a first run. Would you like to add an App to the windows startup?";
                 if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                     await settingsService.AddToStartup(true);
+            }
 
-                caption = "Install Service";
-                message = "Would you like to install the service?";
+            if (!settingsService.Settings.InstalledService)
+            {
+                var caption = "Start the Service";
+                var message = "Service is not run. Would you like to start the service?";
                 if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                     await settingsService.InstallService(true);
             }
@@ -152,7 +149,7 @@ namespace AutoPrintr.Helpers
 
                         deployment.Update();
 
-                        Process.Start(deployment.UpdatedApplicationFullName, UPDATED_KEY);
+                        Process.Start(deployment.UpdatedApplicationFullName);
                         Application.Current.Shutdown();
                     }
                     catch (DeploymentDownloadException dde)
