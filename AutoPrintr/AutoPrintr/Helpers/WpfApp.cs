@@ -42,7 +42,7 @@ namespace AutoPrintr.Helpers
 
             await base.Startup(args);
 
-            CheckForUpdates();
+            //CheckForUpdates();
         }
 
         protected override void RegisterTypes()
@@ -93,6 +93,7 @@ namespace AutoPrintr.Helpers
             return loggerService.InitializeAppLogsAsync();
         }
 
+        #region Updates
         private async void CheckForUpdates()
         {
             var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
@@ -164,6 +165,7 @@ namespace AutoPrintr.Helpers
                 }
             }
         }
+        #endregion
 
         #region DataContext and Navigation
         public BaseViewModel GetDataContext(ViewType view)

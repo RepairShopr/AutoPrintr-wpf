@@ -33,6 +33,7 @@ namespace AutoPrintr.ViewModels
         public ObservableCollection<Location> SelectedLocations { get; private set; }
         public IEnumerable<string> DocumentTypes { get; private set; }
         public IEnumerable<Printer> Printers { get; private set; }
+        public IEnumerable<Register> Registers { get; private set; }
 
         public override ViewType Type => ViewType.Settings;
 
@@ -66,6 +67,7 @@ namespace AutoPrintr.ViewModels
         {
             base.NavigatedTo(parameter);
 
+            InitializeRegisters();
             InitializeLocations();
             InitializePrinters();
         }
@@ -133,6 +135,18 @@ namespace AutoPrintr.ViewModels
                     .ToList();
             }
             RaisePropertyChanged(nameof(Printers));
+        }
+
+        private void InitializeRegisters()
+        {
+            var registers = _settingsService.Settings.Channel.Registers?.ToList();
+            if (registers == null)
+                registers = new List<Register>();
+
+            registers.Insert(0, new Register { Name = "None" });
+
+            Registers = registers;
+            RaisePropertyChanged(nameof(Registers));
         }
 
         private async void OnUpdatePrinter(Printer obj)

@@ -78,7 +78,7 @@
                 </Border>
                 <ItemsControl Grid.Row="2" ItemsSource="{Binding DocumentTypes, Mode=OneWay}" ItemTemplate="{StaticResource DocumentTypeItemTemplate}" />
                 <Border Grid.Row="3" Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
-                    <TextBox Text="{Binding Register, Mode=TwoWay}" Margin="10,5" MaxLength="10" FontSize="12" TextChanged="TextBox_TextChanged" LostFocus="TextBox_LostFocus" />
+                    <ComboBox ItemsSource="{Binding DataContext.Registers, ElementName=LayoutRoot}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding Register, Mode=TwoWay}" Margin="10,5" FontSize="12" LostFocus="ComboBox_LostFocus" />
                 </Border>
                 <Border Grid.Row="4" Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
                     <CheckBox IsChecked="{Binding Rotation, Mode=TwoWay}" Margin="10,5" FontSize="12" Content="Rotate" LostFocus="CheckBox_LostFocus" />

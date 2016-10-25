@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace AutoPrintr.Core.Models
 {
@@ -6,6 +7,9 @@ namespace AutoPrintr.Core.Models
     {
         [JsonProperty("messaging_channel")]
         public string Value { get; set; }
+
+        [JsonProperty("registers")]
+        public IEnumerable<Register> Registers { get; set; }
 
         [JsonProperty("error")]
         public string Error { get; set; }

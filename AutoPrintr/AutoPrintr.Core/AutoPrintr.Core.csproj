@@ -95,6 +95,7 @@
     <Compile Include="Models\Login.cs" />
     <Compile Include="Models\LogType.cs" />
     <Compile Include="Models\Printer.cs" />
+    <Compile Include="Models\Register.cs" />
     <Compile Include="Models\Settings.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\ValidatableBaseModel.cs" />

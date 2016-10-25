@@ -1,7 +1,6 @@
 ﻿using AutoPrintr.Core.Models;
 using AutoPrintr.Helpers;
 using AutoPrintr.ViewModels;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -45,33 +44,28 @@ namespace AutoPrintr.Views
             ViewModel.UpdatePrinterCommand.Execute(printer);
         }
 
-        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            var textBox = (TextBox)sender;
-            var printer = (Printer)textBox.DataContext;
-
-            if (string.IsNullOrEmpty(textBox.Text))
-                printer.Register = null;
-
-            ViewModel.UpdatePrinterCommand.Execute(printer);
-        }
-
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            var textBox = (TextBox)sender;
-            if (textBox.Text.Any(x => !char.IsDigit(x)))
-            {
-                textBox.Text = new string(textBox.Text.Where(x => char.IsDigit(x)).ToArray());
-                textBox.Select(textBox.Text.Count(), 0);
-            }
-        }
-
         private void CheckBox_LostFocus(object sender, RoutedEventArgs e)
         {
             var checkBox = (CheckBox)sender;
             var printer = (Printer)checkBox.DataContext;
 
             printer.Rotation = checkBox.IsChecked == true;
+
+            ViewModel.UpdatePrinterCommand.Execute(printer);
+        }
+
+        private void ComboBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var comboBox = (ComboBox)sender;
+            var printer = (Printer)comboBox.DataContext;
+
+            if (comboBox.SelectedItem == null)
+                printer.Register = null;
+            else
+            {
+                var register = (Register)comboBox.SelectedItem;
+                printer.Register = register.Id;
+            }
 
             ViewModel.UpdatePrinterCommand.Execute(printer);
         }
