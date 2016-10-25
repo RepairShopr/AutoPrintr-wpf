@@ -65,7 +65,7 @@ namespace AutoPrintr.Core.Services
             _watcher.Changed += _watcher_Changed;
         }
 
-        public async Task SetSettingsAsync(User user, Channel channel = null)
+        public async Task UpdateSettingsAsync(User user, Channel channel = null)
         {
             Settings.User = user;
             if (channel != null)

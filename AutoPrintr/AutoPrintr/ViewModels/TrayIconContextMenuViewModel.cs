@@ -89,7 +89,7 @@ namespace AutoPrintr.ViewModels
         private async void OnLogout()
         {
             if (_settingsService.Settings.User != null)
-                await _settingsService.SetSettingsAsync(null);
+                await _settingsService.UpdateSettingsAsync(null);
 
             MessengerInstance.Send<User>(null);
         }

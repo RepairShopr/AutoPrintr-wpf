@@ -86,9 +86,9 @@ namespace AutoPrintr.ViewModels
             }
 
             if (RememberMe)
-                await _settingsService.SetSettingsAsync(user, channel);
+                await _settingsService.UpdateSettingsAsync(user, channel);
             else
-                await _settingsService.SetSettingsAsync(null, channel);
+                await _settingsService.UpdateSettingsAsync(null, channel);
         }
 
         private async Task SaveDefaultLocationAsync(User user)
