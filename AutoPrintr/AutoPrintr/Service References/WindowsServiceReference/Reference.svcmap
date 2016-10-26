@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="a880aca3-43f3-403d-b5d7-41ff03367e49" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="net.tcp://localhost:7777/AutoPrintrService/mex" Protocol="mex" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="service.wsdl" MetadataType="Wsdl" ID="f8efeefe-ed43-42da-bc37-76d0181d4a57" SourceId="1" SourceUrl="net.tcp://localhost:7777/AutoPrintrService/mex" />
+    <MetadataFile FileName="service.xsd" MetadataType="Schema" ID="a8c1ae81-2845-4a72-9807-f2cdb2c4f5bf" SourceId="1" SourceUrl="net.tcp://localhost:7777/AutoPrintrService/mex" />
+    <MetadataFile FileName="service1.xsd" MetadataType="Schema" ID="8216b515-8b15-4c44-abe7-e4bb3b3f3a57" SourceId="1" SourceUrl="net.tcp://localhost:7777/AutoPrintrService/mex" />
+    <MetadataFile FileName="AutoPrintr.Core.Models.xsd" MetadataType="Schema" ID="4ca804d1-6998-4da8-933e-2412f5d10e01" SourceId="1" SourceUrl="net.tcp://localhost:7777/AutoPrintrService/mex" />
+    <MetadataFile FileName="System.xsd" MetadataType="Schema" ID="b6e2b145-3c9a-48e8-9f21-3ba3d8da1356" SourceId="1" SourceUrl="net.tcp://localhost:7777/AutoPrintrService/mex" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

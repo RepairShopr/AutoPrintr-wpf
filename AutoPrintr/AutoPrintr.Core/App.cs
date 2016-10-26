@@ -24,18 +24,6 @@ namespace AutoPrintr.Core
             await LoadSettingsAsync();
         }
 
-        public virtual async Task RunJobs()
-        {
-            var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
-            await jobsService.RunAsync();
-        }
-
-        public virtual async Task StopJobs()
-        {
-            var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
-            await jobsService.StopAsync();
-        }
-
         protected virtual void RegisterTypes()
         {
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
@@ -46,8 +34,7 @@ namespace AutoPrintr.Core
             SimpleIoc.Default.Register<IFileService, FileService>();
             SimpleIoc.Default.Register<ISettingsService, SettingsService>();
             SimpleIoc.Default.Register<IUserService, UserService>();
-            SimpleIoc.Default.Register<IPrinterService, PrinterService>();
-            SimpleIoc.Default.Register<IJobsService, JobsService>();
+            SimpleIoc.Default.Register<IPrinterService, PrinterService>();            
         }
 
         protected virtual async Task<bool> LoadSettingsAsync()

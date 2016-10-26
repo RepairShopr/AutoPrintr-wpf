@@ -1,5 +1,4 @@
-﻿using AutoPrintr.Core.IServices;
-using AutoPrintr.Core.Models;
+﻿using AutoPrintr.Core.Models;
 using AutoPrintr.Helpers;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Views;
@@ -13,7 +12,7 @@ namespace AutoPrintr.ViewModels
     public class JobsViewModel : BaseViewModel
     {
         #region Properties
-        private readonly IJobsService _jobsService;
+        private readonly WindowsServiceClient _windowsServiceClient;
 
         public ObservableCollection<Job> Jobs { get; private set; }
 
@@ -43,12 +42,9 @@ namespace AutoPrintr.ViewModels
         #endregion
 
         #region Constructors
-        public JobsViewModel(INavigationService navigationService,
-            IJobsService jobsService)
+        public JobsViewModel(INavigationService navigationService)
             : base(navigationService)
         {
-            _jobsService = jobsService;
-
             JobStates = Enum.GetValues(typeof(JobState))
                 .OfType<JobState?>()
                 .Union(new[] { (JobState?)null })
@@ -64,29 +60,30 @@ namespace AutoPrintr.ViewModels
             PrintCommand = new RelayCommand<Job>(OnPrint);
             DeleteJobCommand = new RelayCommand<Job>(OnDeleteJob);
             DeleteJobsCommand = new RelayCommand<DeleteJobAmount>(OnDeleteJobs);
+
+            _windowsServiceClient = new WindowsServiceClient();
         }
         #endregion
 
         #region Methods
-        public override void NavigatedTo(object parameter = null)
+        public override async void NavigatedTo(object parameter = null)
         {
             base.NavigatedTo(parameter);
 
             Jobs = new ObservableCollection<Job>();
 
-            _jobsService.JobChangedEvent -= _jobsService_JobChangedEvent;
-            _jobsService.JobChangedEvent += _jobsService_JobChangedEvent;
-
             _selectedJobState = null;
             _selectedDocumentType = null;
 
+            await _windowsServiceClient.ConnectAsync(JobChanged);
             LoadJobs();
         }
 
-        public void NavigatedFrom()
+        public async void NavigatedFrom()
         {
-            _jobsService.JobChangedEvent -= _jobsService_JobChangedEvent;
             Jobs = null;
+
+            await _windowsServiceClient.DisconnectAsync();
         }
 
         private async void LoadJobs()
@@ -94,7 +91,7 @@ namespace AutoPrintr.ViewModels
             ShowBusyControl();
 
             Jobs.Clear();
-            var jobs = (await _jobsService.GetJobs())
+            var jobs = (await _windowsServiceClient.GetJobsAsync())
                 .Where(x => SelectedJobState.HasValue ? x.State == SelectedJobState.Value : true)
                 .Where(x => SelectedDocumentType.HasValue ? x.Document.Type == SelectedDocumentType.Value : true)
                 .OrderByDescending(x => x.UpdatedOn);
@@ -104,25 +101,26 @@ namespace AutoPrintr.ViewModels
             HideBusyControl();
         }
 
-        private void _jobsService_JobChangedEvent(Job job)
+        private void JobChanged(Job job)
         {
             App.Current.Dispatcher.BeginInvoke((Action)(() =>
             {
-                if (Jobs.Contains(job))
-                    Jobs.Remove(job);
+                var localJob = Jobs.FirstOrDefault(x => x.Id == job.Id);
+                if (localJob != null && Jobs.Contains(localJob))
+                    Jobs.Remove(localJob);
 
                 Jobs.Insert(0, job);
             }));
         }
 
-        private void OnPrint(Job obj)
+        private async void OnPrint(Job obj)
         {
-            _jobsService.Print(obj);
+            await _windowsServiceClient.PrintAsync(obj);
         }
 
         private async void OnDeleteJob(Job obj)
         {
-            await _jobsService.DeleteJob(obj);
+            await _windowsServiceClient.DeleteJobsAsync(new[] { obj });
             Jobs.Remove(obj);
         }
 
@@ -130,21 +128,28 @@ namespace AutoPrintr.ViewModels
         {
             ShowBusyControl();
 
+            var startDate = new DateTime();
+            var endDate = new DateTime();
+
             switch (obj)
             {
                 case DeleteJobAmount.PreviousWeek:
-                    var previousMonday = GetPreviousMonday();
-                    await _jobsService.DeleteJobs(previousMonday, previousMonday.AddDays(7));
+                    startDate = GetPreviousMonday();
+                    endDate = startDate.AddDays(7);
                     break;
                 case DeleteJobAmount.PreviousMonth:
-                    var previousMonthStartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month - 1, 1);
-                    await _jobsService.DeleteJobs(previousMonthStartDate, previousMonthStartDate.AddMonths(1));
+                    startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month - 1, 1);
+                    endDate = startDate.AddMonths(1);
                     break;
                 case DeleteJobAmount.AllPast:
-                    await _jobsService.DeleteJobs(DateTime.MinValue, DateTime.Now.Date);
+                    startDate = DateTime.MinValue;
+                    endDate = DateTime.Now.Date;
                     break;
                 default: break;
             }
+
+            var jobsToRemove = Jobs.Where(x => x.CreatedOn >= startDate && x.CreatedOn < endDate).ToArray();
+            await _windowsServiceClient.DeleteJobsAsync(jobsToRemove);
 
             HideBusyControl();
 

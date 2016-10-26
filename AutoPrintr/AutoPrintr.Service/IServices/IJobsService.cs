@@ -1,9 +1,8 @@
 ﻿using AutoPrintr.Core.Models;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AutoPrintr.Core.IServices
+namespace AutoPrintr.Service.IServices
 {
     public delegate void JobChangedEventHandler(Job job);
 
@@ -13,11 +12,10 @@ namespace AutoPrintr.Core.IServices
 
         event JobChangedEventHandler JobChangedEvent;
 
-        Task<IEnumerable<Job>> GetJobs();
-        Task RunAsync();
+        IEnumerable<Job> GetJobs();
         void Print(Job job);
-        Task DeleteJob(Job job);
-        Task DeleteJobs(DateTime startDate, DateTime endDate);
+        void DeleteJobs(IEnumerable<Job> jobs);
+        Task RunAsync();
         Task StopAsync();
     }
 }

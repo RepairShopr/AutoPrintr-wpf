@@ -51,22 +51,16 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="PusherClient, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\PusherClient.0.3.0\lib\net40\PusherClient.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\MvvmLightLibs.5.3.0.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="WebSocket4Net, Version=0.14.1.0, Culture=neutral, PublicKeyToken=eb4e154b696bf72a, processorArchitecture=MSIL">
-      <HintPath>..\packages\WebSocket4Net.0.14.1\lib\net45\WebSocket4Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -77,11 +71,12 @@
     <Compile Include="Helpers\ErrorMessagesContainer.cs" />
     <Compile Include="IServices\IApiService.cs" />
     <Compile Include="IServices\IFileService.cs" />
-    <Compile Include="IServices\IJobsService.cs" />
     <Compile Include="IServices\ILoggerService.cs" />
     <Compile Include="IServices\IPrinterService.cs" />
     <Compile Include="IServices\ISettingsService.cs" />
     <Compile Include="IServices\IUserService.cs" />
+    <Compile Include="IServices\IWindowsService.cs" />
+    <Compile Include="IServices\IWindowsServiceCallback.cs" />
     <Compile Include="Models\BaseModel.cs" />
     <Compile Include="Models\Channel.cs" />
     <Compile Include="Models\Document.cs" />
@@ -107,7 +102,6 @@
     </Compile>
     <Compile Include="Services\ApiService.cs" />
     <Compile Include="Services\FileService.cs" />
-    <Compile Include="Services\JobsService.cs" />
     <Compile Include="Services\LoggerService.cs" />
     <Compile Include="Services\PrinterService.cs" />
     <Compile Include="Services\SettingsService.cs" />
@@ -117,7 +111,9 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">

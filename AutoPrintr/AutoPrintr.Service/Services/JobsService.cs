@@ -1,5 +1,6 @@
 ﻿using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
+using AutoPrintr.Service.IServices;
 using Newtonsoft.Json;
 using PusherClient;
 using System;
@@ -10,7 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AutoPrintr.Core.Services
+namespace AutoPrintr.Service.Services
 {
     internal class JobsService : IJobsService
     {
@@ -60,10 +61,45 @@ namespace AutoPrintr.Core.Services
         #region Methods
 
         #region Jobs Methods
-        public async Task<IEnumerable<Job>> GetJobs()
+        public IEnumerable<Job> GetJobs()
         {
-            await ReadJobsFromFiles();
-            return _newJobs.Union(_downloadedJobs).Union(_doneJobs);
+            return _newJobs
+                .Union(_downloadedJobs)
+                .Union(_doneJobs);
+        }
+
+        public void Print(Job job)
+        {
+            var localJob = GetJobs().FirstOrDefault(x => x.Id == job.Id);
+            if (localJob == null)
+                return;
+
+            PrintDocument(localJob, true);
+        }
+
+        public async void DeleteJobs(IEnumerable<Job> jobs)
+        {
+            if (jobs == null)
+                return;
+
+            foreach (var job in jobs)
+            {
+                var localJob = GetJobs().FirstOrDefault(x => x.Id == job.Id);
+
+                _loggingService.WriteInformation($"Starting remove job {localJob.Document.TypeTitle}");
+
+                if (!string.IsNullOrEmpty(localJob.Document.LocalFilePath))
+                    await _fileService.DeleteFileAsync(localJob.Document.LocalFilePath);
+
+                if (_doneJobs.Contains(localJob))
+                    _doneJobs.Remove(localJob);
+                else if (_downloadedJobs.Contains(localJob))
+                    _downloadedJobs.Remove(localJob);
+                else if (_newJobs.Contains(localJob))
+                    _newJobs.Remove(localJob);
+
+                _loggingService.WriteInformation($"Job {localJob.Document.TypeTitle} is removed");
+            }
         }
 
         public async Task RunAsync()
@@ -81,35 +117,6 @@ namespace AutoPrintr.Core.Services
             IsRunning = true;
         }
 
-        public void Print(Job job)
-        {
-            PrintDocument(job, true);
-        }
-
-        public async Task DeleteJob(Job job)
-        {
-            _loggingService.WriteInformation($"Starting remove job {job.Document.TypeTitle}");
-
-            if (!string.IsNullOrEmpty(job.Document.LocalFilePath))
-                await _fileService.DeleteFileAsync(job.Document.LocalFilePath);
-
-            if (_doneJobs.Contains(job))
-                _doneJobs.Remove(job);
-            else if (_downloadedJobs.Contains(job))
-                _downloadedJobs.Remove(job);
-            else if (_newJobs.Contains(job))
-                _newJobs.Remove(job);
-
-            _loggingService.WriteInformation($"Job {job.Document.TypeTitle} is removed");
-        }
-
-        public async Task DeleteJobs(DateTime startDate, DateTime endDate)
-        {
-            var jobsToRemove = (await GetJobs()).Where(x => x.CreatedOn >= startDate && x.CreatedOn < endDate).ToList();
-            foreach (var item in jobsToRemove)
-                await DeleteJob(item);
-        }
-
         public async Task StopAsync()
         {
             if (!IsRunning)
@@ -124,7 +131,7 @@ namespace AutoPrintr.Core.Services
             IsRunning = false;
         }
 
-        private async void _settingsService_ChannelChangedEvent(Models.Channel newChannel)
+        private async void _settingsService_ChannelChangedEvent(Core.Models.Channel newChannel)
         {
             if (!IsRunning)
                 return;
