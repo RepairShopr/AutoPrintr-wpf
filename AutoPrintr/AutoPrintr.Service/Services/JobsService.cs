@@ -269,7 +269,7 @@ namespace AutoPrintr.Service.Services
             var jobPrinters = await GetPrintersForJob(job);
             var rotation = jobPrinters.Any(x => x.Rotation);
             if (rotation)
-                job.Document.FileUri = new Uri($"{job.Document.FileUri}&rotation=portrait");
+                job.Document.FileUri = new Uri($"{job.Document.FileUri}&orientation=portrait");
 
             _loggingService.WriteInformation($"Starting download document {job.Document.TypeTitle} from {job.Document.FileUri}");
 
