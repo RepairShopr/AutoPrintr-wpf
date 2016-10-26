@@ -14,6 +14,8 @@ namespace AutoPrintr.Core.Models
         [DataMember]
         public bool Rotation { get; set; }
         [DataMember]
+        public PrintMode PrintMode { get; set; }
+        [DataMember]
         public IEnumerable<DocumentTypeSettings> DocumentTypes { get; set; }
 
         public Printer()

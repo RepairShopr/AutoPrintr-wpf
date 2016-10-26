@@ -31,10 +31,17 @@ namespace AutoPrintr.Helpers
 
         public async Task<IEnumerable<Printer>> GetPrintersAsync()
         {
-            var instanceContext = new InstanceContext(this);
-            using (var windowsServiceClient = new WindowsServiceReference.WindowsServiceClient(instanceContext))
+            try
             {
-                return await windowsServiceClient.GetPrintersAsync();
+                var instanceContext = new InstanceContext(this);
+                using (var windowsServiceClient = new WindowsServiceReference.WindowsServiceClient(instanceContext))
+                {
+                    return await windowsServiceClient.GetPrintersAsync();
+                }
+            }
+            catch (CommunicationObjectFaultedException)
+            {
+                return new List<Printer>();
             }
         }
 

@@ -20,6 +20,7 @@
         <x:Array x:Key="AdditionalItems" Type="{x:Type system:String}">
             <system:String>Register</system:String>
             <system:String>Rotation</system:String>
+            <system:String>Print Mode</system:String>
         </x:Array>
 
         <Style TargetType="Border" x:Key="SeparatorBorderStyle">
@@ -58,6 +59,7 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
                 <Border Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
@@ -78,10 +80,13 @@
                 </Border>
                 <ItemsControl Grid.Row="2" ItemsSource="{Binding DocumentTypes, Mode=OneWay}" ItemTemplate="{StaticResource DocumentTypeItemTemplate}" />
                 <Border Grid.Row="3" Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
-                    <ComboBox ItemsSource="{Binding DataContext.Registers, ElementName=LayoutRoot}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding Register, Mode=TwoWay}" Margin="10,5" FontSize="12" LostFocus="ComboBox_LostFocus" />
+                    <ComboBox ItemsSource="{Binding DataContext.Registers, ElementName=LayoutRoot}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding Register, Mode=TwoWay}" Margin="10,4" FontSize="12" LostFocus="ComboBox_LostFocus" />
                 </Border>
                 <Border Grid.Row="4" Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
                     <CheckBox IsChecked="{Binding Rotation, Mode=TwoWay}" Margin="10,5" FontSize="12" Content="Rotate" LostFocus="CheckBox_LostFocus" />
+                </Border>
+                <Border Grid.Row="5" Style="{StaticResource SeparatorBorderStyle}" Height="{StaticResource RowHeight}">
+                    <ComboBox ItemsSource="{Binding DataContext.PrintModes, ElementName=LayoutRoot}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding PrintMode, Mode=TwoWay}" Margin="10,4" FontSize="12" LostFocus="ComboBox_LostFocus" />
                 </Border>
             </Grid>
         </DataTemplate>

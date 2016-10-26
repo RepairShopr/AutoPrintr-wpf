@@ -34,6 +34,7 @@ namespace AutoPrintr.ViewModels
         public IEnumerable<string> DocumentTypes { get; private set; }
         public IEnumerable<Printer> Printers { get; private set; }
         public IEnumerable<Register> Registers { get; private set; }
+        public IEnumerable<KeyValuePair<PrintMode, string>> PrintModes { get; private set; }
 
         public override ViewType Type => ViewType.Settings;
 
@@ -53,6 +54,10 @@ namespace AutoPrintr.ViewModels
                 .OfType<DocumentType>()
                 .Select(x => Document.GetTypeTitle(x))
                 .OrderBy(x => x)
+                .ToList();
+            PrintModes = Enum.GetValues(typeof(PrintMode))
+                .OfType<PrintMode>()
+                .Select(x => new KeyValuePair<PrintMode, string>(x, x.ToString()))
                 .ToList();
 
             MessengerInstance.Register<User>(this, OnUserChanged);
@@ -116,6 +121,8 @@ namespace AutoPrintr.ViewModels
 
         private async void InitializePrinters()
         {
+            ShowBusyControl();
+
             Printers = await _windowsServiceClient.GetPrintersAsync();
             var documentTypes = Enum.GetValues(typeof(DocumentType)).OfType<DocumentType>().ToList();
 
@@ -134,6 +141,8 @@ namespace AutoPrintr.ViewModels
                     .ToList();
             }
             RaisePropertyChanged(nameof(Printers));
+
+            HideBusyControl();
         }
 
         private void InitializeRegisters()
@@ -176,6 +185,9 @@ namespace AutoPrintr.ViewModels
             ShowBusyControl();
             await _settingsService.InstallService(value);
             HideBusyControl();
+
+            if (InstallService && Printers?.Any() != true)
+                InitializePrinters();
 
             RaisePropertyChanged(nameof(InstallService));
         }

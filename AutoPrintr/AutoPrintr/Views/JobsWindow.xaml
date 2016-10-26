@@ -69,14 +69,14 @@
                     <DataGridTemplateColumn Header="Created On" MinWidth="150">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Margin="10,3" VerticalAlignment="Center" Text="{Binding CreatedOn, Mode=OneWay}" />
+                                <TextBlock Margin="5,3" VerticalAlignment="Center" Text="{Binding CreatedOn, Mode=OneWay}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="Last Updated" MinWidth="150">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Margin="10,3" VerticalAlignment="Center" Text="{Binding UpdatedOn, Mode=OneWay}" />
+                                <TextBlock Margin="5,3" VerticalAlignment="Center" Text="{Binding UpdatedOn, Mode=OneWay}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -104,7 +104,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="File" MinWidth="150" Width="*">
+                    <DataGridTemplateColumn Header="File" MinWidth="250" Width="*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Margin="10,3" VerticalAlignment="Center" Text="{Binding Document.LocalFilePath, Mode=OneWay}" />

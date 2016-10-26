@@ -49,8 +49,6 @@ namespace AutoPrintr.Views
             var checkBox = (CheckBox)sender;
             var printer = (Printer)checkBox.DataContext;
 
-            printer.Rotation = checkBox.IsChecked == true;
-
             ViewModel.UpdatePrinterCommand.Execute(printer);
         }
 
@@ -58,14 +56,6 @@ namespace AutoPrintr.Views
         {
             var comboBox = (ComboBox)sender;
             var printer = (Printer)comboBox.DataContext;
-
-            if (comboBox.SelectedItem == null)
-                printer.Register = null;
-            else
-            {
-                var register = (Register)comboBox.SelectedItem;
-                printer.Register = register.Id;
-            }
 
             ViewModel.UpdatePrinterCommand.Execute(printer);
         }
