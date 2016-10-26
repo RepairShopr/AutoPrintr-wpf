@@ -66,7 +66,7 @@ namespace AutoPrintr.ViewModels
         #endregion
 
         #region Methods
-        public override async void NavigatedTo(object parameter = null)
+        public override void NavigatedTo(object parameter = null)
         {
             base.NavigatedTo(parameter);
 
@@ -75,7 +75,6 @@ namespace AutoPrintr.ViewModels
             _selectedJobState = null;
             _selectedDocumentType = null;
 
-            await _windowsServiceClient.ConnectAsync(JobChanged);
             LoadJobs();
         }
 
@@ -90,11 +89,23 @@ namespace AutoPrintr.ViewModels
         {
             ShowBusyControl();
 
+            if (!_windowsServiceClient.Connected)
+                await _windowsServiceClient.ConnectAsync(JobChanged);
+
             Jobs.Clear();
-            var jobs = (await _windowsServiceClient.GetJobsAsync())
+
+            var jobs = (await _windowsServiceClient.GetJobsAsync())?
                 .Where(x => SelectedJobState.HasValue ? x.State == SelectedJobState.Value : true)
                 .Where(x => SelectedDocumentType.HasValue ? x.Document.Type == SelectedDocumentType.Value : true)
                 .OrderByDescending(x => x.UpdatedOn);
+
+            if (jobs == null)
+            {
+                ShowMessageControl("Jobs cannot be loaded, the AutoPrintr service is not available. Please run the service and try again");
+                HideBusyControl();
+                return;
+            }
+
             foreach (var job in jobs)
                 Jobs.Add(job);
 
@@ -115,12 +126,20 @@ namespace AutoPrintr.ViewModels
 
         private async void OnPrint(Job obj)
         {
-            await _windowsServiceClient.PrintAsync(obj);
+            var result = await _windowsServiceClient.PrintAsync(obj);
+            if (!result)
+                ShowMessageControl("Job cannot be printed, the AutoPrintr service is not available. Please run the service and try again");
         }
 
         private async void OnDeleteJob(Job obj)
         {
-            await _windowsServiceClient.DeleteJobsAsync(new[] { obj });
+            var result = await _windowsServiceClient.DeleteJobsAsync(new[] { obj });
+            if (!result)
+            {
+                ShowMessageControl("Job cannot be removed, the AutoPrintr service is not available. Please run the service and try again");
+                return;
+            }
+
             Jobs.Remove(obj);
         }
 
@@ -149,9 +168,15 @@ namespace AutoPrintr.ViewModels
             }
 
             var jobsToRemove = Jobs.Where(x => x.CreatedOn >= startDate && x.CreatedOn < endDate).ToArray();
-            await _windowsServiceClient.DeleteJobsAsync(jobsToRemove);
+            var result = await _windowsServiceClient.DeleteJobsAsync(jobsToRemove);
 
             HideBusyControl();
+
+            if (!result)
+            {
+                ShowMessageControl("Jobs cannot be removed, the AutoPrintr service is not available. Please run the service and try again");
+                return;
+            }
 
             LoadJobs();
         }

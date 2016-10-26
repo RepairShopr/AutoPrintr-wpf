@@ -12,21 +12,42 @@ namespace AutoPrintr.Helpers
         private Action<Job> _jobChanged;
         private WindowsServiceReference.WindowsServiceClient _windowsServiceClient;
 
+        public bool Connected => _windowsServiceClient?.State == CommunicationState.Opened;
+
         public async Task ConnectAsync(Action<Job> jobChanged)
         {
             _jobChanged = jobChanged;
 
-            var instanceContext = new InstanceContext(this);
-            _windowsServiceClient = new WindowsServiceReference.WindowsServiceClient(instanceContext);
+            try
+            {
+                var instanceContext = new InstanceContext(this);
+                _windowsServiceClient = new WindowsServiceReference.WindowsServiceClient(instanceContext);
 
-            _windowsServiceClient.Open();
-            await _windowsServiceClient.ConnectAsync();
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        _windowsServiceClient.Open();
+                    }
+                    catch (EndpointNotFoundException)
+                    { }
+                });
+
+                await _windowsServiceClient.ConnectAsync();
+            }
+            catch (CommunicationObjectFaultedException)
+            { }
         }
 
         public async Task DisconnectAsync()
         {
-            await _windowsServiceClient.DisconnectAsync();
-            _windowsServiceClient.Close();
+            try
+            {
+                await _windowsServiceClient.DisconnectAsync();
+                _windowsServiceClient.Close();
+            }
+            catch (CommunicationObjectFaultedException)
+            { }
         }
 
         public async Task<IEnumerable<Printer>> GetPrintersAsync()
@@ -47,17 +68,40 @@ namespace AutoPrintr.Helpers
 
         public async Task<IEnumerable<Job>> GetJobsAsync()
         {
-            return await _windowsServiceClient.GetJobsAsync();
+            try
+            {
+                return await _windowsServiceClient.GetJobsAsync();
+            }
+            catch (CommunicationObjectFaultedException)
+            {
+                return null;
+            }
         }
 
-        public async Task PrintAsync(Job job)
+        public async Task<bool> PrintAsync(Job job)
         {
-            await _windowsServiceClient.PrintAsync(job);
+            try
+            {
+                await _windowsServiceClient.PrintAsync(job);
+                return true;
+            }
+            catch (CommunicationObjectFaultedException)
+            {
+                return false;
+            }
         }
 
-        public async Task DeleteJobsAsync(Job[] jobs)
+        public async Task<bool> DeleteJobsAsync(Job[] jobs)
         {
-            await _windowsServiceClient.DeleteJobsAsync(jobs);
+            try
+            {
+                await _windowsServiceClient.DeleteJobsAsync(jobs);
+                return true;
+            }
+            catch (CommunicationObjectFaultedException)
+            {
+                return false;
+            }
         }
 
         public void JobChanged(Job job)
