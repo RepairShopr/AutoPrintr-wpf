@@ -41,7 +41,7 @@ namespace AutoPrintr.Helpers
             }
             catch (CommunicationObjectFaultedException)
             {
-                return new List<Printer>();
+                return null;
             }
         }
 

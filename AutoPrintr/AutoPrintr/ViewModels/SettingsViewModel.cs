@@ -124,6 +124,13 @@ namespace AutoPrintr.ViewModels
             ShowBusyControl();
 
             Printers = await _windowsServiceClient.GetPrintersAsync();
+            if (Printers == null)
+            {
+                ShowMessageControl("Printers cannot be loaded, the AutoPrintr service is not available. Please run the service and try again");
+                HideBusyControl();
+                return;
+            }
+
             var documentTypes = Enum.GetValues(typeof(DocumentType)).OfType<DocumentType>().ToList();
 
             foreach (var printer in Printers)
