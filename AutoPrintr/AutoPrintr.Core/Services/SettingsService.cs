@@ -14,7 +14,7 @@ namespace AutoPrintr.Core.Services
         private readonly IFileService _fileService;
         private readonly ILoggerService _loggingService;
         private readonly string _fileName = $"Data/{nameof(Settings)}.json";
-        private static object _locker = new Object();
+        private static object _locker = new object();
 
         public event ChannelChangedEventHandler ChannelChangedEvent;
 

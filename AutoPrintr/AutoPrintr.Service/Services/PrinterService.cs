@@ -1,5 +1,6 @@
 ﻿using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
+using AutoPrintr.Service.IServices;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AutoPrintr.Core.Services
+namespace AutoPrintr.Service.Services
 {
     internal class PrinterService : IPrinterService
     {

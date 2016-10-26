@@ -21,6 +21,18 @@
       <xs:sequence />
     </xs:complexType>
   </xs:element>
+  <xs:element name="GetPrinters">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetPrintersResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" minOccurs="0" name="GetPrintersResult" nillable="true" type="q1:ArrayOfPrinter" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="GetJobs">
     <xs:complexType>
       <xs:sequence />
@@ -29,14 +41,14 @@
   <xs:element name="GetJobsResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" minOccurs="0" name="GetJobsResult" nillable="true" type="q1:ArrayOfJob" />
+        <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" minOccurs="0" name="GetJobsResult" nillable="true" type="q2:ArrayOfJob" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="Print">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" minOccurs="0" name="job" nillable="true" type="q2:Job" />
+        <xs:element xmlns:q3="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" minOccurs="0" name="job" nillable="true" type="q3:Job" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -48,7 +60,7 @@
   <xs:element name="DeleteJobs">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q3="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" minOccurs="0" name="jobs" nillable="true" type="q3:ArrayOfJob" />
+        <xs:element xmlns:q4="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" minOccurs="0" name="jobs" nillable="true" type="q4:ArrayOfJob" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -60,7 +72,7 @@
   <xs:element name="JobChanged">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q4="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" minOccurs="0" name="job" nillable="true" type="q4:Job" />
+        <xs:element xmlns:q5="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" minOccurs="0" name="job" nillable="true" type="q5:Job" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

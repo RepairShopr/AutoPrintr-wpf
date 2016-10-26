@@ -15,7 +15,7 @@ namespace AutoPrintr.ViewModels
     {
         #region Properties
         private readonly ISettingsService _settingsService;
-        private readonly IPrinterService _printerService;
+        private readonly WindowsServiceClient _windowsServiceClient;
 
         public bool AddToStartup
         {
@@ -42,12 +42,11 @@ namespace AutoPrintr.ViewModels
 
         #region Constructors
         public SettingsViewModel(INavigationService navigationService,
-            ISettingsService settingsService,
-            IPrinterService printerService)
+            ISettingsService settingsService)
             : base(navigationService)
         {
             _settingsService = settingsService;
-            _printerService = printerService;
+            _windowsServiceClient = new WindowsServiceClient();
 
             SelectedLocations = new ObservableCollection<Location>();
             DocumentTypes = Enum.GetValues(typeof(DocumentType))
@@ -117,7 +116,7 @@ namespace AutoPrintr.ViewModels
 
         private async void InitializePrinters()
         {
-            Printers = (await _printerService.GetPrintersAsync()).ToList();
+            Printers = await _windowsServiceClient.GetPrintersAsync();
             var documentTypes = Enum.GetValues(typeof(DocumentType)).OfType<DocumentType>().ToList();
 
             foreach (var printer in Printers)

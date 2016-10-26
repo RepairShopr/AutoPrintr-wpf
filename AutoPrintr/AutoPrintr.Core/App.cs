@@ -34,7 +34,6 @@ namespace AutoPrintr.Core
             SimpleIoc.Default.Register<IFileService, FileService>();
             SimpleIoc.Default.Register<ISettingsService, SettingsService>();
             SimpleIoc.Default.Register<IUserService, UserService>();
-            SimpleIoc.Default.Register<IPrinterService, PrinterService>();            
         }
 
         protected virtual async Task<bool> LoadSettingsAsync()

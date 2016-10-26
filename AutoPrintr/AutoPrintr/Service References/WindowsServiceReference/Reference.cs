@@ -27,6 +27,12 @@ namespace AutoPrintr.WindowsServiceReference {
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IWindowsService/Disconnect", ReplyAction="http://tempuri.org/IWindowsService/DisconnectResponse")]
         System.Threading.Tasks.Task DisconnectAsync();
         
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IWindowsService/GetPrinters", ReplyAction="http://tempuri.org/IWindowsService/GetPrintersResponse")]
+        AutoPrintr.Core.Models.Printer[] GetPrinters();
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IWindowsService/GetPrinters", ReplyAction="http://tempuri.org/IWindowsService/GetPrintersResponse")]
+        System.Threading.Tasks.Task<AutoPrintr.Core.Models.Printer[]> GetPrintersAsync();
+        
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IWindowsService/GetJobs", ReplyAction="http://tempuri.org/IWindowsService/GetJobsResponse")]
         AutoPrintr.Core.Models.Job[] GetJobs();
         
@@ -95,6 +101,14 @@ namespace AutoPrintr.WindowsServiceReference {
         
         public System.Threading.Tasks.Task DisconnectAsync() {
             return base.Channel.DisconnectAsync();
+        }
+        
+        public AutoPrintr.Core.Models.Printer[] GetPrinters() {
+            return base.Channel.GetPrinters();
+        }
+        
+        public System.Threading.Tasks.Task<AutoPrintr.Core.Models.Printer[]> GetPrintersAsync() {
+            return base.Channel.GetPrintersAsync();
         }
         
         public AutoPrintr.Core.Models.Job[] GetJobs() {

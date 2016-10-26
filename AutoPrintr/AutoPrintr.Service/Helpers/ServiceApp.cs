@@ -30,6 +30,7 @@ namespace AutoPrintr.Service.Helpers
         {
             base.RegisterTypes();
 
+            SimpleIoc.Default.Register<IPrinterService, PrinterService>();
             SimpleIoc.Default.Register<IJobsService, JobsService>();
         }
 

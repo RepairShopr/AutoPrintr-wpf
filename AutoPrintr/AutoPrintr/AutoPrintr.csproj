@@ -226,6 +226,7 @@
       <SubType>Code</SubType>
     </Compile>
     <None Include="Properties\DataSources\AutoPrintr.Core.Models.Job.datasource" />
+    <None Include="Properties\DataSources\AutoPrintr.Core.Models.Printer.datasource" />
     <None Include="Service References\WindowsServiceReference\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>

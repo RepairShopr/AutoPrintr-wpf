@@ -14,6 +14,9 @@ namespace AutoPrintr.Core.IServices
         void Disconnect();
 
         [OperationContract]
+        IEnumerable<Printer> GetPrinters();
+
+        [OperationContract]
         IEnumerable<Job> GetJobs();
 
         [OperationContract]

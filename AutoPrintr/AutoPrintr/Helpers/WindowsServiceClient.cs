@@ -29,6 +29,15 @@ namespace AutoPrintr.Helpers
             _windowsServiceClient.Close();
         }
 
+        public async Task<IEnumerable<Printer>> GetPrintersAsync()
+        {
+            var instanceContext = new InstanceContext(this);
+            using (var windowsServiceClient = new WindowsServiceReference.WindowsServiceClient(instanceContext))
+            {
+                return await windowsServiceClient.GetPrintersAsync();
+            }
+        }
+
         public async Task<IEnumerable<Job>> GetJobsAsync()
         {
             return await _windowsServiceClient.GetJobsAsync();

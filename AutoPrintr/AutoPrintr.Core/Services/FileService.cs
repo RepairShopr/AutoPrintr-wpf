@@ -12,7 +12,7 @@ namespace AutoPrintr.Core.Services
     {
         #region Properties
         private readonly string _folderPath;
-        private static object _locker = new Object();
+        private static object _locker = new object();
         #endregion
 
         #region Constructors

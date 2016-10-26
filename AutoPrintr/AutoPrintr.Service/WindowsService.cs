@@ -12,6 +12,7 @@ namespace AutoPrintr.Service
     {
         private readonly static ICollection<IWindowsServiceCallback> _callBackList = new List<IWindowsServiceCallback>();
         private IJobsService JobsService => SimpleIoc.Default.GetInstance<IJobsService>();
+        private IPrinterService PrintersService => SimpleIoc.Default.GetInstance<IPrinterService>();
 
         public void Connect()
         {
@@ -25,6 +26,13 @@ namespace AutoPrintr.Service
             var callback = OperationContext.Current.GetCallbackChannel<IWindowsServiceCallback>();
             if (_callBackList.Contains(callback))
                 _callBackList.Remove(callback);
+        }
+
+        public IEnumerable<Printer> GetPrinters()
+        {
+            var task = PrintersService.GetPrintersAsync();
+            task.Wait();
+            return task.Result;
         }
 
         public IEnumerable<Job> GetJobs()

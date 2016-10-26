@@ -53,6 +53,12 @@
   <wsdl:message name="IWindowsService_Disconnect_OutputMessage">
     <wsdl:part name="parameters" element="tns:DisconnectResponse" />
   </wsdl:message>
+  <wsdl:message name="IWindowsService_GetPrinters_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetPrinters" />
+  </wsdl:message>
+  <wsdl:message name="IWindowsService_GetPrinters_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetPrintersResponse" />
+  </wsdl:message>
   <wsdl:message name="IWindowsService_GetJobs_InputMessage">
     <wsdl:part name="parameters" element="tns:GetJobs" />
   </wsdl:message>
@@ -86,6 +92,10 @@
       <wsdl:input wsaw:Action="http://tempuri.org/IWindowsService/Disconnect" message="tns:IWindowsService_Disconnect_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/IWindowsService/DisconnectResponse" message="tns:IWindowsService_Disconnect_OutputMessage" />
     </wsdl:operation>
+    <wsdl:operation msc:isInitiating="true" msc:isTerminating="false" name="GetPrinters">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWindowsService/GetPrinters" message="tns:IWindowsService_GetPrinters_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWindowsService/GetPrintersResponse" message="tns:IWindowsService_GetPrinters_OutputMessage" />
+    </wsdl:operation>
     <wsdl:operation msc:isInitiating="true" msc:isTerminating="false" name="GetJobs">
       <wsdl:input wsaw:Action="http://tempuri.org/IWindowsService/GetJobs" message="tns:IWindowsService_GetJobs_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/IWindowsService/GetJobsResponse" message="tns:IWindowsService_GetJobs_OutputMessage" />
@@ -118,6 +128,15 @@
     </wsdl:operation>
     <wsdl:operation name="Disconnect">
       <soap12:operation soapAction="http://tempuri.org/IWindowsService/Disconnect" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPrinters">
+      <soap12:operation soapAction="http://tempuri.org/IWindowsService/GetPrinters" style="document" />
       <wsdl:input>
         <soap12:body use="literal" />
       </wsdl:input>

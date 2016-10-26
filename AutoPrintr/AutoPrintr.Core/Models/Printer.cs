@@ -1,13 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace AutoPrintr.Core.Models
 {
+    [DataContract]
     public class Printer : BaseModel
     {
+        [DataMember]
         public string Name { get; set; }
+        [DataMember]
         public int? Register { get; set; }
+        [DataMember]
         public bool Rotation { get; set; }
+        [DataMember]
         public IEnumerable<DocumentTypeSettings> DocumentTypes { get; set; }
 
         public Printer()

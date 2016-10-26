@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AutoPrintr.Core.IServices
+namespace AutoPrintr.Service.IServices
 {
     public interface IPrinterService
     {

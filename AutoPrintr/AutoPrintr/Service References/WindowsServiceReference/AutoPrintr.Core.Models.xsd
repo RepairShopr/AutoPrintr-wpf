@@ -2,6 +2,71 @@
 <xs:schema xmlns:ser="http://schemas.microsoft.com/2003/10/Serialization/" xmlns:tns="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/AutoPrintr.Core.Models" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:import namespace="http://schemas.datacontract.org/2004/07/System" />
   <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:complexType name="ArrayOfPrinter">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Printer" nillable="true" type="tns:Printer" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfPrinter" nillable="true" type="tns:ArrayOfPrinter" />
+  <xs:complexType name="Printer">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:BaseModel">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="DocumentTypes" nillable="true" type="tns:ArrayOfDocumentTypeSettings" />
+          <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="Register" nillable="true" type="xs:int" />
+          <xs:element minOccurs="0" name="Rotation" type="xs:boolean" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="Printer" nillable="true" type="tns:Printer" />
+  <xs:complexType name="BaseModel">
+    <xs:sequence />
+  </xs:complexType>
+  <xs:element name="BaseModel" nillable="true" type="tns:BaseModel" />
+  <xs:complexType name="ArrayOfDocumentTypeSettings">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="DocumentTypeSettings" nillable="true" type="tns:DocumentTypeSettings" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfDocumentTypeSettings" nillable="true" type="tns:ArrayOfDocumentTypeSettings" />
+  <xs:complexType name="DocumentTypeSettings">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:BaseModel">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="AutoPrint" type="xs:boolean" />
+          <xs:element minOccurs="0" name="DocumentType" type="tns:DocumentType" />
+          <xs:element minOccurs="0" name="Enabled" type="xs:boolean" />
+          <xs:element minOccurs="0" name="Quantity" type="xs:int" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DocumentTypeSettings" nillable="true" type="tns:DocumentTypeSettings" />
+  <xs:simpleType name="DocumentType">
+    <xs:annotation>
+      <xs:appinfo>
+        <ActualType Name="unsignedByte" Namespace="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+        </ActualType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Invoice" />
+      <xs:enumeration value="Estimate" />
+      <xs:enumeration value="Ticket" />
+      <xs:enumeration value="IntakeForm" />
+      <xs:enumeration value="Receipt" />
+      <xs:enumeration value="ZReport" />
+      <xs:enumeration value="TicketReceipt" />
+      <xs:enumeration value="PopDrawer" />
+      <xs:enumeration value="Adjustment" />
+      <xs:enumeration value="CustomerID" />
+      <xs:enumeration value="Asset" />
+      <xs:enumeration value="TicketLabel" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="DocumentType" nillable="true" type="tns:DocumentType" />
   <xs:complexType name="ArrayOfJob">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="unbounded" name="Job" nillable="true" type="tns:Job" />
@@ -26,10 +91,6 @@
     </xs:complexContent>
   </xs:complexType>
   <xs:element name="Job" nillable="true" type="tns:Job" />
-  <xs:complexType name="BaseModel">
-    <xs:sequence />
-  </xs:complexType>
-  <xs:element name="BaseModel" nillable="true" type="tns:BaseModel" />
   <xs:complexType name="Document">
     <xs:complexContent mixed="false">
       <xs:extension base="tns:BaseModel">
@@ -60,29 +121,6 @@
     </xs:restriction>
   </xs:simpleType>
   <xs:element name="DocumentSize" nillable="true" type="tns:DocumentSize" />
-  <xs:simpleType name="DocumentType">
-    <xs:annotation>
-      <xs:appinfo>
-        <ActualType Name="unsignedByte" Namespace="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
-        </ActualType>
-      </xs:appinfo>
-    </xs:annotation>
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Invoice" />
-      <xs:enumeration value="Estimate" />
-      <xs:enumeration value="Ticket" />
-      <xs:enumeration value="IntakeForm" />
-      <xs:enumeration value="Receipt" />
-      <xs:enumeration value="ZReport" />
-      <xs:enumeration value="TicketReceipt" />
-      <xs:enumeration value="PopDrawer" />
-      <xs:enumeration value="Adjustment" />
-      <xs:enumeration value="CustomerID" />
-      <xs:enumeration value="Asset" />
-      <xs:enumeration value="TicketLabel" />
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:element name="DocumentType" nillable="true" type="tns:DocumentType" />
   <xs:simpleType name="JobState">
     <xs:annotation>
       <xs:appinfo>
