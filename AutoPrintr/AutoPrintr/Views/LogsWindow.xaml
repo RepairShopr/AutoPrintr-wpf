@@ -30,7 +30,7 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Margin="20,15,0,15" Text="Day:" />
-        <DatePicker Grid.Column="1" Width="150" SelectedDate="{Binding SelectedDay, Mode=TwoWay}" />
+        <DatePicker Grid.Column="1" Width="150" SelectedDate="{Binding SelectedDay, Mode=TwoWay}" Loaded="DatePicker_Loaded" />
 
         <TextBlock Grid.Column="2" Margin="20,15,0,15" Text="Log Type:" />
         <ComboBox Grid.Column="3" Width="150" ItemsSource="{Binding LogTypes, Mode=OneTime}" SelectedValue="{Binding SelectedLogType, Mode=TwoWay}" DisplayMemberPath="Value" SelectedValuePath="Key" />
