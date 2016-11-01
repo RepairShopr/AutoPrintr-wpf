@@ -22,6 +22,13 @@ namespace AutoPrintr.ViewModels
             set { Set(ref _selectedLogType, value); LoadLogs(); }
         }
 
+        private DateTime _selectedDay;
+        public DateTime SelectedDay
+        {
+            get { return _selectedDay; }
+            set { Set(ref _selectedDay, value); LoadLogs(); }
+        }
+
         public IEnumerable<Log> Logs { get; private set; }
 
         public override ViewType Type => ViewType.Logs;
@@ -49,6 +56,7 @@ namespace AutoPrintr.ViewModels
 
             Logs = null;
             _selectedLogType = null;
+            _selectedDay = DateTime.Now;
 
             LoadLogs();
         }
@@ -57,7 +65,7 @@ namespace AutoPrintr.ViewModels
         {
             ShowBusyControl();
 
-            Logs = (await _logsService.GetLogsAsync())
+            Logs = (await _logsService.GetLogsAsync(SelectedDay))
                 .Where(x => SelectedLogType.HasValue ? x.Type == SelectedLogType.Value : true)
                 .OrderByDescending(x => x.DateTime)
                 .ToList();

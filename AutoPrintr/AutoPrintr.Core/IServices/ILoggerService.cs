@@ -10,7 +10,7 @@ namespace AutoPrintr.Core.IServices
         string TodayLogsFilePath { get; }
         Task InitializeAppLogsAsync();
         Task InitializeServiceLogsAsync();
-        Task<IEnumerable<Log>> GetLogsAsync();
+        Task<IEnumerable<Log>> GetLogsAsync(DateTime day);
         void WriteInformation(string message);
         void WriteWarning(string message);
         void WriteError(string message);

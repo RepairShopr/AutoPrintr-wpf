@@ -31,11 +31,11 @@
         <TextBlock Grid.Row="2" Text="Password" Style="{StaticResource FormTextBlockStyle}" />
         <PasswordBox x:Name="PasswordBox" Grid.Row="2" Grid.Column="1" PasswordChanged="PasswordBox_PasswordChanged" />
 
-        <CheckBox Grid.Row="3" Grid.Column="1" Margin="10,5" IsChecked="{Binding RememberMe, Mode=TwoWay}" Content="Remeber me?" />
+        <CheckBox Grid.Row="3" Grid.Column="1" Margin="10,5" IsChecked="{Binding RememberMe, Mode=TwoWay}" Content="Remember me?" />
 
         <StackPanel Grid.Row="4" Grid.Column="1" Margin="10,20" Orientation="Horizontal">
-            <Button Content="Login" Command="{Binding LoginCommand, Mode=OneTime}" />
-            <Button Content="Cancel" Margin="15,0,0,0" Click="CancelButton_Click" />
+            <Button Width="80" Content="Login" Command="{Binding LoginCommand, Mode=OneTime}" />
+            <Button Width="80" Content="Cancel" Margin="15,0,0,0" Click="CancelButton_Click" />
         </StackPanel>
 
         <controls:BusyIndicator />

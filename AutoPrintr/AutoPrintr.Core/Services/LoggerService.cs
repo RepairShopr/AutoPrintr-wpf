@@ -52,14 +52,14 @@ namespace AutoPrintr.Core.Services
                 _logs = existingLogs.Union(_logs).ToList();
         }
 
-        public async Task<IEnumerable<Log>> GetLogsAsync()
+        public async Task<IEnumerable<Log>> GetLogsAsync(DateTime day)
         {
             var logs = new List<Log>();
 
             var appTypes = Enum.GetValues(typeof(AppType)).OfType<AppType>();
             foreach (var type in appTypes)
             {
-                var existingLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(DateTime.Now, type));
+                var existingLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(day, type));
                 if (existingLogs != null)
                     logs = existingLogs.Union(logs).ToList();
             }
