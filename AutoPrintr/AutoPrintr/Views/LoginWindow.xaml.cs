@@ -9,16 +9,6 @@ namespace AutoPrintr.Views
         public LoginWindow()
         {
             InitializeComponent();
-            Loaded += LoginWindow_Loaded;
-        }
-
-        private void LoginWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            Loaded -= LoginWindow_Loaded;
-#if DEBUG
-            UsernameTextBox.Text = "geruch.vitaliy@gmail.com";
-            PasswordBox.Password = "work@2016";
-#endif
         }
 
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
