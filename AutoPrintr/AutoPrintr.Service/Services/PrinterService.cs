@@ -45,7 +45,7 @@ namespace AutoPrintr.Service.Services
             });
         }
 
-        public async Task PrintDocumentAsync(Printer printer, Document document, Action<bool, Exception> completed = null)
+        public async Task PrintDocumentAsync(Printer printer, Document document, int count, Action<bool, Exception> completed = null)
         {
             await Task.Factory.StartNew(() =>
             {
@@ -56,7 +56,7 @@ namespace AutoPrintr.Service.Services
                         throw new InvalidOperationException("LocalFilePath is required");
 
                     var processPath = ExtractSumatraPDF();
-                    var arguments = $"-silent -print-settings \"noscale,{printer.PrintMode.ToString().ToLower()}\" -exit-on-print -print-to \"{printer.Name}\" \"{_fileService.GetFilePath(document.LocalFilePath)}\"";
+                    var arguments = $"-silent -print-settings \"noscale,{printer.PrintMode.ToString().ToLower()},{count}x\" -exit-on-print -print-to \"{printer.Name}\" \"{_fileService.GetFilePath(document.LocalFilePath)}\"";
 
                     var psi = new ProcessStartInfo
                     {

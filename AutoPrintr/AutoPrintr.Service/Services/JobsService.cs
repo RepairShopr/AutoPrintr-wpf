@@ -153,11 +153,12 @@ namespace AutoPrintr.Service.Services
             _printingJobs.Add(printerToPrint, job);
 
             job.Printer = printerToPrint.Name;
+            job.Quantity = printerToPrint.DocumentTypes.Where(x => x.DocumentType == job.Document.Type).Select(x => x.Quantity).Single();
             job.State = JobState.Printing;
             job.UpdatedOn = DateTime.Now;
             JobChangedEvent?.Invoke(job);
 
-            await _printerService.PrintDocumentAsync(printerToPrint, job.Document, (r, e) =>
+            await _printerService.PrintDocumentAsync(printerToPrint, job.Document, job.Quantity, (r, e) =>
             {
                 if (r)
                     _loggingService.WriteInformation($"Document {job.Document.TypeTitle} is printed on {printerToPrint.Name}");
@@ -171,8 +172,6 @@ namespace AutoPrintr.Service.Services
                 job.Error = e;
                 job.State = r ? JobState.Printed : JobState.Error;
                 job.UpdatedOn = DateTime.Now;
-                if (r)
-                    job.Quantity++;
                 JobChangedEvent?.Invoke(job);
 
                 _printingJobs.Remove(printerToPrint);
