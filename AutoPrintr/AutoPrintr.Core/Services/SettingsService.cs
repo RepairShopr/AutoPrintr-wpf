@@ -111,7 +111,16 @@ namespace AutoPrintr.Core.Services
             newPrinter.Register = printer.Register;
             newPrinter.Rotation = printer.Rotation;
             newPrinter.PrintMode = printer.PrintMode;
-            newPrinter.DocumentTypes = printer.DocumentTypes.Where(x => x.Enabled == true).ToList();
+
+            var documentTypes = printer.DocumentTypes
+                .Where(x => x.Enabled == true)
+                .ToList();
+            documentTypes.ForEach(x =>
+            {
+                if (x.Quantity <= 0)
+                    x.Quantity = 1;
+            });
+            newPrinter.DocumentTypes = documentTypes;
 
             Settings.Printers = Settings.Printers.Union(new[] { newPrinter }).ToList();
             await SaveSettingsAsync();
@@ -128,7 +137,16 @@ namespace AutoPrintr.Core.Services
             originalPrinter.Register = printer.Register;
             originalPrinter.Rotation = printer.Rotation;
             originalPrinter.PrintMode = printer.PrintMode;
-            originalPrinter.DocumentTypes = printer.DocumentTypes.Where(x => x.Enabled == true).ToList();
+
+            var documentTypes = printer.DocumentTypes
+                .Where(x => x.Enabled == true)
+                .ToList();
+            documentTypes.ForEach(x =>
+            {
+                if (x.Quantity <= 0)
+                    x.Quantity = 1;
+            });
+            originalPrinter.DocumentTypes = documentTypes;
 
             await SaveSettingsAsync();
 
