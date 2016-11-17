@@ -17,6 +17,10 @@ namespace AutoPrintr.Helpers
         private static readonly WpfApp _instance = new WpfApp();
 
         public static WpfApp Instance => _instance;
+
+        public ILoggerService LoggerService => SimpleIoc.Default.GetInstance<ILoggerService>();
+        public ISettingsService SettingsService => SimpleIoc.Default.GetInstance<ISettingsService>();
+        public INavigationService NavigationService => SimpleIoc.Default.GetInstance<INavigationService>();
         #endregion
 
         #region Constructors
@@ -42,6 +46,9 @@ namespace AutoPrintr.Helpers
 
             await base.Startup(args);
 
+            if (SettingsService.Settings.User == null)
+                NavigationService.NavigateTo(ViewType.Login.ToString());
+
             //CheckForUpdates();
         }
 
@@ -63,34 +70,31 @@ namespace AutoPrintr.Helpers
 
         protected override async Task<bool> LoadSettingsAsync()
         {
-            var settingsService = SimpleIoc.Default.GetInstance<ISettingsService>();
-
             var result = await base.LoadSettingsAsync();
             if (!result)
             {
                 var caption = "Application Startup";
                 var message = "It's a first run. Would you like to add an App to the windows startup?";
                 if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                    await settingsService.AddToStartup(true);
+                    await SettingsService.AddToStartup(true);
             }
 
-            if (!settingsService.Settings.InstalledService)
+            if (!SettingsService.Settings.InstalledService)
             {
                 var caption = "Start the Service";
                 var message = "Service is not run. Would you like to start the service?";
                 if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                    await settingsService.InstallService(true);
+                    await SettingsService.InstallService(true);
             }
 
-            Messenger.Default.Send(settingsService.Settings.User);
+            Messenger.Default.Send(SettingsService.Settings.User);
 
             return result;
         }
 
         protected override Task InitializeLogsAsync()
         {
-            var loggerService = SimpleIoc.Default.GetInstance<ILoggerService>();
-            return loggerService.InitializeAppLogsAsync();
+            return LoggerService.InitializeAppLogsAsync();
         }
 
         #region DataContext and Navigation
@@ -139,8 +143,6 @@ namespace AutoPrintr.Helpers
         #region Updates
         private async void CheckForUpdates()
         {
-            var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
-            var settingsService = SimpleIoc.Default.GetInstance<ISettingsService>();
             UpdateCheckInfo info = null;
 
             if (ApplicationDeployment.IsNetworkDeployed)
@@ -155,8 +157,8 @@ namespace AutoPrintr.Helpers
                 {
                     Debug.WriteLine($"Error in {nameof(App)}: {dde.ToString()}");
 
-                    loggingService.WriteWarning("The new version of the application cannot be downloaded at this time. Please check your network connection, or try again later");
-                    loggingService.WriteError(dde);
+                    LoggerService.WriteWarning("The new version of the application cannot be downloaded at this time. Please check your network connection, or try again later");
+                    LoggerService.WriteError(dde);
 
                     return;
                 }
@@ -164,8 +166,8 @@ namespace AutoPrintr.Helpers
                 {
                     Debug.WriteLine($"Error in {nameof(App)}: {ide.ToString()}");
 
-                    loggingService.WriteWarning("Cannot check for a new version of the application. The ClickOnce deployment is corrupt. Please redeploy the application and try again");
-                    loggingService.WriteError(ide);
+                    LoggerService.WriteWarning("Cannot check for a new version of the application. The ClickOnce deployment is corrupt. Please redeploy the application and try again");
+                    LoggerService.WriteError(ide);
 
                     return;
                 }
@@ -179,14 +181,14 @@ namespace AutoPrintr.Helpers
 
                     try
                     {
-                        if (settingsService.Settings.InstalledService)
-                            await settingsService.InstallService(false);
+                        if (SettingsService.Settings.InstalledService)
+                            await SettingsService.InstallService(false);
 
-                        if (settingsService.Settings.InstalledService)
+                        if (SettingsService.Settings.InstalledService)
                         {
                             MessageBox.Show("AutoPrintr Service can not be stopped and uninstalled. Please uninstall service and try again", "Updates are not Installed", MessageBoxButton.OK, MessageBoxImage.Warning);
 
-                            loggingService.WriteWarning("Cannot install the latest version of the application. Service can not be stopped and uninstalled");
+                            LoggerService.WriteWarning("Cannot install the latest version of the application. Service can not be stopped and uninstalled");
 
                             return;
                         }
@@ -202,8 +204,8 @@ namespace AutoPrintr.Helpers
 
                         Debug.WriteLine($"Error in {nameof(App)}: {dde.ToString()}");
 
-                        loggingService.WriteWarning("Cannot install the latest version of the application. Please check your network connection, or try again later");
-                        loggingService.WriteError(dde);
+                        LoggerService.WriteWarning("Cannot install the latest version of the application. Please check your network connection, or try again later");
+                        LoggerService.WriteError(dde);
                     }
                 }
             }
