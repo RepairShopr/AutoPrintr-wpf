@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AutoPrintr.Core.Helpers;
+using Newtonsoft.Json;
 using System;
 
 namespace AutoPrintr.Core.Models
@@ -29,6 +30,7 @@ namespace AutoPrintr.Core.Models
         public int? Register { get; set; }
 
         [JsonProperty("type")]
+        [JsonConverter(typeof(DocumentSizeJsonConverter))]
         public DocumentSize Size { get; set; }
 
         public static string GetTypeTitle(DocumentType type)
@@ -58,6 +60,7 @@ namespace AutoPrintr.Core.Models
                 case DocumentSize.Letter: return "Size: Letter";
                 case DocumentSize.Label: return "Size: 1.1x3";
                 case DocumentSize.Receipt: return "Size: 80mm";
+                case DocumentSize.IntakeForm: return "Intake Form";
                 default: return null;
             }
         }

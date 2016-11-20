@@ -4,6 +4,7 @@
     {
         Letter,
         Label,
-        Receipt
+        Receipt,
+        IntakeForm
     }
 }

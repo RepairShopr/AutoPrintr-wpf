@@ -1,4 +1,5 @@
-﻿using AutoPrintr.Core.IServices;
+﻿using AutoPrintr.Core.Helpers;
+using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
 using AutoPrintr.Service.IServices;
 using Newtonsoft.Json;
@@ -391,7 +392,21 @@ namespace AutoPrintr.Service.Services
             _loggingService.WriteInformation($"Starting read Pusher response: {message.ToString()}");
 
             var stringMessage = message.ToString();
-            Document document = JsonConvert.DeserializeObject<Document>(stringMessage);
+            Document document = null;
+
+            try
+            {
+                document = JsonConvert.DeserializeObject<Document>(stringMessage, new DocumentSizeJsonConverter());
+            }
+            catch (Exception ex)
+            {
+                _loggingService.WriteInformation($"Add new job is not added");
+
+                Debug.WriteLine($"Error in Pusher: {ex.ToString()}");
+                _loggingService.WriteError(ex);
+
+                return;
+            }
 
             if (!document.Location.HasValue && !_settingsService.Settings.Locations.Any() || _settingsService.Settings.Locations.Any(l => l.Id == document.Location))
             {

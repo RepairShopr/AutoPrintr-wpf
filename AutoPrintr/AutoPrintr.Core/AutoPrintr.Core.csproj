@@ -63,6 +63,7 @@
     <Compile Include="App.cs" />
     <Compile Include="Helpers\ApiResult.cs" />
     <Compile Include="Helpers\BindableValidator.cs" />
+    <Compile Include="Helpers\DocumentSizeJsonConverter.cs" />
     <Compile Include="Helpers\ErrorMessagesContainer.cs" />
     <Compile Include="IServices\IApiService.cs" />
     <Compile Include="IServices\IFileService.cs" />
