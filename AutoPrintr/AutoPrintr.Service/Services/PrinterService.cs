@@ -98,7 +98,11 @@ namespace AutoPrintr.Service.Services
 
         private string ExtractSumatraPDF()
         {
-            string path = Path.Combine(Path.GetTempPath(), $"{nameof(Resources.SumatraPDF)}.exe");
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), $@"RepairShopr\AutoPrintr\{nameof(Resources.SumatraPDF)}.exe");
+
+            var folderPath = Path.GetDirectoryName(path);
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
 
             if (!File.Exists(path))
                 File.WriteAllBytes(path, Resources.SumatraPDF);
