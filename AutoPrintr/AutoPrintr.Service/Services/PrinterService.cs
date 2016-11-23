@@ -15,14 +15,17 @@ namespace AutoPrintr.Service.Services
         #region Properties
         private readonly ISettingsService _settingsService;
         private readonly IFileService _fileService;
+        private readonly ILoggerService _loggingService;
         #endregion
 
         #region Constructors
         public PrinterService(ISettingsService settingsService,
-            IFileService fileService)
+            IFileService fileService,
+            ILoggerService loggingService)
         {
             _settingsService = settingsService;
             _fileService = fileService;
+            _loggingService = loggingService;
         }
         #endregion
 
@@ -57,6 +60,8 @@ namespace AutoPrintr.Service.Services
 
                     var processPath = ExtractSumatraPDF();
                     var arguments = $"-silent -print-settings \"noscale,{printer.PrintMode.ToString().ToLower()},{count}x\" -exit-on-print -print-to \"{printer.Name}\" \"{_fileService.GetFilePath(document.LocalFilePath)}\"";
+
+                    _loggingService.WriteInformation($"Printing command: {arguments}");
 
                     var psi = new ProcessStartInfo
                     {
