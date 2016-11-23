@@ -186,7 +186,7 @@ namespace AutoPrintr.Service.Services
             var installedPrinters = await _printerService.GetPrintersAsync();
             return installedPrinters
                 .Where(x => job.Document.Register.HasValue ? job.Document.Register == x.Register : true)
-                .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled == true))
+                .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled && (job.Document.AutoPrint ? d.AutoPrint : true)))
                 .ToList();
         }
 
@@ -194,7 +194,7 @@ namespace AutoPrintr.Service.Services
         {
             return _settingsService.Settings.Printers
                 .Where(x => job.Document.Register.HasValue ? job.Document.Register == x.Register : true)
-                .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled == true))
+                .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled && (job.Document.AutoPrint ? d.AutoPrint : true)))
                 .ToList();
         }
 
