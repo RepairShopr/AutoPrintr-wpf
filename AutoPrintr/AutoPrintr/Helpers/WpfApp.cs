@@ -72,20 +72,10 @@ namespace AutoPrintr.Helpers
         {
             var result = await base.LoadSettingsAsync();
             if (!result)
-            {
-                var caption = "Application Startup";
-                var message = "It's a first run. Would you like to add an App to the windows startup?";
-                if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                    await SettingsService.AddToStartup(true);
-            }
+                await SettingsService.AddToStartup(true);
 
             if (!SettingsService.Settings.InstalledService)
-            {
-                var caption = "Start the Service";
-                var message = "Service is not run. Would you like to start the service?";
-                if (MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                    await SettingsService.InstallService(true);
-            }
+                await SettingsService.InstallService(true);
 
             Messenger.Default.Send(SettingsService.Settings.User);
 
