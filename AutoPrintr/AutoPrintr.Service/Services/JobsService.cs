@@ -408,7 +408,7 @@ namespace AutoPrintr.Service.Services
                 return;
             }
 
-            if (!document.Location.HasValue && !_settingsService.Settings.Locations.Any() || _settingsService.Settings.Locations.Any(l => l.Id == document.Location))
+            if (!document.Location.HasValue || _settingsService.Settings.Locations.Any(l => l.Id == document.Location))
             {
                 var newJob = new Job { Document = document };
 
