@@ -38,18 +38,18 @@ namespace AutoPrintr.Core.Services
         {
             _appType = AppType.App;
 
-            var existingLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(DateTime.Now, _appType));
-            if (existingLogs != null)
-                _logs = existingLogs.Union(_logs).ToList();
+            var fileLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(DateTime.Now, _appType));
+            if (fileLogs != null)
+                _logs = fileLogs.Union(_logs).ToList();
         }
 
         public async Task InitializeServiceLogsAsync()
         {
             _appType = AppType.Service;
 
-            var existingLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(DateTime.Now, _appType));
-            if (existingLogs != null)
-                _logs = existingLogs.Union(_logs).ToList();
+            var fileLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(DateTime.Now, _appType));
+            if (fileLogs != null)
+                _logs = fileLogs.Union(_logs).ToList();
         }
 
         public async Task<IEnumerable<Log>> GetLogsAsync(DateTime day)
@@ -59,9 +59,9 @@ namespace AutoPrintr.Core.Services
             var appTypes = Enum.GetValues(typeof(AppType)).OfType<AppType>();
             foreach (var type in appTypes)
             {
-                var existingLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(day, type));
-                if (existingLogs != null)
-                    logs = existingLogs.Union(logs).ToList();
+                var fileLogs = await _fileService.ReadObjectAsync<ICollection<Log>>(GetLogFileName(day, type));
+                if (fileLogs != null)
+                    logs = fileLogs.Union(logs).ToList();
             }
 
             return logs.OrderByDescending(x => x.DateTime).ToList();
@@ -99,7 +99,8 @@ namespace AutoPrintr.Core.Services
 
         private async void SaveLogsAsync()
         {
-            await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now, _appType), _logs.ToArray());
+            _logs = _logs.Where(x => x.DateTime.Date == DateTime.Now.Date).ToList();
+            await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now, _appType), _logs);
         }
 
         private string GetLogFileName(DateTime date, AppType type)
