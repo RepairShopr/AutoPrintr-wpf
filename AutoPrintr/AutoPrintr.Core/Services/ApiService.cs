@@ -48,6 +48,10 @@ namespace AutoPrintr.Core.Services
                 {
                     return CreateHttpRequestExceptionResult<T>(ex);
                 }
+                catch (Exception ex)
+                {
+                    return CreateExceptionResult<T>(ex);
+                }
             }
         }
 
@@ -63,6 +67,10 @@ namespace AutoPrintr.Core.Services
                 catch (HttpRequestException ex)
                 {
                     return CreateHttpRequestExceptionResult<T>(ex);
+                }
+                catch (Exception ex)
+                {
+                    return CreateExceptionResult<T>(ex);
                 }
             }
         }
@@ -80,6 +88,10 @@ namespace AutoPrintr.Core.Services
                 {
                     return CreateHttpRequestExceptionResult<T>(ex);
                 }
+                catch (Exception ex)
+                {
+                    return CreateExceptionResult<T>(ex);
+                }
             }
         }
 
@@ -95,6 +107,10 @@ namespace AutoPrintr.Core.Services
                 catch (HttpRequestException ex)
                 {
                     return CreateHttpRequestExceptionResult<T>(ex);
+                }
+                catch (Exception ex)
+                {
+                    return CreateExceptionResult<T>(ex);
                 }
             }
         }
@@ -115,6 +131,10 @@ namespace AutoPrintr.Core.Services
                 catch (HttpRequestException ex)
                 {
                     return CreateHttpRequestExceptionResult<bool>(ex);
+                }
+                catch (Exception ex)
+                {
+                    return CreateExceptionResult<bool>(ex);
                 }
             }
         }
@@ -146,6 +166,18 @@ namespace AutoPrintr.Core.Services
             {
                 IsSuccess = false,
                 StatusCode = System.Net.HttpStatusCode.RequestTimeout
+            };
+        }
+
+        private ApiResult<T> CreateExceptionResult<T>(Exception ex)
+        {
+            Debug.WriteLine($"Error in {nameof(ApiService)}: {ex.ToString()}");
+            _loggingService.WriteError(ex);
+
+            return new ApiResult<T>
+            {
+                IsSuccess = false,
+                StatusCode = null
             };
         }
 
