@@ -17,7 +17,7 @@ namespace AutoPrintr.Core.Helpers
             var documentSizeString = reader.Value.ToString().Replace(" ", string.Empty).Replace("-", string.Empty);
 
             if (!Enum.TryParse(documentSizeString, true, out documentSize))
-                throw new InvalidOperationException($"DocumentSizeJsonConverter exception: cannot deserialize value of '{documentSizeString}' into DocumentSize type");
+                throw new InvalidOperationException($"{nameof(DocumentSizeJsonConverter)} exception: cannot deserialize value of '{documentSizeString}' into {nameof(DocumentSize)} type");
 
             return documentSize;
         }

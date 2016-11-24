@@ -400,7 +400,7 @@ namespace AutoPrintr.Service.Services
             }
             catch (Exception ex)
             {
-                _loggingService.WriteInformation($"Add new job is not added");
+                _loggingService.WriteInformation($"New job is not added");
 
                 Debug.WriteLine($"Error in Pusher: {ex.ToString()}");
                 _loggingService.WriteError(ex);
