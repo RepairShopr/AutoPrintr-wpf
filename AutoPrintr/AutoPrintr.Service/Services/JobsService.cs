@@ -86,6 +86,8 @@ namespace AutoPrintr.Service.Services
             foreach (var job in jobs)
             {
                 var localJob = GetJobs().FirstOrDefault(x => x.Id == job.Id);
+                if (localJob == null)
+                    continue;
 
                 _loggingService.WriteInformation($"Starting remove job {localJob.Document.TypeTitle}");
 

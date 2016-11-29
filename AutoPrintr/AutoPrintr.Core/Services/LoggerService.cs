@@ -17,6 +17,7 @@ namespace AutoPrintr.Core.Services
 
         #region Properties
         private readonly IFileService _fileService;
+        private static object _locker = new object();
 
         private AppType _appType;
         private ICollection<Log> _logs;
@@ -93,14 +94,24 @@ namespace AutoPrintr.Core.Services
 
         private void AddLog(string message, LogType type)
         {
-            var newLogItem = new Log { DateTime = DateTime.Now, Event = message, Type = type };
-            _logs.Add(newLogItem);
+            lock (_locker)
+            {
+                var oldLogs = _logs.Where(x => x.DateTime.Date != DateTime.Now.Date).ToList();
+                foreach (var oldLog in oldLogs)
+                {
+                    if (_logs.Contains(oldLog))
+                        _logs.Remove(oldLog);
+                }
+
+                var newLogItem = new Log { DateTime = DateTime.Now, Event = message, Type = type };
+                _logs.Add(newLogItem);
+            }
         }
 
         private async void SaveLogsAsync()
         {
-            _logs = _logs.Where(x => x.DateTime.Date == DateTime.Now.Date).ToList();
-            await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now, _appType), _logs);
+            var localLogs = _logs.ToList();
+            await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now, _appType), localLogs);
         }
 
         private string GetLogFileName(DateTime date, AppType type)
