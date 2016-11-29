@@ -146,7 +146,7 @@ namespace AutoPrintr.Service.Services
         #region Printer Methods
         private async void PrintDocument(Job job, bool manual = false)
         {
-            var jobPrinters = await GetPrintersForPrinting(job);
+            var jobPrinters = await GetPrintersAsync(job);
             var printerToPrint = jobPrinters.FirstOrDefault(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0));
             if (printerToPrint == null)
                 return;
@@ -183,18 +183,10 @@ namespace AutoPrintr.Service.Services
             });
         }
 
-        private async Task<IEnumerable<Printer>> GetPrintersForPrinting(Job job)
+        private async Task<IEnumerable<Printer>> GetPrintersAsync(Job job)
         {
             var installedPrinters = await _printerService.GetPrintersAsync();
             return installedPrinters
-                .Where(x => job.Document.Register.HasValue ? job.Document.Register == x.Register : true)
-                .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled && (job.Document.AutoPrint ? d.AutoPrint : true)))
-                .ToList();
-        }
-
-        private IEnumerable<Printer> GetPrintersForDownloading(Job job)
-        {
-            return _settingsService.Settings.Printers
                 .Where(x => job.Document.Register.HasValue ? job.Document.Register == x.Register : true)
                 .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled && (job.Document.AutoPrint ? d.AutoPrint : true)))
                 .ToList();
@@ -276,7 +268,8 @@ namespace AutoPrintr.Service.Services
 
         private async void DownloadDocument(Job job)
         {
-            var rotation = GetPrintersForDownloading(job).Any(x => x.Rotation);
+            var jobPrinters = await GetPrintersAsync(job);
+            var rotation = jobPrinters.Any(x => x.Rotation);
             if (rotation)
                 job.Document.FileUri = new Uri($"{job.Document.FileUri}&orientation=portrait");
 
@@ -389,7 +382,7 @@ namespace AutoPrintr.Service.Services
             });
         }
 
-        private void _pusher_ReadResponse(dynamic message)
+        private async void _pusher_ReadResponse(dynamic message)
         {
             _loggingService.WriteInformation($"Starting read Pusher response: {message.ToString()}");
 
@@ -414,7 +407,8 @@ namespace AutoPrintr.Service.Services
             {
                 var newJob = new Job { Document = document };
 
-                if (!GetPrintersForDownloading(newJob).Any())
+                var jobPrinters = await GetPrintersAsync(newJob);
+                if (!jobPrinters.Any())
                     return;
 
                 _newJobs.Add(newJob);
