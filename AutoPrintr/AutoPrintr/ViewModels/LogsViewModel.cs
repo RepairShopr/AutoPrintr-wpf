@@ -65,7 +65,7 @@ namespace AutoPrintr.ViewModels
         {
             ShowBusyControl();
 
-            Logs = (await _logsService.GetLogsAsync(SelectedDay))
+            Logs = (await _logsService.GetLogsAsync(SelectedDay))?
                 .Where(x => SelectedLogType.HasValue ? x.Type == SelectedLogType.Value : true)
                 .OrderByDescending(x => x.DateTime)
                 .ToList();

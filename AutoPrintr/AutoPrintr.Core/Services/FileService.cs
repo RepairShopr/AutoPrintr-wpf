@@ -1,6 +1,7 @@
 ﻿using AutoPrintr.Core.IServices;
 using Newtonsoft.Json;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -87,11 +88,22 @@ namespace AutoPrintr.Core.Services
 
         public async Task<T> ReadObjectAsync<T>(string fileName)
         {
+            T result = default(T);
+
             var str = await ReadStringAsync(fileName);
             if (str == null)
-                return default(T);
+                return result;
 
-            return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(str));
+            try
+            {
+                result = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(str));
+            }
+            catch (JsonException ex)
+            {
+                Debug.WriteLine($"Error in {nameof(FileService)}: {ex.ToString()}");
+            }
+
+            return result;
         }
 
         public async Task SaveStringAsync(string fileName, string content)
