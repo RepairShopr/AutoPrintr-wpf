@@ -35,7 +35,7 @@ namespace AutoPrintr.Service
             base.OnStart(args);
 
             await ServiceApp.Instance.Startup(args);
-            await ServiceApp.Instance.RunJobs(JobChanged);
+            await ServiceApp.Instance.RunJobs(ConnectionFailed, JobChanged);
 
             try
             {
@@ -58,6 +58,22 @@ namespace AutoPrintr.Service
             {
                 if (_serviceHost.State == CommunicationState.Opened)
                     ((WindowsService)_serviceHost.SingletonInstance).JobChanged(job);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in {nameof(Service)}: {ex.ToString()}");
+
+                var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
+                loggingService.WriteError(ex);
+            }
+        }
+
+        private void ConnectionFailed()
+        {
+            try
+            {
+                if (_serviceHost.State == CommunicationState.Opened)
+                    ((WindowsService)_serviceHost.SingletonInstance).ConnectionFailed();
             }
             catch (Exception ex)
             {

@@ -81,4 +81,14 @@
       <xs:sequence />
     </xs:complexType>
   </xs:element>
+  <xs:element name="ConnectionFailed">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ConnectionFailedResponse">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
 </xs:schema>

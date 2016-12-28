@@ -12,9 +12,14 @@ namespace AutoPrintr.Service.Helpers
     {
         #region Properties
         private Action<Job> _jobChanged;
+        private Action _connectionFailed;
         private static readonly ServiceApp _instance = new ServiceApp();
 
         public static ServiceApp Instance => _instance;
+
+        private ILoggerService LoggerService => SimpleIoc.Default.GetInstance<ILoggerService>();
+        private ISettingsService SettingsService => SimpleIoc.Default.GetInstance<ISettingsService>();
+        private IJobsService JobsService => SimpleIoc.Default.GetInstance<IJobsService>();
         #endregion
 
         #region Constructors
@@ -38,27 +43,34 @@ namespace AutoPrintr.Service.Helpers
         {
             var result = await base.LoadSettingsAsync();
 
-            var settingsService = SimpleIoc.Default.GetInstance<ISettingsService>();
-            settingsService.MonitorSettingsChanges();
+            SettingsService.MonitorSettingsChanges();
 
             return result;
         }
 
         protected override Task InitializeLogsAsync()
         {
-            var loggerService = SimpleIoc.Default.GetInstance<ILoggerService>();
-            return loggerService.InitializeServiceLogsAsync();
+            return LoggerService.InitializeServiceLogsAsync();
         }
 
         #region Jobs
-        public async Task RunJobs(Action<Job> jobChanged)
+        public async Task RunJobs(Action connectionFailed, Action<Job> jobChanged)
         {
             _jobChanged = jobChanged;
+            _connectionFailed = connectionFailed;
 
-            var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
-            jobsService.JobChangedEvent -= JobsService_JobChangedEvent;
-            jobsService.JobChangedEvent += JobsService_JobChangedEvent;
-            await jobsService.RunAsync();
+            JobsService.JobChangedEvent -= JobsService_JobChangedEvent;
+            JobsService.JobChangedEvent += JobsService_JobChangedEvent;
+
+            JobsService.ConnectionFailedEvent -= JobsService_ConnectionFailedEvent;
+            JobsService.ConnectionFailedEvent += JobsService_ConnectionFailedEvent;
+
+            await JobsService.RunAsync();
+        }
+
+        private void JobsService_ConnectionFailedEvent()
+        {
+            _connectionFailed?.Invoke();
         }
 
         private void JobsService_JobChangedEvent(Job job)
@@ -68,9 +80,10 @@ namespace AutoPrintr.Service.Helpers
 
         public async Task StopJobs()
         {
-            var jobsService = SimpleIoc.Default.GetInstance<IJobsService>();
-            await jobsService.StopAsync();
-            jobsService.JobChangedEvent -= JobsService_JobChangedEvent;
+            JobsService.JobChangedEvent -= JobsService_JobChangedEvent;
+            JobsService.ConnectionFailedEvent -= JobsService_ConnectionFailedEvent;
+
+            await JobsService.StopAsync();
         }
         #endregion
 

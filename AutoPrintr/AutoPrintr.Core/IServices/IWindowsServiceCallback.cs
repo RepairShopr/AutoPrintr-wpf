@@ -7,5 +7,8 @@ namespace AutoPrintr.Core.IServices
     {
         [OperationContract]
         void JobChanged(Job job);
+
+        [OperationContract]
+        void ConnectionFailed();
     }
 }

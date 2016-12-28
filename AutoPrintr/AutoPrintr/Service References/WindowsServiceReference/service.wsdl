@@ -83,6 +83,12 @@
   <wsdl:message name="IWindowsService_JobChanged_InputCallbackMessage">
     <wsdl:part name="parameters" element="tns:JobChangedResponse" />
   </wsdl:message>
+  <wsdl:message name="IWindowsService_ConnectionFailed_OutputCallbackMessage">
+    <wsdl:part name="parameters" element="tns:ConnectionFailed" />
+  </wsdl:message>
+  <wsdl:message name="IWindowsService_ConnectionFailed_InputCallbackMessage">
+    <wsdl:part name="parameters" element="tns:ConnectionFailedResponse" />
+  </wsdl:message>
   <wsdl:portType msc:usingSession="true" name="IWindowsService">
     <wsdl:operation msc:isInitiating="true" msc:isTerminating="false" name="Connect">
       <wsdl:input wsaw:Action="http://tempuri.org/IWindowsService/Connect" message="tns:IWindowsService_Connect_InputMessage" />
@@ -111,6 +117,10 @@
     <wsdl:operation msc:isInitiating="true" msc:isTerminating="false" name="JobChanged">
       <wsdl:output wsaw:Action="http://tempuri.org/IWindowsService/JobChanged" message="tns:IWindowsService_JobChanged_OutputCallbackMessage" />
       <wsdl:input wsaw:Action="http://tempuri.org/IWindowsService/JobChangedResponse" message="tns:IWindowsService_JobChanged_InputCallbackMessage" />
+    </wsdl:operation>
+    <wsdl:operation msc:isInitiating="true" msc:isTerminating="false" name="ConnectionFailed">
+      <wsdl:output wsaw:Action="http://tempuri.org/IWindowsService/ConnectionFailed" message="tns:IWindowsService_ConnectionFailed_OutputCallbackMessage" />
+      <wsdl:input wsaw:Action="http://tempuri.org/IWindowsService/ConnectionFailedResponse" message="tns:IWindowsService_ConnectionFailed_InputCallbackMessage" />
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="NetTcpBindingEndpoint" type="tns:IWindowsService">
@@ -173,6 +183,15 @@
     </wsdl:operation>
     <wsdl:operation name="JobChanged">
       <soap12:operation soapAction="http://tempuri.org/IWindowsService/JobChanged" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConnectionFailed">
+      <soap12:operation soapAction="http://tempuri.org/IWindowsService/ConnectionFailed" style="document" />
       <wsdl:input>
         <soap12:body use="literal" />
       </wsdl:input>

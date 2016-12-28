@@ -57,6 +57,9 @@ namespace AutoPrintr.WindowsServiceReference {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IWindowsService/JobChanged", ReplyAction="http://tempuri.org/IWindowsService/JobChangedResponse")]
         void JobChanged(AutoPrintr.Core.Models.Job job);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IWindowsService/ConnectionFailed", ReplyAction="http://tempuri.org/IWindowsService/ConnectionFailedResponse")]
+        void ConnectionFailed();
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]

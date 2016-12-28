@@ -27,6 +27,7 @@ namespace AutoPrintr.Service.Services
         private readonly string _downloadedJobsFileName = $"Data/Downloaded{nameof(Job)}s.json";
         private readonly string _doneJobsFileName = $"Data/Done{nameof(Job)}s.json";
 
+        private int _connectionAttempts;
         private string _channel;
         private Pusher _pusher;
         private int _downloadingJobCount;
@@ -39,6 +40,7 @@ namespace AutoPrintr.Service.Services
         public bool IsRunning { get; private set; }
 
         public event JobChangedEventHandler JobChangedEvent;
+        public event ConnectionFailedEventHandler ConnectionFailedEvent;
         #endregion
 
         #region Constructors
@@ -421,6 +423,19 @@ namespace AutoPrintr.Service.Services
         private void _pusher_ConnectionStateChanged(object sender, ConnectionState state)
         {
             _loggingService.WriteInformation($"Pusher is {state}");
+
+            if (state == ConnectionState.WaitingToReconnect)
+            {
+                _connectionAttempts++;
+
+                if (_connectionAttempts >= 10)
+                {
+                    _connectionAttempts = 0;
+                    ConnectionFailedEvent?.Invoke();
+                }
+            }
+            else if (state == ConnectionState.Connected || state == ConnectionState.Failed)
+                _connectionAttempts = 0;
         }
 
         private void _pusher_Error(object sender, PusherException error)

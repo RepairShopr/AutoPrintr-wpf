@@ -10,10 +10,14 @@ namespace AutoPrintr.Service
     [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Single, InstanceContextMode = InstanceContextMode.Single)]
     internal class WindowsService : IWindowsService
     {
+        #region Properties
         private readonly static ICollection<IWindowsServiceCallback> _callBackList = new List<IWindowsServiceCallback>();
+
         private IJobsService JobsService => SimpleIoc.Default.GetInstance<IJobsService>();
         private IPrinterService PrintersService => SimpleIoc.Default.GetInstance<IPrinterService>();
+        #endregion
 
+        #region Methods
         public void Connect()
         {
             var callback = OperationContext.Current.GetCallbackChannel<IWindowsServiceCallback>();
@@ -55,5 +59,12 @@ namespace AutoPrintr.Service
             foreach (var callback in _callBackList)
                 callback.JobChanged(job);
         }
+
+        public void ConnectionFailed()
+        {
+            foreach (var callback in _callBackList)
+                callback.ConnectionFailed();
+        }
+        #endregion
     }
 }

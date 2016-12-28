@@ -14,6 +14,7 @@
         <xs:sequence>
           <xs:element minOccurs="0" name="DocumentTypes" nillable="true" type="tns:ArrayOfDocumentTypeSettings" />
           <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="PrintMode" type="tns:PrintMode" />
           <xs:element minOccurs="0" name="Register" nillable="true" type="xs:int" />
           <xs:element minOccurs="0" name="Rotation" type="xs:boolean" />
         </xs:sequence>
@@ -67,6 +68,19 @@
     </xs:restriction>
   </xs:simpleType>
   <xs:element name="DocumentType" nillable="true" type="tns:DocumentType" />
+  <xs:simpleType name="PrintMode">
+    <xs:annotation>
+      <xs:appinfo>
+        <ActualType Name="unsignedByte" Namespace="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+        </ActualType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Simplex" />
+      <xs:enumeration value="Duplex" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="PrintMode" nillable="true" type="tns:PrintMode" />
   <xs:complexType name="ArrayOfJob">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="unbounded" name="Job" nillable="true" type="tns:Job" />
@@ -118,6 +132,7 @@
       <xs:enumeration value="Letter" />
       <xs:enumeration value="Label" />
       <xs:enumeration value="Receipt" />
+      <xs:enumeration value="IntakeForm" />
     </xs:restriction>
   </xs:simpleType>
   <xs:element name="DocumentSize" nillable="true" type="tns:DocumentSize" />

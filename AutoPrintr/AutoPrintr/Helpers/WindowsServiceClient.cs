@@ -10,6 +10,7 @@ namespace AutoPrintr.Helpers
     internal class WindowsServiceClient : WindowsServiceReference.IWindowsServiceCallback
     {
         private Action<Job> _jobChanged;
+        private Action _connectionFailed;
         private WindowsServiceReference.WindowsServiceClient _windowsServiceClient;
 
         public bool Connected => _windowsServiceClient?.State == CommunicationState.Opened;
@@ -107,6 +108,11 @@ namespace AutoPrintr.Helpers
         public void JobChanged(Job job)
         {
             _jobChanged?.Invoke(job);
+        }
+
+        public void ConnectionFailed()
+        {
+            _connectionFailed?.Invoke();
         }
     }
 }
