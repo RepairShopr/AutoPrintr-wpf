@@ -15,7 +15,7 @@ namespace AutoPrintr.ViewModels
     {
         #region Properties
         private readonly ISettingsService _settingsService;
-        private readonly WindowsServiceClient _windowsServiceClient;
+        private readonly IWindowsServiceClient _windowsServiceClient;
 
         public bool AddToStartup
         {
@@ -43,11 +43,12 @@ namespace AutoPrintr.ViewModels
 
         #region Constructors
         public SettingsViewModel(INavigationService navigationService,
-            ISettingsService settingsService)
+            ISettingsService settingsService,
+            IWindowsServiceClient windowsServiceClient)
             : base(navigationService)
         {
             _settingsService = settingsService;
-            _windowsServiceClient = new WindowsServiceClient();
+            _windowsServiceClient = windowsServiceClient;
 
             SelectedLocations = new ObservableCollection<Location>();
             DocumentTypes = Enum.GetValues(typeof(DocumentType))
@@ -190,13 +191,23 @@ namespace AutoPrintr.ViewModels
         private async void OnInstallService(bool value)
         {
             ShowBusyControl();
+            await _windowsServiceClient.DisconnectAsync();
+
             await _settingsService.InstallService(value);
+
+            if (InstallService && !_windowsServiceClient.Connected)
+                await _windowsServiceClient.ConnectAsync(ShowConnectionFailedMessage);
             HideBusyControl();
 
             if (InstallService && Printers?.Any() != true)
                 InitializePrinters();
 
             RaisePropertyChanged(nameof(InstallService));
+        }
+
+        public void ShowConnectionFailedMessage()
+        {
+            ShowWarningControl("You are either offline or AutoPrintr is being blocked from connecting to the internet. If you have a software firewall in place disable that or give AutoPrintr permission to the network", "You are either offline");
         }
         #endregion
     }

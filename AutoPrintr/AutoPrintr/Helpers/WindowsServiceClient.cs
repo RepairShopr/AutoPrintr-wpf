@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 namespace AutoPrintr.Helpers
 {
     [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Single, UseSynchronizationContext = false)]
-    internal class WindowsServiceClient : WindowsServiceReference.IWindowsServiceCallback
+    internal class WindowsServiceClient : WindowsServiceReference.IWindowsServiceCallback, Core.IServices.IWindowsServiceClient
     {
-        private Action<Job> _jobChanged;
         private Action _connectionFailed;
         private WindowsServiceReference.WindowsServiceClient _windowsServiceClient;
 
         public bool Connected => _windowsServiceClient?.State == CommunicationState.Opened;
+        public Action<Job> JobChangedAction { get; set; }
 
-        public async Task ConnectAsync(Action<Job> jobChanged)
+        public async Task ConnectAsync(Action connectionFailed)
         {
-            _jobChanged = jobChanged;
+            _connectionFailed = connectionFailed;
 
             try
             {
@@ -44,8 +44,22 @@ namespace AutoPrintr.Helpers
         {
             try
             {
+                if (!Connected)
+                    return;
+
                 await _windowsServiceClient.DisconnectAsync();
-                _windowsServiceClient.Close();
+
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        _windowsServiceClient.Close();
+                    }
+                    catch (EndpointNotFoundException)
+                    { }
+                });
+
+                _connectionFailed = null;
             }
             catch (CommunicationObjectFaultedException)
             { }
@@ -55,11 +69,10 @@ namespace AutoPrintr.Helpers
         {
             try
             {
-                var instanceContext = new InstanceContext(this);
-                using (var windowsServiceClient = new WindowsServiceReference.WindowsServiceClient(instanceContext))
-                {
-                    return await windowsServiceClient.GetPrintersAsync();
-                }
+                if (!Connected)
+                    return null;
+
+                return await _windowsServiceClient.GetPrintersAsync();
             }
             catch (CommunicationObjectFaultedException)
             {
@@ -71,6 +84,9 @@ namespace AutoPrintr.Helpers
         {
             try
             {
+                if (!Connected)
+                    return null;
+
                 return await _windowsServiceClient.GetJobsAsync();
             }
             catch (CommunicationObjectFaultedException)
@@ -83,6 +99,9 @@ namespace AutoPrintr.Helpers
         {
             try
             {
+                if (!Connected)
+                    return false;
+
                 await _windowsServiceClient.PrintAsync(job);
                 return true;
             }
@@ -96,6 +115,9 @@ namespace AutoPrintr.Helpers
         {
             try
             {
+                if (!Connected)
+                    return false;
+
                 await _windowsServiceClient.DeleteJobsAsync(jobs);
                 return true;
             }
@@ -107,7 +129,7 @@ namespace AutoPrintr.Helpers
 
         public void JobChanged(Job job)
         {
-            _jobChanged?.Invoke(job);
+            JobChangedAction?.Invoke(job);
         }
 
         public void ConnectionFailed()

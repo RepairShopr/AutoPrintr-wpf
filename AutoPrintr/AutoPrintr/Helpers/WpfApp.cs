@@ -18,9 +18,10 @@ namespace AutoPrintr.Helpers
 
         public static WpfApp Instance => _instance;
 
-        public ILoggerService LoggerService => SimpleIoc.Default.GetInstance<ILoggerService>();
-        public ISettingsService SettingsService => SimpleIoc.Default.GetInstance<ISettingsService>();
-        public INavigationService NavigationService => SimpleIoc.Default.GetInstance<INavigationService>();
+        private ILoggerService LoggerService => SimpleIoc.Default.GetInstance<ILoggerService>();
+        private ISettingsService SettingsService => SimpleIoc.Default.GetInstance<ISettingsService>();
+        private INavigationService NavigationService => SimpleIoc.Default.GetInstance<INavigationService>();
+        private IWindowsServiceClient WindowsServiceClient => SimpleIoc.Default.GetInstance<IWindowsServiceClient>();
         #endregion
 
         #region Constructors
@@ -49,7 +50,14 @@ namespace AutoPrintr.Helpers
             if (SettingsService.Settings.User == null)
                 NavigationService.NavigateTo(ViewType.Login.ToString());
 
+            ConnectWindowsServiceClient();
+
             //CheckForUpdates();
+        }
+
+        public async Task Stop()
+        {
+            await WindowsServiceClient.DisconnectAsync();
         }
 
         protected override void RegisterTypes()
@@ -58,6 +66,7 @@ namespace AutoPrintr.Helpers
 
             SimpleIoc.Default.Register<EmailSettings>();
             SimpleIoc.Default.Register<INavigationService, NavigationService>();
+            SimpleIoc.Default.Register<IWindowsServiceClient, WindowsServiceClient>();
 
             //Register ViewModels
             SimpleIoc.Default.Register<TrayIconContextMenuViewModel>(true);
@@ -116,6 +125,7 @@ namespace AutoPrintr.Helpers
             {
                 //case ControlMessageType.Busy: BusyControl.Show(message.Caption); break;
                 case ControlMessageType.Message: MessageBox.Show((string)message.Data, message.Caption, MessageBoxButton.OK, MessageBoxImage.Information); break;
+                case ControlMessageType.Warning: MessageBox.Show((string)message.Data, message.Caption, MessageBoxButton.OK, MessageBoxImage.Warning); break;
                 default: break;
             }
         }
@@ -198,6 +208,22 @@ namespace AutoPrintr.Helpers
                         LoggerService.WriteError(dde);
                     }
                 }
+            }
+        }
+        #endregion
+
+        #region Windows Service Client
+        private async void ConnectWindowsServiceClient()
+        {
+            var settingsViewModel = SimpleIoc.Default.GetInstance<SettingsViewModel>();
+
+            await WindowsServiceClient.ConnectAsync(settingsViewModel.ShowConnectionFailedMessage);
+
+            //If service is not connected, try it start and connect again
+            if (!WindowsServiceClient.Connected)
+            {
+                await SettingsService.InstallService(true);
+                await WindowsServiceClient.ConnectAsync(settingsViewModel.ShowConnectionFailedMessage);
             }
         }
         #endregion

@@ -428,7 +428,7 @@ namespace AutoPrintr.Service.Services
             {
                 _connectionAttempts++;
 
-                if (_connectionAttempts >= 10)
+                if (_connectionAttempts >= 5)
                 {
                     _connectionAttempts = 0;
                     ConnectionFailedEvent?.Invoke();

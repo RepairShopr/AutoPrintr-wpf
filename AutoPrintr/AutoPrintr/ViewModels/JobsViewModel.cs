@@ -1,4 +1,5 @@
-﻿using AutoPrintr.Core.Models;
+﻿using AutoPrintr.Core.IServices;
+using AutoPrintr.Core.Models;
 using AutoPrintr.Helpers;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Views;
@@ -12,7 +13,7 @@ namespace AutoPrintr.ViewModels
     public class JobsViewModel : BaseViewModel
     {
         #region Properties
-        private readonly WindowsServiceClient _windowsServiceClient;
+        private readonly IWindowsServiceClient _windowsServiceClient;
 
         public ObservableCollection<Job> Jobs { get; private set; }
 
@@ -42,9 +43,12 @@ namespace AutoPrintr.ViewModels
         #endregion
 
         #region Constructors
-        public JobsViewModel(INavigationService navigationService)
+        public JobsViewModel(INavigationService navigationService,
+            IWindowsServiceClient windowsServiceClient)
             : base(navigationService)
         {
+            _windowsServiceClient = windowsServiceClient;
+
             JobStates = Enum.GetValues(typeof(JobState))
                 .OfType<JobState?>()
                 .Union(new[] { (JobState?)null })
@@ -60,8 +64,6 @@ namespace AutoPrintr.ViewModels
             PrintCommand = new RelayCommand<Job>(OnPrint);
             DeleteJobCommand = new RelayCommand<Job>(OnDeleteJob);
             DeleteJobsCommand = new RelayCommand<DeleteJobAmount>(OnDeleteJobs);
-
-            _windowsServiceClient = new WindowsServiceClient();
         }
         #endregion
 
@@ -74,23 +76,20 @@ namespace AutoPrintr.ViewModels
 
             _selectedJobState = null;
             _selectedDocumentType = null;
+            _windowsServiceClient.JobChangedAction = JobChanged;
 
             LoadJobs();
         }
 
-        public async void NavigatedFrom()
+        public void NavigatedFrom()
         {
+            _windowsServiceClient.JobChangedAction = null;
             Jobs = null;
-
-            await _windowsServiceClient.DisconnectAsync();
         }
 
         private async void LoadJobs()
         {
             ShowBusyControl();
-
-            if (!_windowsServiceClient.Connected)
-                await _windowsServiceClient.ConnectAsync(JobChanged);
 
             Jobs.Clear();
 

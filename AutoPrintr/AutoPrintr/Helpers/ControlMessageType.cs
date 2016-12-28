@@ -4,6 +4,7 @@
     {
         Unknown,
         Busy,
-        Message
+        Message,
+        Warning
     }
 }

@@ -74,6 +74,12 @@ namespace AutoPrintr.ViewModels
             var msg = new ShowControlMessage(ControlMessageType.Message) { Caption = caption, Data = message.ToString() };
             MessengerInstance.Send(msg);
         }
+
+        protected void ShowWarningControl(string message, string caption = null)
+        {
+            var msg = new ShowControlMessage(ControlMessageType.Warning) { Caption = caption, Data = message };
+            MessengerInstance.Send(msg);
+        }
         #endregion
     }
 }

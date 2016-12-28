@@ -49,8 +49,9 @@ namespace AutoPrintr
             new TrayIconContextMenuView();
         }
 
-        protected override void OnExit(ExitEventArgs e)
+        protected override async void OnExit(ExitEventArgs e)
         {
+            await WpfApp.Instance.Stop();
             TrayIconContextMenuView.Close();
             base.OnExit(e);
         }

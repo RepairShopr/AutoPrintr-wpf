@@ -72,6 +72,7 @@
     <Compile Include="IServices\IUserService.cs" />
     <Compile Include="IServices\IWindowsService.cs" />
     <Compile Include="IServices\IWindowsServiceCallback.cs" />
+    <Compile Include="IServices\IWindowsServiceClient.cs" />
     <Compile Include="Models\BaseModel.cs" />
     <Compile Include="Models\Channel.cs" />
     <Compile Include="Models\Document.cs" />
