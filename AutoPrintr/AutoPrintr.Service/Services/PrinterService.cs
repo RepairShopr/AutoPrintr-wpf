@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Printing;
 using System.Threading.Tasks;
 
 namespace AutoPrintr.Service.Services
@@ -92,8 +93,10 @@ namespace AutoPrintr.Service.Services
 
         private IEnumerable<Printer> GetInstalledPrinters()
         {
-            foreach (string item in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
-                yield return new Printer { Name = item };
+            return new PrintServer()
+                .GetPrintQueues(new[] { PrintQueueIndexedProperty.Name }, new[] { EnumeratedPrintQueueTypes.Local, EnumeratedPrintQueueTypes.Connections })
+                .Select(x => new Printer { Name = x.Name })
+                .ToList();
         }
 
         private string ExtractSumatraPDF()
