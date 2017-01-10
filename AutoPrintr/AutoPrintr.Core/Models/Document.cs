@@ -61,6 +61,7 @@ namespace AutoPrintr.Core.Models
                 case DocumentSize.Label: return "Size: 1.1x3";
                 case DocumentSize.Receipt: return "Size: 80mm";
                 case DocumentSize.IntakeForm: return "Intake Form";
+                case DocumentSize.PopDrawer: return "Pop Drawer";
                 default: return null;
             }
         }

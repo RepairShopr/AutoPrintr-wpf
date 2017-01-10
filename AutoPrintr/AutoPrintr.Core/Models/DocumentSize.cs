@@ -5,6 +5,7 @@
         Letter,
         Label,
         Receipt,
-        IntakeForm
+        IntakeForm,
+        PopDrawer
     }
 }
