@@ -1,5 +1,6 @@
 ﻿using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
+using RollbarSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace AutoPrintr.Core.Services
 
         #region Properties
         private readonly IFileService _fileService;
+        private readonly string _rollbarAccessToken;
         private static object _locker = new object();
 
         private AppType _appType;
@@ -30,6 +32,7 @@ namespace AutoPrintr.Core.Services
         {
             _fileService = fileService;
 
+            _rollbarAccessToken = "";
             _logs = new List<Log>();
         }
         #endregion
@@ -90,6 +93,7 @@ namespace AutoPrintr.Core.Services
         {
             AddLog(exception.ToString(), LogType.Error);
             SaveLogsAsync();
+            ReportExceptionToRollbar(exception);
         }
 
         private void AddLog(string message, LogType type)
@@ -117,6 +121,25 @@ namespace AutoPrintr.Core.Services
         private string GetLogFileName(DateTime date, AppType type)
         {
             return $"Logs/{date.Day}_{date.Month}_{date.Year}_{type}_Logs.json";
+        }
+
+        private async void ReportExceptionToRollbar(Exception exception)
+        {
+#if DEBUG
+            return;
+#endif
+
+            try
+            {
+                var config = new Configuration(_rollbarAccessToken)
+                {
+                    Environment = "Production",
+                    Platform = $"AutoPrintr.{_appType}"
+                };
+                var client = new RollbarClient(config);
+                await client.SendErrorException(exception, Environment.MachineName);
+            }
+            catch { }
         }
         #endregion
     }
