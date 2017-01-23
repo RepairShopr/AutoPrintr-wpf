@@ -133,6 +133,7 @@
       <xs:enumeration value="Label" />
       <xs:enumeration value="Receipt" />
       <xs:enumeration value="IntakeForm" />
+      <xs:enumeration value="PopDrawer" />
     </xs:restriction>
   </xs:simpleType>
   <xs:element name="DocumentSize" nillable="true" type="tns:DocumentSize" />

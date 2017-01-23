@@ -41,7 +41,7 @@ namespace AutoPrintr.Service
             {
                 var service = new WindowsService();
                 _serviceHost = new ServiceHost(service);
-                _serviceHost.Open();
+                _serviceHost.Open(TimeSpan.MaxValue);
             }
             catch (Exception ex)
             {
