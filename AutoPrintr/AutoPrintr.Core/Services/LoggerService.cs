@@ -114,8 +114,12 @@ namespace AutoPrintr.Core.Services
 
         private async void SaveLogsAsync()
         {
-            var localLogs = _logs.ToList();
-            await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now, _appType), localLogs);
+            try
+            {
+                var localLogs = _logs.ToList();
+                await _fileService.SaveObjectAsync(GetLogFileName(DateTime.Now, _appType), localLogs);
+            }
+            catch { }
         }
 
         private string GetLogFileName(DateTime date, AppType type)
