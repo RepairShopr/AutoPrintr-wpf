@@ -17,6 +17,7 @@ namespace AutoPrintr.Core.Services
         private static object _locker = new object();
 
         public event ChannelChangedEventHandler ChannelChangedEvent;
+        public event PortNumberChangedEventHandler PortNumberChangedEvent;
 
         private FileSystemWatcher _watcher;
 
@@ -76,6 +77,14 @@ namespace AutoPrintr.Core.Services
             }
 
             await SaveSettingsAsync();
+        }
+
+        public async Task UpdateSettingsAsync(int portNumber)
+        {
+            Settings.PortNumber = portNumber;
+            await SaveSettingsAsync();
+
+            _loggingService.WriteInformation($"Service port number {portNumber} is updated");
         }
 
         public async Task AddLocationAsync(Location location)
@@ -215,6 +224,9 @@ namespace AutoPrintr.Core.Services
 
                 if (oldSettings.Channel?.Value != Settings.Channel?.Value)
                     ChannelChangedEvent?.Invoke(Settings.Channel);
+
+                if (oldSettings.PortNumber != Settings.PortNumber)
+                    PortNumberChangedEvent?.Invoke(Settings.PortNumber);
             }
         }
 

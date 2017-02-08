@@ -80,6 +80,9 @@ namespace AutoPrintr.Helpers
         protected override async Task<bool> LoadSettingsAsync()
         {
             var result = await base.LoadSettingsAsync();
+
+            SettingsService.MonitorSettingsChanges();
+
             if (!result)
                 await SettingsService.AddToStartup(true);
 

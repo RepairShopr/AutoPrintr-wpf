@@ -6,6 +6,7 @@ namespace AutoPrintr.Core.Models
     {
         public bool AddedToStartup { get; set; }
         public bool InstalledService { get; set; }
+        public int PortNumber { get; set; }
         public Channel Channel { get; set; }
         public User User { get; set; }
         public IEnumerable<Printer> Printers { get; set; }

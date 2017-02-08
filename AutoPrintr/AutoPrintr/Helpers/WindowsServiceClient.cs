@@ -1,6 +1,9 @@
-﻿using AutoPrintr.Core.Models;
+﻿using AutoPrintr.Core.IServices;
+using AutoPrintr.Core.Models;
+using GalaSoft.MvvmLight.Ioc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.ServiceModel;
 using System.Threading.Tasks;
 
@@ -11,6 +14,8 @@ namespace AutoPrintr.Helpers
     {
         private Action _connectionFailed;
         private WindowsServiceReference.WindowsServiceClient _windowsServiceClient;
+
+        private ILoggerService LoggerService => SimpleIoc.Default.GetInstance<ILoggerService>();
 
         public bool Connected => _windowsServiceClient?.State == CommunicationState.Opened;
         public Action<Job> JobChangedAction { get; set; }
@@ -30,14 +35,22 @@ namespace AutoPrintr.Helpers
                     {
                         _windowsServiceClient.Open();
                     }
-                    catch (EndpointNotFoundException)
-                    { }
+                    catch (EndpointNotFoundException ex)
+                    {
+                        Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                        LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                    }
                 });
 
                 await _windowsServiceClient.ConnectAsync();
             }
-            catch (CommunicationObjectFaultedException)
-            { }
+            catch (CommunicationObjectFaultedException ex)
+            {
+                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+            }
         }
 
         public async Task DisconnectAsync()
@@ -55,14 +68,22 @@ namespace AutoPrintr.Helpers
                     {
                         _windowsServiceClient.Close();
                     }
-                    catch (EndpointNotFoundException)
-                    { }
+                    catch (EndpointNotFoundException ex)
+                    {
+                        Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                        LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                    }
                 });
 
                 _connectionFailed = null;
             }
-            catch (CommunicationObjectFaultedException)
-            { }
+            catch (CommunicationObjectFaultedException ex)
+            {
+                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+            }
         }
 
         public async Task<IEnumerable<Printer>> GetPrintersAsync()
@@ -74,8 +95,12 @@ namespace AutoPrintr.Helpers
 
                 return await _windowsServiceClient.GetPrintersAsync();
             }
-            catch (CommunicationObjectFaultedException)
+            catch (CommunicationObjectFaultedException ex)
             {
+                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
                 return null;
             }
         }
@@ -89,8 +114,12 @@ namespace AutoPrintr.Helpers
 
                 return await _windowsServiceClient.GetJobsAsync();
             }
-            catch (CommunicationObjectFaultedException)
+            catch (CommunicationObjectFaultedException ex)
             {
+                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
                 return null;
             }
         }
@@ -105,8 +134,12 @@ namespace AutoPrintr.Helpers
                 await _windowsServiceClient.PrintAsync(job);
                 return true;
             }
-            catch (CommunicationObjectFaultedException)
+            catch (CommunicationObjectFaultedException ex)
             {
+                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
                 return false;
             }
         }
@@ -121,8 +154,12 @@ namespace AutoPrintr.Helpers
                 await _windowsServiceClient.DeleteJobsAsync(jobs);
                 return true;
             }
-            catch (CommunicationObjectFaultedException)
+            catch (CommunicationObjectFaultedException ex)
             {
+                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
                 return false;
             }
         }
