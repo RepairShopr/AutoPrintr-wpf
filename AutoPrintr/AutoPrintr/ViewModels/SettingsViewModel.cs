@@ -39,6 +39,7 @@ namespace AutoPrintr.ViewModels
         public override ViewType Type => ViewType.Settings;
 
         public RelayCommand<Printer> UpdatePrinterCommand { get; private set; }
+        public RelayCommand RestartServiceCommand { get; private set; }
         #endregion
 
         #region Constructors
@@ -64,6 +65,7 @@ namespace AutoPrintr.ViewModels
             MessengerInstance.Register<User>(this, OnUserChanged);
 
             UpdatePrinterCommand = new RelayCommand<Printer>(OnUpdatePrinter);
+            RestartServiceCommand = new RelayCommand(OnRestartService);
         }
         #endregion
 
@@ -203,6 +205,11 @@ namespace AutoPrintr.ViewModels
                 InitializePrinters();
 
             RaisePropertyChanged(nameof(InstallService));
+        }
+
+        private void OnRestartService()
+        {
+            OnInstallService(true);
         }
 
         public void ShowConnectionFailedMessage()

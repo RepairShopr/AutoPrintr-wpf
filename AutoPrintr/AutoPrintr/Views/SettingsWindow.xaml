@@ -102,6 +102,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Margin="20,15,20,0" Text="Locations" FontSize="18" Style="{StaticResource HeaderTextBlockStyle}" />
@@ -118,10 +119,12 @@
 
         <CheckBox Grid.Row="3" Margin="20,0,10,10" Content="Run the Service" IsChecked="{Binding InstallService, Mode=TwoWay}" />
 
+        <Button Grid.Row="4" Margin="20,0,10,10" Content="Restart Service" Command="{Binding RestartServiceCommand, Mode=OneTime}" IsEnabled="{Binding InstallService, Mode=OneWay}" />
+
         <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" Margin="-3,10,0,10" HorizontalAlignment="Left" />
 
         <TextBlock Grid.Column="1" Margin="20,15,20,0" Text="Printers" FontSize="18" Style="{StaticResource HeaderTextBlockStyle}" />
-        <ScrollViewer Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" Margin="10,10,20,10" HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer Grid.Row="1" Grid.RowSpan="4" Grid.Column="1" Margin="10,10,20,10" HorizontalScrollBarVisibility="Disabled">
             <Border VerticalAlignment="Top" HorizontalAlignment="Left" Style="{StaticResource SeparatorBorderStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
