@@ -1,5 +1,4 @@
 ﻿using AutoPrintr.Core.IServices;
-using AutoPrintr.Core.Models;
 using AutoPrintr.Service.Helpers;
 using GalaSoft.MvvmLight.Ioc;
 using System;
@@ -7,7 +6,6 @@ using System.Configuration.Install;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.ServiceModel;
 using System.ServiceProcess;
 
 namespace AutoPrintr.Service
@@ -16,8 +14,6 @@ namespace AutoPrintr.Service
     {
         #region Properties
         public const string SERVICE_NAME = "AutoPrintr Service";
-
-        private ServiceHost _serviceHost;
         #endregion
 
         #region Constructors
@@ -35,53 +31,8 @@ namespace AutoPrintr.Service
             base.OnStart(args);
 
             await ServiceApp.Instance.Startup(args);
-            await ServiceApp.Instance.RunJobs(ConnectionFailed, JobChanged);
-
-            try
-            {
-                var service = new WindowsService();
-                _serviceHost = new ServiceHost(service);
-                _serviceHost.Open();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in {nameof(Service)}: {ex.ToString()}");
-
-                var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
-                loggingService.WriteError(ex);
-            }
-        }
-
-        private void JobChanged(Job job)
-        {
-            try
-            {
-                if (_serviceHost.State == CommunicationState.Opened)
-                    ((WindowsService)_serviceHost.SingletonInstance).JobChanged(job);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in {nameof(Service)}: {ex.ToString()}");
-
-                var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
-                loggingService.WriteError(ex);
-            }
-        }
-
-        private void ConnectionFailed()
-        {
-            try
-            {
-                if (_serviceHost.State == CommunicationState.Opened)
-                    ((WindowsService)_serviceHost.SingletonInstance).ConnectionFailed();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in {nameof(Service)}: {ex.ToString()}");
-
-                var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
-                loggingService.WriteError(ex);
-            }
+            await ServiceApp.Instance.RunJobs(WindowsService.OnConnectionFailed, WindowsService.OnJobChanged);
+            WindowsService.StartServiceHost();
         }
 
         protected override async void OnStop()
@@ -89,19 +40,7 @@ namespace AutoPrintr.Service
             base.OnStop();
 
             await ServiceApp.Instance.StopJobs();
-
-            try
-            {
-                _serviceHost.Close();
-                _serviceHost = null;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in {nameof(Service)}: {ex.ToString()}");
-
-                var loggingService = SimpleIoc.Default.GetInstance<ILoggerService>();
-                loggingService.WriteError(ex);
-            }
+            WindowsService.StopServiceHost();
         }
         #endregion
 

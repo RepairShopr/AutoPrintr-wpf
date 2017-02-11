@@ -14,6 +14,7 @@ namespace AutoPrintr.Core.Models
 
         public Settings()
         {
+            PortNumber = 7775;
             Printers = new List<Printer>();
             Locations = new List<Location>();
         }

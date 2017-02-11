@@ -1,6 +1,5 @@
 ﻿using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
-using GalaSoft.MvvmLight.Ioc;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,22 +11,38 @@ namespace AutoPrintr.Helpers
     [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Single, UseSynchronizationContext = false)]
     internal class WindowsServiceClient : WindowsServiceReference.IWindowsServiceCallback, Core.IServices.IWindowsServiceClient
     {
+        #region Properties
+        private readonly ISettingsService _settingsService;
+        private readonly ILoggerService _loggerService;
+
         private Action _connectionFailed;
         private WindowsServiceReference.WindowsServiceClient _windowsServiceClient;
 
-        private ILoggerService LoggerService => SimpleIoc.Default.GetInstance<ILoggerService>();
-
         public bool Connected => _windowsServiceClient?.State == CommunicationState.Opened;
         public Action<Job> JobChangedAction { get; set; }
+        #endregion
 
+        #region Constructors
+        public WindowsServiceClient(ISettingsService settingsService,
+            ILoggerService loggerService)
+        {
+            _settingsService = settingsService;
+            _loggerService = loggerService;
+        }
+        #endregion
+
+        #region Methods
         public async Task ConnectAsync(Action connectionFailed)
         {
             _connectionFailed = connectionFailed;
 
+            _settingsService.PortNumberChangedEvent -= SettingsService_PortNumberChangedEvent;
+            _settingsService.PortNumberChangedEvent += SettingsService_PortNumberChangedEvent;
+
             try
             {
                 var instanceContext = new InstanceContext(this);
-                _windowsServiceClient = new WindowsServiceReference.WindowsServiceClient(instanceContext);
+                _windowsServiceClient = new WindowsServiceReference.WindowsServiceClient(instanceContext, "NetTcpBindingEndpoint", GetServiceAddress());
 
                 await Task.Run(() =>
                 {
@@ -35,21 +50,28 @@ namespace AutoPrintr.Helpers
                     {
                         _windowsServiceClient.Open();
                     }
+                    catch (TimeoutException ex)
+                    {
+                        Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                        _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                    }
                     catch (EndpointNotFoundException ex)
                     {
                         Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
-                        LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                        _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
                     }
                 });
 
-                await _windowsServiceClient.ConnectAsync();
+                if (Connected)
+                    await _windowsServiceClient.ConnectAsync();
             }
             catch (CommunicationObjectFaultedException ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
-                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
             }
         }
 
@@ -68,11 +90,17 @@ namespace AutoPrintr.Helpers
                     {
                         _windowsServiceClient.Close();
                     }
+                    catch (TimeoutException ex)
+                    {
+                        Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                        _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                    }
                     catch (EndpointNotFoundException ex)
                     {
                         Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
-                        LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                        _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
                     }
                 });
 
@@ -82,7 +110,7 @@ namespace AutoPrintr.Helpers
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
-                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
             }
         }
 
@@ -99,7 +127,7 @@ namespace AutoPrintr.Helpers
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
-                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
                 return null;
             }
@@ -118,7 +146,7 @@ namespace AutoPrintr.Helpers
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
-                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
                 return null;
             }
@@ -138,7 +166,7 @@ namespace AutoPrintr.Helpers
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
-                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
                 return false;
             }
@@ -158,7 +186,7 @@ namespace AutoPrintr.Helpers
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
-                LoggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
                 return false;
             }
@@ -173,5 +201,22 @@ namespace AutoPrintr.Helpers
         {
             _connectionFailed?.Invoke();
         }
+
+        private EndpointAddress GetServiceAddress()
+        {
+            return new EndpointAddress($"net.tcp://localhost:{_settingsService.Settings.PortNumber}/AutoPrintrService");
+        }
+
+        private async void SettingsService_PortNumberChangedEvent(int newPortNumber)
+        {
+            var localConnectionFailed = _connectionFailed;
+            await DisconnectAsync();
+
+            _loggerService.WriteWarning($"Port number {_settingsService.Settings.PortNumber} is changed to: {newPortNumber}");
+            _settingsService.Settings.PortNumber = newPortNumber;
+
+            await ConnectAsync(localConnectionFailed);
+        }
+        #endregion
     }
 }
