@@ -138,7 +138,7 @@ namespace AutoPrintr.Core.Services
                 var config = new Configuration(_rollbarAccessToken)
                 {
                     Environment = "Production",
-                    Platform = $"AutoPrintr.{_appType}"
+                    Platform = $"Platform: AutoPrintr.{_appType}. Version: {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}"
                 };
                 var client = new RollbarClient(config);
                 await client.SendErrorException(exception, Environment.MachineName);

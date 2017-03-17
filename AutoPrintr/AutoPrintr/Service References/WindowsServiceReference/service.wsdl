@@ -4,7 +4,7 @@
     <wsp:ExactlyOne>
       <wsp:All>
         <wsrm:RMAssertion xmlns:wsrm="http://schemas.xmlsoap.org/ws/2005/02/rm/policy">
-          <wsrm:InactivityTimeout Milliseconds="922337203685477">
+          <wsrm:InactivityTimeout Milliseconds="120000">
           </wsrm:InactivityTimeout>
           <wsrm:AcknowledgementInterval Milliseconds="200">
           </wsrm:AcknowledgementInterval>
@@ -59,6 +59,12 @@
   <wsdl:message name="IWindowsService_Disconnect_OutputMessage">
     <wsdl:part name="parameters" element="tns:DisconnectResponse" />
   </wsdl:message>
+  <wsdl:message name="IWindowsService_Ping_InputMessage">
+    <wsdl:part name="parameters" element="tns:Ping" />
+  </wsdl:message>
+  <wsdl:message name="IWindowsService_Ping_OutputMessage">
+    <wsdl:part name="parameters" element="tns:PingResponse" />
+  </wsdl:message>
   <wsdl:message name="IWindowsService_GetPrinters_InputMessage">
     <wsdl:part name="parameters" element="tns:GetPrinters" />
   </wsdl:message>
@@ -104,6 +110,10 @@
       <wsdl:input wsaw:Action="http://tempuri.org/IWindowsService/Disconnect" message="tns:IWindowsService_Disconnect_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/IWindowsService/DisconnectResponse" message="tns:IWindowsService_Disconnect_OutputMessage" />
     </wsdl:operation>
+    <wsdl:operation msc:isInitiating="true" msc:isTerminating="false" name="Ping">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWindowsService/Ping" message="tns:IWindowsService_Ping_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWindowsService/PingResponse" message="tns:IWindowsService_Ping_OutputMessage" />
+    </wsdl:operation>
     <wsdl:operation msc:isInitiating="true" msc:isTerminating="false" name="GetPrinters">
       <wsdl:input wsaw:Action="http://tempuri.org/IWindowsService/GetPrinters" message="tns:IWindowsService_GetPrinters_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/IWindowsService/GetPrintersResponse" message="tns:IWindowsService_GetPrinters_OutputMessage" />
@@ -144,6 +154,15 @@
     </wsdl:operation>
     <wsdl:operation name="Disconnect">
       <soap12:operation soapAction="http://tempuri.org/IWindowsService/Disconnect" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Ping">
+      <soap12:operation soapAction="http://tempuri.org/IWindowsService/Ping" style="document" />
       <wsdl:input>
         <soap12:body use="literal" />
       </wsdl:input>

@@ -38,6 +38,9 @@ namespace AutoPrintr.Service
                 _callBackList.Remove(callback);
         }
 
+        public void Ping()
+        { }
+
         public IEnumerable<Printer> GetPrinters()
         {
             var task = PrintersService.GetPrintersAsync();

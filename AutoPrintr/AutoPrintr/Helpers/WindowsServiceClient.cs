@@ -9,11 +9,14 @@ using System.Threading.Tasks;
 namespace AutoPrintr.Helpers
 {
     [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Single, UseSynchronizationContext = false)]
-    internal class WindowsServiceClient : WindowsServiceReference.IWindowsServiceCallback, Core.IServices.IWindowsServiceClient
+    internal class WindowsServiceClient : WindowsServiceReference.IWindowsServiceCallback, IWindowsServiceClient
     {
         #region Properties
+        private const int PING_INTERVAL_MINUTES = 60;
+
         private readonly ISettingsService _settingsService;
         private readonly ILoggerService _loggerService;
+        private readonly System.Timers.Timer _timer;
 
         private Action _connectionFailed;
         private WindowsServiceReference.WindowsServiceClient _windowsServiceClient;
@@ -28,6 +31,9 @@ namespace AutoPrintr.Helpers
         {
             _settingsService = settingsService;
             _loggerService = loggerService;
+
+            _timer = new System.Timers.Timer(TimeSpan.FromMinutes(PING_INTERVAL_MINUTES).TotalMilliseconds);
+            _timer.Elapsed += async (s, e) => { await Ping(); };
         }
         #endregion
 
@@ -49,6 +55,7 @@ namespace AutoPrintr.Helpers
                     try
                     {
                         _windowsServiceClient.Open();
+                        _timer.Start();
                     }
                     catch (TimeoutException ex)
                     {
@@ -89,6 +96,7 @@ namespace AutoPrintr.Helpers
                     try
                     {
                         _windowsServiceClient.Close();
+                        _timer.Stop();
                     }
                     catch (TimeoutException ex)
                     {
@@ -105,6 +113,23 @@ namespace AutoPrintr.Helpers
                 });
 
                 _connectionFailed = null;
+            }
+            catch (CommunicationObjectFaultedException ex)
+            {
+                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+
+                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+            }
+        }
+
+        public async Task Ping()
+        {
+            try
+            {
+                if (!Connected)
+                    return;
+
+                await _windowsServiceClient.PingAsync();
             }
             catch (CommunicationObjectFaultedException ex)
             {

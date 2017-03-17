@@ -14,6 +14,9 @@ namespace AutoPrintr.Core.IServices
         void Disconnect();
 
         [OperationContract]
+        void Ping();
+
+        [OperationContract]
         IEnumerable<Printer> GetPrinters();
 
         [OperationContract]
