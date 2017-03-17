@@ -157,7 +157,15 @@ namespace AutoPrintr.Core.Services
                 {
                     completed?.Invoke(!e.Cancelled && e.Error == null, e.Error);
                 };
-                await client.DownloadFileTaskAsync(fileUri, filePath);
+
+                try
+                {
+                    await client.DownloadFileTaskAsync(fileUri, filePath);
+                }
+                catch (Exception ex)
+                {
+                    completed?.Invoke(false, ex);
+                }
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Runtime.Serialization;
 
 namespace AutoPrintr.Core.Models
@@ -22,7 +23,7 @@ namespace AutoPrintr.Core.Models
         public int Quantity { get; set; }
         [DataMember]
         public double DownloadProgress { get; set; }
-        [DataMember]
+        [JsonProperty]
         public Exception Error { get; set; }
 
         public Job()

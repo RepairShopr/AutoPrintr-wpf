@@ -313,7 +313,7 @@ namespace AutoPrintr.Service.Services
                     job.UpdatedOn = DateTime.Now;
                     JobChangedEvent?.Invoke(job);
 
-                    if (_downloadingJobCount == 0)
+                    if (_downloadingJobCount <= 0)
                         MoveDownloadedJobs();
                 });
         }
