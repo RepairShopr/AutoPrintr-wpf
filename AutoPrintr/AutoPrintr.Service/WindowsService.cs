@@ -66,13 +66,47 @@ namespace AutoPrintr.Service
         public void JobChanged(Job job)
         {
             foreach (var callback in _callBackList)
-                callback.JobChanged(job);
+            {
+                try
+                {
+                    callback.JobChanged(job);
+                }
+                catch (CommunicationException ex)
+                {
+                    _callBackList.Remove(callback);
+
+                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
+                    LoggerService.WriteWarning($"Error in {nameof(WindowsService)}: {ex.ToString()}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
+                    LoggerService.WriteError($"Error in {nameof(WindowsService)}: {ex.ToString()}");
+                }
+            }
         }
 
         public void ConnectionFailed()
         {
             foreach (var callback in _callBackList)
-                callback.ConnectionFailed();
+            {
+                try
+                {
+                    callback.ConnectionFailed();
+                }
+                catch (CommunicationException ex)
+                {
+                    _callBackList.Remove(callback);
+
+                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
+                    LoggerService.WriteWarning($"Error in {nameof(WindowsService)}: {ex.ToString()}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
+                    LoggerService.WriteError($"Error in {nameof(WindowsService)}: {ex.ToString()}");
+                }
+            }
         }
         #endregion
 
@@ -95,7 +129,7 @@ namespace AutoPrintr.Service
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error in {nameof(Service)}: {ex.ToString()}");
+                Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
                 LoggerService.WriteError(ex);
             }
         }
@@ -109,7 +143,7 @@ namespace AutoPrintr.Service
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error in {nameof(Service)}: {ex.ToString()}");
+                Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
                 LoggerService.WriteError(ex);
             }
         }
@@ -123,7 +157,7 @@ namespace AutoPrintr.Service
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error in {nameof(Service)}: {ex.ToString()}");
+                Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
                 LoggerService.WriteError(ex);
             }
         }
@@ -137,7 +171,7 @@ namespace AutoPrintr.Service
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error in {nameof(Service)}: {ex.ToString()}");
+                Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
                 LoggerService.WriteError(ex);
             }
         }

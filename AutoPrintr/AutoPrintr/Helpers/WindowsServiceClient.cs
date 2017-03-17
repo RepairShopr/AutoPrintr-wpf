@@ -74,7 +74,7 @@ namespace AutoPrintr.Helpers
                 if (Connected)
                     await _windowsServiceClient.ConnectAsync();
             }
-            catch (CommunicationObjectFaultedException ex)
+            catch (CommunicationException ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
@@ -114,7 +114,7 @@ namespace AutoPrintr.Helpers
 
                 _connectionFailed = null;
             }
-            catch (CommunicationObjectFaultedException ex)
+            catch (CommunicationException ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
@@ -131,7 +131,7 @@ namespace AutoPrintr.Helpers
 
                 await _windowsServiceClient.PingAsync();
             }
-            catch (CommunicationObjectFaultedException ex)
+            catch (CommunicationException ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
@@ -148,7 +148,7 @@ namespace AutoPrintr.Helpers
 
                 return await _windowsServiceClient.GetPrintersAsync();
             }
-            catch (CommunicationObjectFaultedException ex)
+            catch (CommunicationException ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
@@ -167,7 +167,7 @@ namespace AutoPrintr.Helpers
 
                 return await _windowsServiceClient.GetJobsAsync();
             }
-            catch (CommunicationObjectFaultedException ex)
+            catch (CommunicationException ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
@@ -187,7 +187,7 @@ namespace AutoPrintr.Helpers
                 await _windowsServiceClient.PrintAsync(job);
                 return true;
             }
-            catch (CommunicationObjectFaultedException ex)
+            catch (CommunicationException ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
@@ -207,7 +207,7 @@ namespace AutoPrintr.Helpers
                 await _windowsServiceClient.DeleteJobsAsync(jobs);
                 return true;
             }
-            catch (CommunicationObjectFaultedException ex)
+            catch (CommunicationException ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
 
