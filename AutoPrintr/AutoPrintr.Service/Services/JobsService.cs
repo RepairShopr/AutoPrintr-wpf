@@ -54,7 +54,7 @@ namespace AutoPrintr.Service.Services
             _printerService = printerService;
             _loggingService = loggingService;
 
-            _applicationKey = "4a12d53c136a2d3dade7";
+            _applicationKey = "";
             _printingJobs = new Dictionary<Printer, Job>();
 
             _settingsService.ChannelChangedEvent += _settingsService_ChannelChangedEvent;
@@ -243,12 +243,14 @@ namespace AutoPrintr.Service.Services
 
         private async void _doneJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            await _fileService.SaveObjectAsync(_doneJobsFileName, _doneJobs);
+            var localDoneJobs = _doneJobs.ToList();
+            await _fileService.SaveObjectAsync(_doneJobsFileName, localDoneJobs);
         }
 
         private async void _downloadedJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            await _fileService.SaveObjectAsync(_downloadedJobsFileName, _downloadedJobs);
+            var localDownloadedJobs = _downloadedJobs.ToList();
+            await _fileService.SaveObjectAsync(_downloadedJobsFileName, localDownloadedJobs);
 
             if (e.NewItems != null)
             {
@@ -259,7 +261,8 @@ namespace AutoPrintr.Service.Services
 
         private async void _newJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            await _fileService.SaveObjectAsync(_newJobsFileName, _newJobs);
+            var localNewJobs = _newJobs.ToList();
+            await _fileService.SaveObjectAsync(_newJobsFileName, localNewJobs);
 
             if (e.NewItems != null)
             {

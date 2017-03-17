@@ -5,6 +5,7 @@ using GalaSoft.MvvmLight.Ioc;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.ServiceModel;
 
 namespace AutoPrintr.Service
@@ -65,8 +66,12 @@ namespace AutoPrintr.Service
 
         public void JobChanged(Job job)
         {
-            foreach (var callback in _callBackList)
+            for (var i = _callBackList.Count - 1; i >= 0; i--)
             {
+                var callback = _callBackList.Skip(i).Take(1).SingleOrDefault();
+                if (callback == null)
+                    return;
+
                 try
                 {
                     callback.JobChanged(job);
@@ -88,8 +93,12 @@ namespace AutoPrintr.Service
 
         public void ConnectionFailed()
         {
-            foreach (var callback in _callBackList)
+            for (var i = _callBackList.Count - 1; i >= 0; i--)
             {
+                var callback = _callBackList.Skip(i).Take(1).SingleOrDefault();
+                if (callback == null)
+                    return;
+
                 try
                 {
                     callback.ConnectionFailed();

@@ -217,10 +217,14 @@ namespace AutoPrintr.Core.Services
             lock (_locker)
             {
                 var oldSettings = Settings;
+                if (oldSettings == null)
+                    return;
 
                 var task = _fileService.ReadObjectAsync<Settings>(_fileName);
                 task.Wait();
                 Settings = task.Result;
+                if (Settings == null)
+                    return;
 
                 if (oldSettings.Channel?.Value != Settings.Channel?.Value)
                     ChannelChangedEvent?.Invoke(Settings.Channel);
