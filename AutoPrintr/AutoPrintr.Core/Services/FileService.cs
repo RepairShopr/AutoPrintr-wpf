@@ -127,17 +127,13 @@ namespace AutoPrintr.Core.Services
                             if ((FileSystemRights.Write & fileSystemAccessRule.FileSystemRights) == FileSystemRights.Write &&
                                                           fileSystemAccessRule.AccessControlType != AccessControlType.Allow)
                             {
-                                permissions.AddAccessRule(new FileSystemAccessRule(fileSystemAccessRule.IdentityReference.ToString(),
-                                                                                                              FileSystemRights.Write,
-                                                                                                              AccessControlType.Allow));
+                                permissions.AddAccessRule(new FileSystemAccessRule(fileSystemAccessRule.IdentityReference.ToString(), FileSystemRights.Write, AccessControlType.Allow));
                             }
 
                             if ((FileSystemRights.Write & fileSystemAccessRule.FileSystemRights) == FileSystemRights.Write &&
                                                           fileSystemAccessRule.AccessControlType == AccessControlType.Deny)
                             {
-                                permissions.RemoveAccessRule(new FileSystemAccessRule(fileSystemAccessRule.IdentityReference.ToString(),
-                                                                                                                 FileSystemRights.Write,
-                                                                                                                 AccessControlType.Deny));
+                                permissions.RemoveAccessRule(new FileSystemAccessRule(fileSystemAccessRule.IdentityReference.ToString(), FileSystemRights.Write, AccessControlType.Deny));
                             }
                         }
 
