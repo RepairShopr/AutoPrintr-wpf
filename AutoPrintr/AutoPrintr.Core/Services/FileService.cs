@@ -4,6 +4,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -114,7 +116,38 @@ namespace AutoPrintr.Core.Services
                 {
                     var filePath = GetFilePath(fileName);
 
-                    using (var stream = File.Open(filePath, FileMode.Create))
+                    var fileInfo = new FileInfo(filePath);
+                    if (fileInfo.Exists)
+                    {
+                        var permissions = fileInfo.GetAccessControl();
+                        var rules = permissions.GetAccessRules(true, true, typeof(NTAccount));
+
+                        foreach (FileSystemAccessRule fileSystemAccessRule in rules)
+                        {
+                            if ((FileSystemRights.Write & fileSystemAccessRule.FileSystemRights) == FileSystemRights.Write &&
+                                                          fileSystemAccessRule.AccessControlType != AccessControlType.Allow)
+                            {
+                                permissions.AddAccessRule(new FileSystemAccessRule(fileSystemAccessRule.IdentityReference.ToString(),
+                                                                                                              FileSystemRights.Write,
+                                                                                                              AccessControlType.Allow));
+                            }
+
+                            if ((FileSystemRights.Write & fileSystemAccessRule.FileSystemRights) == FileSystemRights.Write &&
+                                                          fileSystemAccessRule.AccessControlType == AccessControlType.Deny)
+                            {
+                                permissions.RemoveAccessRule(new FileSystemAccessRule(fileSystemAccessRule.IdentityReference.ToString(),
+                                                                                                                 FileSystemRights.Write,
+                                                                                                                 AccessControlType.Deny));
+                            }
+                        }
+
+                        fileInfo.SetAccessControl(permissions);
+
+                        if (fileInfo.IsReadOnly || (fileInfo.Attributes & FileAttributes.Hidden) != 0)
+                            fileInfo.Attributes = FileAttributes.Normal;
+                    }
+
+                    using (var stream = fileInfo.Open(FileMode.Create))
                     {
                         using (var writer = new StreamWriter(stream))
                             writer.Write(content);
