@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>AutoPrintr</id>
+        <version>2.0.16</version>
+        <title>Auto Printr</title>
+        <authors>RepairShopr</authors>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Automatically print to the desired printer.</description>
+    </metadata>
+    <files>
+        <file src="AutoPrintr\bin\Release\AutoPrintr.application" target="AutoPrintr\bin\Release\AutoPrintr.application" />
+        <file src="AutoPrintr\bin\Release\AutoPrintr.Core.dll" target="AutoPrintr\bin\Release\AutoPrintr.Core.dll" />
+        <file src="AutoPrintr\bin\Release\AutoPrintr.exe" target="AutoPrintr\bin\Release\AutoPrintr.exe" />
+        <file src="AutoPrintr\bin\Release\AutoPrintr.exe.config" target="AutoPrintr\bin\Release\AutoPrintr.exe.config" />
+        <file src="AutoPrintr\bin\Release\AutoPrintr.exe.manifest" target="AutoPrintr\bin\Release\AutoPrintr.exe.manifest" />
+        <file src="AutoPrintr\bin\Release\AutoPrintr.Service.exe" target="AutoPrintr\bin\Release\AutoPrintr.Service.exe" />
+        <file src="AutoPrintr\bin\Release\AutoPrintr.Service.exe.config" target="AutoPrintr\bin\Release\AutoPrintr.Service.exe.config" />
+        <file src="AutoPrintr\bin\Release\AutoPrintr.Service.InstallLog" target="AutoPrintr\bin\Release\AutoPrintr.Service.InstallLog" />
+        <file src="AutoPrintr\bin\Release\AutoPrintr.Service.InstallState" target="AutoPrintr\bin\Release\AutoPrintr.Service.InstallState" />
+        <file src="AutoPrintr\bin\Release\DeltaCompressionDotNet.dll" target="AutoPrintr\bin\Release\DeltaCompressionDotNet.dll" />
+        <file src="AutoPrintr\bin\Release\DeltaCompressionDotNet.MsDelta.dll" target="AutoPrintr\bin\Release\DeltaCompressionDotNet.MsDelta.dll" />
+        <file src="AutoPrintr\bin\Release\DeltaCompressionDotNet.PatchApi.dll" target="AutoPrintr\bin\Release\DeltaCompressionDotNet.PatchApi.dll" />
+        <file src="AutoPrintr\bin\Release\GalaSoft.MvvmLight.dll" target="AutoPrintr\bin\Release\GalaSoft.MvvmLight.dll" />
+        <file src="AutoPrintr\bin\Release\GalaSoft.MvvmLight.Extras.dll" target="AutoPrintr\bin\Release\GalaSoft.MvvmLight.Extras.dll" />
+        <file src="AutoPrintr\bin\Release\GalaSoft.MvvmLight.Extras.xml" target="AutoPrintr\bin\Release\GalaSoft.MvvmLight.Extras.xml" />
+        <file src="AutoPrintr\bin\Release\GalaSoft.MvvmLight.Platform.dll" target="AutoPrintr\bin\Release\GalaSoft.MvvmLight.Platform.dll" />
+        <file src="AutoPrintr\bin\Release\GalaSoft.MvvmLight.Platform.xml" target="AutoPrintr\bin\Release\GalaSoft.MvvmLight.Platform.xml" />
+        <file src="AutoPrintr\bin\Release\GalaSoft.MvvmLight.xml" target="AutoPrintr\bin\Release\GalaSoft.MvvmLight.xml" />
+        <file src="AutoPrintr\bin\Release\ICSharpCode.SharpZipLib.dll" target="AutoPrintr\bin\Release\ICSharpCode.SharpZipLib.dll" />
+        <file src="AutoPrintr\bin\Release\ICSharpCode.SharpZipLib.xml" target="AutoPrintr\bin\Release\ICSharpCode.SharpZipLib.xml" />
+        <file src="AutoPrintr\bin\Release\InstallUtil.InstallLog" target="AutoPrintr\bin\Release\InstallUtil.InstallLog" />
+        <file src="AutoPrintr\bin\Release\Microsoft.Practices.ServiceLocation.dll" target="AutoPrintr\bin\Release\Microsoft.Practices.ServiceLocation.dll" />
+        <file src="AutoPrintr\bin\Release\Microsoft.Practices.ServiceLocation.xml" target="AutoPrintr\bin\Release\Microsoft.Practices.ServiceLocation.xml" />
+        <file src="AutoPrintr\bin\Release\Mono.Cecil.dll" target="AutoPrintr\bin\Release\Mono.Cecil.dll" />
+        <file src="AutoPrintr\bin\Release\Mono.Cecil.Mdb.dll" target="AutoPrintr\bin\Release\Mono.Cecil.Mdb.dll" />
+        <file src="AutoPrintr\bin\Release\Mono.Cecil.Pdb.dll" target="AutoPrintr\bin\Release\Mono.Cecil.Pdb.dll" />
+        <file src="AutoPrintr\bin\Release\Mono.Cecil.Rocks.dll" target="AutoPrintr\bin\Release\Mono.Cecil.Rocks.dll" />
+        <file src="AutoPrintr\bin\Release\Newtonsoft.Json.dll" target="AutoPrintr\bin\Release\Newtonsoft.Json.dll" />
+        <file src="AutoPrintr\bin\Release\Newtonsoft.Json.xml" target="AutoPrintr\bin\Release\Newtonsoft.Json.xml" />
+        <file src="AutoPrintr\bin\Release\NuGet.Squirrel.dll" target="AutoPrintr\bin\Release\NuGet.Squirrel.dll" />
+        <file src="AutoPrintr\bin\Release\PusherClient.dll" target="AutoPrintr\bin\Release\PusherClient.dll" />
+        <file src="AutoPrintr\bin\Release\PusherClient.xml" target="AutoPrintr\bin\Release\PusherClient.xml" />
+        <file src="AutoPrintr\bin\Release\RollbarSharp.dll" target="AutoPrintr\bin\Release\RollbarSharp.dll" />
+        <file src="AutoPrintr\bin\Release\Splat.dll" target="AutoPrintr\bin\Release\Splat.dll" />
+        <file src="AutoPrintr\bin\Release\Squirrel.dll" target="AutoPrintr\bin\Release\Squirrel.dll" />
+        <file src="AutoPrintr\bin\Release\System.Net.Http.Formatting.dll" target="AutoPrintr\bin\Release\System.Net.Http.Formatting.dll" />
+        <file src="AutoPrintr\bin\Release\System.Net.Http.Formatting.xml" target="AutoPrintr\bin\Release\System.Net.Http.Formatting.xml" />
+        <file src="AutoPrintr\bin\Release\System.Windows.Interactivity.dll" target="AutoPrintr\bin\Release\System.Windows.Interactivity.dll" />
+        <file src="AutoPrintr\bin\Release\WebSocket4Net.dll" target="AutoPrintr\bin\Release\WebSocket4Net.dll" />
+    </files>
+</package>

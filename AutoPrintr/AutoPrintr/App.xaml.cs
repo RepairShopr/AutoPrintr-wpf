@@ -5,9 +5,11 @@ using GalaSoft.MvvmLight.Ioc;
 using Microsoft.Win32;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Squirrel;
 
 namespace AutoPrintr
 {
@@ -47,6 +49,11 @@ namespace AutoPrintr
 
             await WpfApp.Instance.Startup(e.Args);
             new TrayIconContextMenuView();
+
+             using (var updateManger = new UpdateManager(Path.GetFullPath("..\\Releases")))
+            {
+                await updateManger.UpdateApp();
+            }
         }
 
         protected override async void OnExit(ExitEventArgs e)
@@ -66,7 +73,7 @@ namespace AutoPrintr
                 return netVersion >= 378389;
             }
         }
-        #endregion
+    #endregion
 
         #region Exceptions
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -103,6 +110,6 @@ namespace AutoPrintr
             loggingService.WriteError(e.Exception);
             e.SetObserved();
         }
-        #endregion
+#endregion
     }
 }

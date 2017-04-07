@@ -223,6 +223,7 @@ namespace AutoPrintr.Helpers
             await WindowsServiceClient.ConnectAsync(settingsViewModel.ShowConnectionFailedMessage);
 
             //If service is not connected, try it start and connect again
+
             if (!WindowsServiceClient.Connected)
             {
                 await SettingsService.InstallService(true);

@@ -36,7 +36,7 @@ namespace AutoPrintr.Core.Services
                 _loggingService.WriteInformation($"User {login.Username} is authenticated");
             else
                 _loggingService.WriteInformation($"User {login.Username} is not authenticated");
-
+            
             return result.Result;
         }
 

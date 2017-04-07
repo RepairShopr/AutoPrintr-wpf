@@ -69,6 +69,7 @@ namespace AutoPrintr.Service
             for (var i = _callBackList.Count - 1; i >= 0; i--)
             {
                 var callback = _callBackList.Skip(i).Take(1).SingleOrDefault();
+                
                 if (callback == null)
                     return;
 
