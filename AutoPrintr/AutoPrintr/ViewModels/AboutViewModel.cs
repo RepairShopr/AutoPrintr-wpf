@@ -34,6 +34,7 @@ namespace AutoPrintr.ViewModels
             Version = assembly.GetName().Version.ToString();
             Description = assembly.GetCustomAttributes(false).OfType<AssemblyDescriptionAttribute>().Select(x => x.Description).First();
             Copyright = $"{assembly.GetCustomAttributes(false).OfType<AssemblyCopyrightAttribute>().Select(x => x.Copyright).First()} {assembly.GetCustomAttributes(false).OfType<AssemblyCompanyAttribute>().Select(x => x.Company).First()}";
+
             Licence = Resources.License;
             About = Resources.About;
         }
