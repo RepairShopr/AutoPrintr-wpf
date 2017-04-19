@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using RollbarSharp.Serialization;
 
 namespace AutoPrintr.Core.Services
 {
@@ -96,6 +97,8 @@ namespace AutoPrintr.Core.Services
             ReportExceptionToRollbar(exception);
         }
 
+        public User User { get; set; }
+
         private void AddLog(string message, LogType type)
         {
             lock (_locker)
@@ -141,10 +144,18 @@ namespace AutoPrintr.Core.Services
                     Platform = $"Platform: AutoPrintr.{_appType}. Version: {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}"
                 };
                 var client = new RollbarClient(config);
-                await client.SendErrorException(exception, Environment.MachineName);
+                await client.SendException(exception, exception.GetType().Name, "error", TransformRollbarDataModel);
             }
             catch { }
         }
+
+        private void TransformRollbarDataModel(DataModel model)
+        {
+            model.Fingerprint = User?.Subdomain ?? "<unknown>";
+            model.CodeVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+        }
+
+
         #endregion
     }
 }

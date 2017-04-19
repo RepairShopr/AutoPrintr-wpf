@@ -8,6 +8,7 @@ namespace AutoPrintr.Core.IServices
     public interface ILoggerService
     {
         string TodayLogsFilePath { get; }
+        User User { get; set; }
         Task InitializeAppLogsAsync();
         Task InitializeServiceLogsAsync();
         Task<IEnumerable<Log>> GetLogsAsync(DateTime day);

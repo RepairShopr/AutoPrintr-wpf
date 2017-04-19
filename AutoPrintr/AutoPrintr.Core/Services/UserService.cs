@@ -1,4 +1,5 @@
-﻿using AutoPrintr.Core.IServices;
+﻿using System;
+using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
 using System.Threading.Tasks;
 
@@ -33,7 +34,10 @@ namespace AutoPrintr.Core.Services
             var result = await _apiService.LoginAsync<User>(baseUrl, action, login.Username, login.Password);
 
             if (result.IsSuccess)
+            {
                 _loggingService.WriteInformation($"User {login.Username} is authenticated");
+                _loggingService.User = result.Result;
+            }
             else
                 _loggingService.WriteInformation($"User {login.Username} is not authenticated");
 
