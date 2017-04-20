@@ -144,7 +144,7 @@ namespace AutoPrintr.Core.Services
                     Platform = $"Platform: AutoPrintr.{_appType}. Version: {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}"
                 };
                 var client = new RollbarClient(config);
-                await client.SendException(exception, exception.GetType().Name, "error", TransformRollbarDataModel);
+                await client.SendException(exception, exception?.GetType()?.Name, "error", TransformRollbarDataModel);
             }
             catch { }
         }
