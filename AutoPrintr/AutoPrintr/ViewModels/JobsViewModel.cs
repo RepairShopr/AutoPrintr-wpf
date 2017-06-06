@@ -14,6 +14,7 @@ namespace AutoPrintr.ViewModels
     {
         #region Properties
         private readonly IWindowsServiceClient _windowsServiceClient;
+        private readonly ILoggerService _loggingService;
 
         public ObservableCollection<Job> Jobs { get; private set; }
 
@@ -44,10 +45,12 @@ namespace AutoPrintr.ViewModels
 
         #region Constructors
         public JobsViewModel(INavigationService navigationService,
-            IWindowsServiceClient windowsServiceClient)
+            IWindowsServiceClient windowsServiceClient,
+            ILoggerService loggingService)
             : base(navigationService)
         {
             _windowsServiceClient = windowsServiceClient;
+            _loggingService = loggingService;
 
             JobStates = Enum.GetValues(typeof(JobState))
                 .OfType<JobState?>()
@@ -89,26 +92,36 @@ namespace AutoPrintr.ViewModels
 
         private async void LoadJobs()
         {
-            ShowBusyControl();
-
-            Jobs.Clear();
-
-            var jobs = (await _windowsServiceClient.GetJobsAsync())?
-                .Where(x => SelectedJobState.HasValue ? x.State == SelectedJobState.Value : true)
-                .Where(x => SelectedDocumentType.HasValue ? x.Document.Type == SelectedDocumentType.Value : true)
-                .OrderByDescending(x => x.UpdatedOn);
-
-            if (jobs == null)
+            try
             {
-                ShowMessageControl("Jobs cannot be loaded, the AutoPrintr service is not available. Please run the service and try again");
-                HideBusyControl();
-                return;
+                ShowBusyControl();
+
+                Jobs.Clear();
+
+                var jobs = (await _windowsServiceClient.GetJobsAsync())?
+                    .Where(x => x != null)
+                    .Where(x => SelectedJobState.HasValue ? x.State == SelectedJobState.Value : true)
+                    .Where(x => SelectedDocumentType.HasValue ? x.Document.Type == SelectedDocumentType.Value : true)
+                    .OrderByDescending(x => x.UpdatedOn);
+
+                if (jobs == null)
+                {
+                    ShowMessageControl("Jobs cannot be loaded, the AutoPrintr service is not available. Please run the service and try again");
+                    HideBusyControl();
+                    return;
+                }
+
+                foreach (var job in jobs)
+                    Jobs.Add(job);
             }
-
-            foreach (var job in jobs)
-                Jobs.Add(job);
-
-            HideBusyControl();
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
+            finally
+            {
+                HideBusyControl();
+            }
         }
 
         private void JobChanged(Job job)
