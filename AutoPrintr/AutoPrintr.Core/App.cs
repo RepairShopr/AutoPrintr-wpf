@@ -29,6 +29,7 @@ namespace AutoPrintr.Core
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
             //Register Services
+            SimpleIoc.Default.Register<IAppSettings, AppSettings>();
             SimpleIoc.Default.Register<ILoggerService, LoggerService>();
             SimpleIoc.Default.Register<IApiService, ApiService>();
             SimpleIoc.Default.Register<IFileService, FileService>();

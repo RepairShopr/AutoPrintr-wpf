@@ -14,6 +14,9 @@ namespace AutoPrintr.Core.Models
         [JsonProperty("user_id")]
         public int UserId { get; set; }
 
+        [JsonProperty("domain")]
+        public string Domain { get; set; }
+
         [JsonProperty("subdomain")]
         public string Subdomain { get; set; }
 

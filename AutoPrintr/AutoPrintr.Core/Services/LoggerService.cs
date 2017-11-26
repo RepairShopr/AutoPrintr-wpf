@@ -1,11 +1,11 @@
 ﻿using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
 using RollbarSharp;
+using RollbarSharp.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using RollbarSharp.Serialization;
 
 namespace AutoPrintr.Core.Services
 {
@@ -29,11 +29,11 @@ namespace AutoPrintr.Core.Services
         #endregion
 
         #region Constructors
-        public LoggerService(IFileService fileService)
+        public LoggerService(IAppSettings appSettings,
+            IFileService fileService)
         {
             _fileService = fileService;
-
-            _rollbarAccessToken = "";
+            _rollbarAccessToken = appSettings.RollbarAccessToken;
             _logs = new List<Log>();
         }
         #endregion
@@ -154,8 +154,6 @@ namespace AutoPrintr.Core.Services
             model.Fingerprint = User?.Subdomain ?? "<unknown>";
             model.CodeVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         }
-
-
         #endregion
     }
 }

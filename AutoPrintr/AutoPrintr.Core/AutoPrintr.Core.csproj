@@ -84,6 +84,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.cs" />
+    <Compile Include="IServices\IAppSettings.cs" />
+    <Compile Include="Services\AppSettings.cs" />
     <Compile Include="Helpers\ApiResult.cs" />
     <Compile Include="Helpers\BindableValidator.cs" />
     <Compile Include="Helpers\DocumentSizeJsonConverter.cs" />

@@ -22,7 +22,7 @@ namespace AutoPrintr.Service.Services
         private readonly IPrinterService _printerService;
         private readonly ILoggerService _loggingService;
 
-        private readonly string _applicationKey;
+        private readonly string _pusherApplicationKey;
         private readonly string _newJobsFileName = $"Data/New{nameof(Job)}s.json";
         private readonly string _downloadedJobsFileName = $"Data/Downloaded{nameof(Job)}s.json";
         private readonly string _doneJobsFileName = $"Data/Done{nameof(Job)}s.json";
@@ -44,7 +44,8 @@ namespace AutoPrintr.Service.Services
         #endregion
 
         #region Constructors
-        public JobsService(ISettingsService settingsService,
+        public JobsService(IAppSettings appSettings,
+            ISettingsService settingsService,
             IFileService fileService,
             IPrinterService printerService,
             ILoggerService loggingService)
@@ -54,7 +55,7 @@ namespace AutoPrintr.Service.Services
             _printerService = printerService;
             _loggingService = loggingService;
 
-            _applicationKey = "";
+            _pusherApplicationKey = appSettings.PusherApplicationKey;
             _printingJobs = new Dictionary<Printer, Job>();
 
             _settingsService.ChannelChangedEvent += _settingsService_ChannelChangedEvent;
@@ -359,7 +360,7 @@ namespace AutoPrintr.Service.Services
             {
                 _loggingService.WriteInformation($"Starting Pusher");
 
-                _pusher = new Pusher(_applicationKey);
+                _pusher = new Pusher(_pusherApplicationKey);
                 _pusher.Error += _pusher_Error;
                 _pusher.ConnectionStateChanged += _pusher_ConnectionStateChanged;
                 _pusher.Subscribe(_channel)
