@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -6,6 +7,7 @@
 [assembly: AssemblyCompany("RepairShopr")]
 [assembly: AssemblyProduct("AutoPrintr")]
 [assembly: AssemblyCopyright("Copyright © 2018")]
+[assembly: InternalsVisibleTo("AutoPrintr.Tests")]
 
 // Version information for an assembly consists of the following four values:
 //
