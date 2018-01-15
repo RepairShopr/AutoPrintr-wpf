@@ -46,6 +46,7 @@ namespace AutoPrintr.Core.Services
                 return false;
             }
 
+            _fileService.SetupAccessControl(_fileName);
             _loggingService.WriteInformation("Settings is loaded");
             return true;
         }

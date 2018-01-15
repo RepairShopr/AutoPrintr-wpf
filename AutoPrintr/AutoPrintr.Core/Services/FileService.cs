@@ -13,17 +13,13 @@ namespace AutoPrintr.Core.Services
 {
     internal class FileService : IFileService
     {
-        #region Properties
         private readonly string _folderPath;
         private static object _locker = new object();
-        #endregion
 
-        #region Constructors
         public FileService()
         {
             _folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "AutoPrintr");
         }
-        #endregion
 
         #region Methods
         public async Task DeleteFileAsync(string fileName)
@@ -115,39 +111,19 @@ namespace AutoPrintr.Core.Services
                 lock (_locker)
                 {
                     var filePath = GetFilePath(fileName);
-
                     var fileInfo = new FileInfo(filePath);
-                    if (fileInfo.Exists)
-                    {
-                        var permissions = fileInfo.GetAccessControl();
-                        var rules = permissions.GetAccessRules(true, true, typeof(NTAccount));
-
-                        foreach (FileSystemAccessRule fileSystemAccessRule in rules)
-                        {
-                            if ((FileSystemRights.Write & fileSystemAccessRule.FileSystemRights) == FileSystemRights.Write &&
-                                                          fileSystemAccessRule.AccessControlType != AccessControlType.Allow)
-                            {
-                                permissions.AddAccessRule(new FileSystemAccessRule(fileSystemAccessRule.IdentityReference.ToString(), FileSystemRights.Write, AccessControlType.Allow));
-                            }
-
-                            if ((FileSystemRights.Write & fileSystemAccessRule.FileSystemRights) == FileSystemRights.Write &&
-                                                          fileSystemAccessRule.AccessControlType == AccessControlType.Deny)
-                            {
-                                permissions.RemoveAccessRule(new FileSystemAccessRule(fileSystemAccessRule.IdentityReference.ToString(), FileSystemRights.Write, AccessControlType.Deny));
-                            }
-                        }
-
-                        fileInfo.SetAccessControl(permissions);
-
-                        if (fileInfo.IsReadOnly || (fileInfo.Attributes & FileAttributes.Hidden) != 0)
-                            fileInfo.Attributes = FileAttributes.Normal;
-                    }
+                    var fileExisted = fileInfo.Exists;
+                    if (fileExisted)
+                        SetupAccessControl(fileInfo);
 
                     using (var stream = fileInfo.Open(FileMode.Create))
                     {
                         using (var writer = new StreamWriter(stream))
                             writer.Write(content);
                     }
+
+                    if (!fileExisted)
+                        SetupAccessControl(fileInfo);
                 }
             });
         }
@@ -211,6 +187,33 @@ namespace AutoPrintr.Core.Services
                 Directory.CreateDirectory(folderPath);
 
             return filePath.ToString();
+        }
+
+        public void SetupAccessControl(string fileName)
+        {
+            SetupAccessControl(new FileInfo(GetFilePath(fileName)));
+        }
+
+        private void SetupAccessControl(FileInfo fileInfo)
+        {
+            try
+            {
+                var permissions = fileInfo.GetAccessControl();
+                permissions.AddAccessRule(new FileSystemAccessRule(
+                    new SecurityIdentifier(WellKnownSidType.WorldSid, null), 
+                    FileSystemRights.FullControl, 
+                    InheritanceFlags.None, 
+                    PropagationFlags.NoPropagateInherit, 
+                    AccessControlType.Allow));
+                fileInfo.SetAccessControl(permissions);
+
+                if (fileInfo.IsReadOnly || (fileInfo.Attributes & FileAttributes.Hidden) != 0)
+                    fileInfo.Attributes = FileAttributes.Normal;
+            }
+            catch
+            {
+                // TODO: add logger
+            }
         }
         #endregion
     }

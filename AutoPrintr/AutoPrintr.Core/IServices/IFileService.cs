@@ -14,5 +14,6 @@ namespace AutoPrintr.Core.IServices
         Task DeleteFileAsync(string fileName);
         Task DownloadFileAsync(Uri fileUri, string localFilePath, Action<int> progressChanged = null, Action<bool, Exception> completed = null);
         string GetFilePath(string fileName);
+        void SetupAccessControl(string fileName);
     }
 }

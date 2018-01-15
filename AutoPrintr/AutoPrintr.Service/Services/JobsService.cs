@@ -215,19 +215,16 @@ namespace AutoPrintr.Service.Services
         {
             _loggingService.WriteInformation($"Starting read jobs");
 
-            _newJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_newJobsFileName);
-            if (_newJobs == null)
-                _newJobs = new ObservableCollection<Job>();
+            _newJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_newJobsFileName) 
+                       ?? new ObservableCollection<Job>();
             _newJobs.CollectionChanged += _newJobs_CollectionChanged;
 
-            _downloadedJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_downloadedJobsFileName);
-            if (_downloadedJobs == null)
-                _downloadedJobs = new ObservableCollection<Job>();
+            _downloadedJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_downloadedJobsFileName) 
+                              ?? new ObservableCollection<Job>();
             _downloadedJobs.CollectionChanged += _downloadedJobs_CollectionChanged;
 
-            _doneJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_doneJobsFileName);
-            if (_doneJobs == null)
-                _doneJobs = new ObservableCollection<Job>();
+            _doneJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_doneJobsFileName) 
+                        ?? new ObservableCollection<Job>();
             _doneJobs.CollectionChanged += _doneJobs_CollectionChanged;
 
             _loggingService.WriteInformation($"Jobs are read");
@@ -272,6 +269,7 @@ namespace AutoPrintr.Service.Services
             }
         }
 
+        // TODO: review calls w/o await
         private async void DownloadDocument(Job job)
         {
             var jobPrinters = await GetPrintersAsync(job);
