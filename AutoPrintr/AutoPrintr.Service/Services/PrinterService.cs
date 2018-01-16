@@ -31,22 +31,19 @@ namespace AutoPrintr.Service.Services
         #endregion
 
         #region Methods
-        public async Task<IEnumerable<Printer>> GetPrintersAsync()
+        public IEnumerable<Printer> GetPrinters()
         {
-            return await Task.Factory.StartNew<IEnumerable<Printer>>(() =>
+            var printers = GetInstalledPrinters();
+
+            var result = new List<Printer>();
+            foreach (var printer in printers)
             {
-                var printers = GetInstalledPrinters();
+                var existing = _settingsService.Settings.Printers.SingleOrDefault(x => string.Compare(x.Name, printer.Name, true) == 0);
+                var existingCopy = existing?.Clone() as Printer;
+                result.Add(existingCopy ?? printer);
+            }
 
-                var result = new List<Printer>();
-                foreach (var printer in printers)
-                {
-                    var existing = _settingsService.Settings.Printers.SingleOrDefault(x => string.Compare(x.Name, printer.Name, true) == 0);
-                    var existingCopy = existing?.Clone() as Printer;
-                    result.Add(existingCopy ?? printer);
-                }
-
-                return result;
-            });
+            return result;
         }
 
         public async Task PrintDocumentAsync(Printer printer, Document document, int count, Action<bool, Exception> completed = null)

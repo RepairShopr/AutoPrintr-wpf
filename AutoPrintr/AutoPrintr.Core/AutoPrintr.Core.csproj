@@ -84,6 +84,7 @@
       <Link>Properties\AssemblyVersion.cs</Link>
     </Compile>
     <Compile Include="App.cs" />
+    <Compile Include="Helpers\FileLockerUtil.cs" />
     <Compile Include="IServices\IAppSettings.cs" />
     <Compile Include="Services\AppSettings.cs" />
     <Compile Include="Helpers\ApiResult.cs" />

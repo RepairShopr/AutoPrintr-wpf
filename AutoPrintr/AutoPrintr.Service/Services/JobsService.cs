@@ -81,7 +81,7 @@ namespace AutoPrintr.Service.Services
             PrintDocument(localJob, true);
         }
 
-        public async void DeleteJobs(IEnumerable<Job> jobs)
+        public void DeleteJobs(IEnumerable<Job> jobs)
         {
             if (jobs == null)
                 return;
@@ -95,7 +95,7 @@ namespace AutoPrintr.Service.Services
                 _loggingService.WriteInformation($"Starting remove job {localJob.Document.TypeTitle}");
 
                 if (!string.IsNullOrEmpty(localJob.Document.LocalFilePath))
-                    await _fileService.DeleteFileAsync(localJob.Document.LocalFilePath);
+                    _fileService.DeleteFile(localJob.Document.LocalFilePath);
 
                 if (_doneJobs.Contains(localJob))
                     _doneJobs.Remove(localJob);
@@ -149,7 +149,7 @@ namespace AutoPrintr.Service.Services
         #region Printer Methods
         private async void PrintDocument(Job job, bool manual = false)
         {
-            var jobPrinters = await GetPrintersAsync(job);
+            var jobPrinters = GetPrintersAsync(job);
             var printerToPrint = jobPrinters.FirstOrDefault(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0));
             if (printerToPrint == null)
                 return;
@@ -186,9 +186,9 @@ namespace AutoPrintr.Service.Services
             });
         }
 
-        private async Task<IEnumerable<Printer>> GetPrintersAsync(Job job)
+        private IEnumerable<Printer> GetPrintersAsync(Job job)
         {
-            var installedPrinters = await _printerService.GetPrintersAsync();
+            var installedPrinters = _printerService.GetPrinters();
             return installedPrinters
                 .Where(x => job.Document.Register.HasValue ? job.Document.Register == x.Register : true)
                 .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled && (job.Document.AutoPrint ? d.AutoPrint : true)))
@@ -272,7 +272,7 @@ namespace AutoPrintr.Service.Services
         // TODO: review calls w/o await
         private async void DownloadDocument(Job job)
         {
-            var jobPrinters = await GetPrintersAsync(job);
+            var jobPrinters = GetPrintersAsync(job);
             var rotation = jobPrinters.Any(x => x.Rotation);
             if (rotation)
                 job.Document.FileUri = new Uri($"{job.Document.FileUri}&orientation=portrait");
@@ -386,7 +386,7 @@ namespace AutoPrintr.Service.Services
             });
         }
 
-        private async void _pusher_ReadResponse(dynamic message)
+        private void _pusher_ReadResponse(dynamic message)
         {
             _loggingService.WriteInformation($"Starting read Pusher response: {message.ToString()}");
 
@@ -411,7 +411,7 @@ namespace AutoPrintr.Service.Services
             {
                 var newJob = new Job { Document = document };
 
-                var jobPrinters = await GetPrintersAsync(newJob);
+                var jobPrinters = GetPrintersAsync(newJob);
                 if (!jobPrinters.Any())
                     return;
 

@@ -14,7 +14,6 @@ namespace AutoPrintr.Core.Services
         private readonly IFileService _fileService;
         private readonly ILoggerService _loggingService;
         private readonly string _fileName = $"Data/{nameof(Settings)}.json";
-        private static object _locker = new object();
 
         public event ChannelChangedEventHandler ChannelChangedEvent;
         public event PortNumberChangedEventHandler PortNumberChangedEvent;
@@ -215,7 +214,7 @@ namespace AutoPrintr.Core.Services
 
         private void _watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            lock (_locker)
+            try
             {
                 var oldSettings = Settings;
                 if (oldSettings == null)
@@ -232,6 +231,10 @@ namespace AutoPrintr.Core.Services
 
                 if (oldSettings.PortNumber != Settings.PortNumber)
                     PortNumberChangedEvent?.Invoke(Settings.PortNumber);
+            }
+            catch (Exception exception)
+            {
+                _loggingService.WriteError($"Error updating settings from a file: {exception}");
             }
         }
 

@@ -11,7 +11,7 @@ namespace AutoPrintr.Core.IServices
         Task SaveStringAsync(string fileName, string content);
         Task SaveBytesAsync(string fileName, byte[] content);
         Task SaveObjectAsync<T>(string fileName, T content);
-        Task DeleteFileAsync(string fileName);
+        bool DeleteFile(string fileName);
         Task DownloadFileAsync(Uri fileUri, string localFilePath, Action<int> progressChanged = null, Action<bool, Exception> completed = null);
         string GetFilePath(string fileName);
         void SetupAccessControl(string fileName);

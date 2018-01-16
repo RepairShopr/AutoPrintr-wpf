@@ -44,9 +44,7 @@ namespace AutoPrintr.Service
 
         public IEnumerable<Printer> GetPrinters()
         {
-            var task = PrintersService.GetPrintersAsync();
-            task.Wait();
-            return task.Result;
+            return PrintersService.GetPrinters();
         }
 
         public IEnumerable<Job> GetJobs()

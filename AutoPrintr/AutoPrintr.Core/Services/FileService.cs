@@ -1,20 +1,20 @@
 ﻿using AutoPrintr.Core.IServices;
 using Newtonsoft.Json;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using AutoPrintr.Core.Helpers;
 
 namespace AutoPrintr.Core.Services
 {
     internal class FileService : IFileService
     {
         private readonly string _folderPath;
-        private static object _locker = new object();
 
         public FileService()
         {
@@ -22,130 +22,219 @@ namespace AutoPrintr.Core.Services
         }
 
         #region Methods
-        public async Task DeleteFileAsync(string fileName)
+        public bool DeleteFile(string fileName)
         {
-            await Task.Factory.StartNew(() =>
+            var filePath = GetFilePath(fileName);
+            const int max = 10;
+            int attempt = 1;
+            while (true)
             {
-                lock (_locker)
+                try
                 {
-                    var filePath = GetFilePath(fileName);
-
-                    if (File.Exists(filePath))
-                        File.Delete(filePath);
+                    File.SetAttributes(filePath, FileAttributes.Normal);
+                    File.Delete(filePath);
+                    return true;
                 }
-            });
+                catch (IOException e)
+                {
+                    if (attempt >= max)
+                    {
+                        var lockProcesses = FileLockerUtil.WhoIsLockingSafe(filePath, out _);
+                        if (lockProcesses != null)
+                        {
+                            throw new Exception($"Can't delete the '{filePath}' file. It is locked by the process '{string.Join(", ", lockProcesses.Select(p => $"[{p.Id}]{p.ProcessName}"))}'", e);
+                        }
+
+                        throw;
+                    }
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    if (attempt >= max)
+                    {
+                        var lockProcesses = FileLockerUtil.WhoIsLockingSafe(filePath, out _);
+                        if (lockProcesses != null)
+                        {
+                            throw new Exception($"Can't delete the '{filePath}' file. It is locked by the process '{string.Join(", ", lockProcesses.Select(p => $"[{p.Id}]{p.ProcessName}"))}'", e);
+                        }
+
+                        throw;
+                    }
+                }
+                catch (Exception)
+                {
+                    if (attempt >= max)
+                    {
+                        throw;
+                    }
+                }
+
+                attempt++;
+                Thread.Sleep(attempt * 100);
+            }
         }
 
         public async Task<string> ReadStringAsync(string fileName)
         {
-            string result = null;
+            var filePath = GetFilePath(fileName);
+            var fileInfo = new FileInfo(filePath);
+            if (!fileInfo.Exists)
+                return null;
 
-            try
+            const int max = 10;
+            int attempt = 1;
+            while (true)
             {
-                result = await Task.Factory.StartNew(() =>
+                try
                 {
-                    var filePath = GetFilePath(fileName);
+                    using (var fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var fileReader = new StreamReader(fileStream))
+                    {
+                        return await fileReader.ReadToEndAsync();
+                    }
+                }
+                catch (IOException e)
+                {
+                    if (attempt >= max)
+                    {
+                        var lockProcesses = FileLockerUtil.WhoIsLockingSafe(filePath, out _);
+                        if (lockProcesses != null)
+                        {
+                            throw new Exception($"Can't read the '{filePath}' file. It is locked by the process '{string.Join(", ", lockProcesses.Select(p => $"[{p.Id}]{p.ProcessName}"))}'", e);
+                        }
 
-                    if (File.Exists(filePath))
-                        return File.ReadAllText(filePath);
-                    else
-                        return null;
-                });
-            }
-            catch (IOException)
-            {
-                result = await ReadStringAsync(fileName);
-            }
+                        throw;
+                    }
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    if (attempt >= max)
+                    {
+                        var lockProcesses = FileLockerUtil.WhoIsLockingSafe(filePath, out _);
+                        if (lockProcesses != null)
+                        {
+                            throw new Exception($"Can't read the '{filePath}' file. It is locked by the process '{string.Join(", ", lockProcesses.Select(p => $"[{p.Id}]{p.ProcessName}"))}'", e);
+                        }
 
-            return result;
+                        throw;
+                    }
+                }
+                catch (Exception)
+                {
+                    if (attempt >= max)
+                    {
+                        throw;
+                    }
+                }
+
+                attempt++;
+                await Task.Delay(attempt * 100);
+            }
         }
 
         public async Task<byte[]> ReadBytesAsync(string fileName)
         {
-            byte[] result = null;
+            var filePath = GetFilePath(fileName);
+            var fileInfo = new FileInfo(filePath);
+            if (!fileInfo.Exists)
+                return null;
 
-            try
+            const int max = 10;
+            int attempt = 1;
+            while (true)
             {
-                result = await Task.Factory.StartNew(() =>
+                try
                 {
-                    var filePath = GetFilePath(fileName);
+                    using (var fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        var data = new byte[fileStream.Length];
+                        await fileStream.ReadAsync(data, 0, data.Length);
+                        return data;
+                    }
+                }
+                catch (IOException e)
+                {
+                    if (attempt >= max)
+                    {
+                        var lockProcesses = FileLockerUtil.WhoIsLockingSafe(filePath, out _);
+                        if (lockProcesses != null)
+                        {
+                            throw new Exception($"Can't read the '{filePath}' file. It is locked by the process '{string.Join(", ", lockProcesses.Select(p => $"[{p.Id}]{p.ProcessName}"))}'", e);
+                        }
 
-                    if (File.Exists(filePath))
-                        return File.ReadAllBytes(filePath);
-                    else
-                        return null;
-                });
-            }
-            catch (IOException)
-            {
-                result = await ReadBytesAsync(fileName);
-            }
+                        throw;
+                    }
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    if (attempt >= max)
+                    {
+                        var lockProcesses = FileLockerUtil.WhoIsLockingSafe(filePath, out _);
+                        if (lockProcesses != null)
+                        {
+                            throw new Exception($"Can't read the '{filePath}' file. It is locked by the process '{string.Join(", ", lockProcesses.Select(p => $"[{p.Id}]{p.ProcessName}"))}'", e);
+                        }
 
-            return result;
+                        throw;
+                    }
+                }
+                catch (Exception)
+                {
+                    if (attempt >= max)
+                    {
+                        throw;
+                    }
+                }
+
+                attempt++;
+                await Task.Delay(attempt * 100);
+            }
         }
 
         public async Task<T> ReadObjectAsync<T>(string fileName)
         {
-            T result = default(T);
-
             var str = await ReadStringAsync(fileName);
-            if (str == null)
-                return result;
+            if (String.IsNullOrEmpty(str))
+                return default(T);
 
-            try
-            {
-                result = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(str));
-            }
-            catch (JsonException ex)
-            {
-                Debug.WriteLine($"Error in {nameof(FileService)}: {ex.ToString()}");
-            }
-
-            return result;
+            return JsonConvert.DeserializeObject<T>(str);
         }
 
         public async Task SaveStringAsync(string fileName, string content)
         {
-            await Task.Factory.StartNew(() =>
+            var filePath = GetFilePath(fileName);
+            var fileInfo = new FileInfo(filePath);
+            if (fileInfo.Exists)
+                SetupAccessControl(fileInfo);
+
+            using (var fileStream = fileInfo.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+            using (var fileWriter = new StreamWriter(fileStream))
             {
-                lock (_locker)
-                {
-                    var filePath = GetFilePath(fileName);
-                    var fileInfo = new FileInfo(filePath);
-                    var fileExisted = fileInfo.Exists;
-                    if (fileExisted)
-                        SetupAccessControl(fileInfo);
+                await fileWriter.WriteAsync(content);
+            }
 
-                    using (var stream = fileInfo.Open(FileMode.Create))
-                    {
-                        using (var writer = new StreamWriter(stream))
-                            writer.Write(content);
-                    }
-
-                    if (!fileExisted)
-                        SetupAccessControl(fileInfo);
-                }
-            });
+            SetupAccessControl(fileInfo);
         }
 
         public async Task SaveBytesAsync(string fileName, byte[] content)
         {
-            await Task.Factory.StartNew(() =>
-            {
-                lock (_locker)
-                {
-                    var filePath = GetFilePath(fileName);
+            var filePath = GetFilePath(fileName);
+            var fileInfo = new FileInfo(filePath);
+            if (fileInfo.Exists)
+                SetupAccessControl(fileInfo);
 
-                    using (var stream = File.Open(filePath, FileMode.Create))
-                        stream.Write(content, 0, content.Length);
-                }
-            });
+            using (var fileStream = fileInfo.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+            {
+                await fileStream.WriteAsync(content, 0, content.Length);
+            }
+
+            SetupAccessControl(fileInfo);
         }
 
-        public async Task SaveObjectAsync<T>(string fileName, T content)
+        public Task SaveObjectAsync<T>(string fileName, T content)
         {
             var str = JsonConvert.SerializeObject(content);
-            await SaveStringAsync(fileName, str);
+            return SaveStringAsync(fileName, str);
         }
 
         public async Task DownloadFileAsync(Uri fileUri, string localFilePath, Action<int> progressChanged = null, Action<bool, Exception> completed = null)
