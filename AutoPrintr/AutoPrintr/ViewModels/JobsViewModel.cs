@@ -73,15 +73,22 @@ namespace AutoPrintr.ViewModels
         #region Methods
         public override void NavigatedTo(object parameter = null)
         {
-            base.NavigatedTo(parameter);
+            try
+            {
+                base.NavigatedTo(parameter);
 
-            Jobs = new ObservableCollection<Job>();
+                Jobs = new ObservableCollection<Job>();
 
-            _selectedJobState = null;
-            _selectedDocumentType = null;
-            _windowsServiceClient.JobChangedAction = JobChanged;
+                _selectedJobState = null;
+                _selectedDocumentType = null;
+                _windowsServiceClient.JobChangedAction = JobChanged;
 
-            LoadJobs();
+                LoadJobs();
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
         }
 
         public void NavigatedFrom()
@@ -128,66 +135,95 @@ namespace AutoPrintr.ViewModels
         {
             App.Current.Dispatcher.BeginInvoke((Action)(() =>
             {
-                var localJob = Jobs.FirstOrDefault(x => x.Id == job.Id);
-                if (localJob != null && Jobs.Contains(localJob))
-                    Jobs.Remove(localJob);
+                try
+                {
+                    var localJob = Jobs.FirstOrDefault(x => x.Id == job.Id);
+                    if (localJob != null && Jobs.Contains(localJob))
+                        Jobs.Remove(localJob);
 
-                Jobs.Insert(0, job);
+                    Jobs.Insert(0, job);
+                }
+                catch (Exception e)
+                {
+                    _loggingService?.WriteError(e);
+                }
             }));
         }
 
         private async void OnPrint(Job obj)
         {
-            var result = await _windowsServiceClient.PrintAsync(obj);
-            if (!result)
-                ShowMessageControl("Job cannot be printed, the AutoPrintr service is not available. Please run the service and try again");
+            try
+            {
+                var result = await _windowsServiceClient.PrintAsync(obj);
+                if (!result)
+                    ShowMessageControl("Job cannot be printed, the AutoPrintr service is not available. Please run the service and try again");
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
         }
 
         private async void OnDeleteJob(Job obj)
         {
-            var result = await _windowsServiceClient.DeleteJobsAsync(new[] { obj });
-            if (!result)
+            try
             {
-                ShowMessageControl("Job cannot be removed, the AutoPrintr service is not available. Please run the service and try again");
-                return;
-            }
+                var result = await _windowsServiceClient.DeleteJobsAsync(new[] { obj });
+                if (!result)
+                {
+                    ShowMessageControl("Job cannot be removed, the AutoPrintr service is not available. Please run the service and try again");
+                    return;
+                }
 
-            Jobs.Remove(obj);
+                Jobs.Remove(obj);
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
         }
 
         private async void OnDeleteJobs(DeleteJobAmount obj)
         {
-            ShowBusyControl();
-
-            var startDate = new DateTime();
-            var endDate = new DateTime();
-
-            switch (obj)
+            try
             {
-                case DeleteJobAmount.PreviousWeek:
-                    startDate = GetPreviousMonday();
-                    endDate = startDate.AddDays(7);
-                    break;
-                case DeleteJobAmount.PreviousMonth:
-                    startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month - 1, 1);
-                    endDate = startDate.AddMonths(1);
-                    break;
-                case DeleteJobAmount.AllPast:
-                    startDate = DateTime.MinValue;
-                    endDate = DateTime.Now.Date;
-                    break;
-                default: break;
+                ShowBusyControl();
+
+                var startDate = new DateTime();
+                var endDate = new DateTime();
+
+                switch (obj)
+                {
+                    case DeleteJobAmount.PreviousWeek:
+                        startDate = GetPreviousMonday();
+                        endDate = startDate.AddDays(7);
+                        break;
+                    case DeleteJobAmount.PreviousMonth:
+                        startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month - 1, 1);
+                        endDate = startDate.AddMonths(1);
+                        break;
+                    case DeleteJobAmount.AllPast:
+                        startDate = DateTime.MinValue;
+                        endDate = DateTime.Now.Date;
+                        break;
+                    default: break;
+                }
+
+                var jobsToRemove = Jobs.Where(x => x.CreatedOn >= startDate && x.CreatedOn < endDate).ToArray();
+                var result = await _windowsServiceClient.DeleteJobsAsync(jobsToRemove);
+
+                HideBusyControl();
+
+                if (!result)
+                {
+                    ShowMessageControl("Jobs cannot be removed, the AutoPrintr service is not available. Please run the service and try again");
+                    return;
+                }
             }
-
-            var jobsToRemove = Jobs.Where(x => x.CreatedOn >= startDate && x.CreatedOn < endDate).ToArray();
-            var result = await _windowsServiceClient.DeleteJobsAsync(jobsToRemove);
-
-            HideBusyControl();
-
-            if (!result)
+            catch (Exception e)
             {
-                ShowMessageControl("Jobs cannot be removed, the AutoPrintr service is not available. Please run the service and try again");
-                return;
+                _loggingService?.WriteError(e);
+                HideBusyControl();
             }
 
             LoadJobs();

@@ -52,13 +52,20 @@ namespace AutoPrintr.ViewModels
         #region Methods
         public override void NavigatedTo(object parameter = null)
         {
-            base.NavigatedTo(parameter);
+            try
+            {
+                base.NavigatedTo(parameter);
 
-            Logs = null;
-            _selectedLogType = null;
-            _selectedDay = DateTime.Now;
+                Logs = null;
+                _selectedLogType = null;
+                _selectedDay = DateTime.Now;
 
-            LoadLogs();
+                LoadLogs();
+            }
+            catch (Exception e)
+            {
+                _logsService?.WriteError(e);
+            }
         }
 
         private async void LoadLogs()
