@@ -335,7 +335,7 @@ namespace AutoPrintr.Service.Services
         #region Pusher Methods
         private async Task RunPusherAsync()
         {
-            if (_settingsService.Settings.Channel == null || string.IsNullOrEmpty(_settingsService.Settings.Channel.Value))
+            if (String.IsNullOrEmpty(_settingsService.Settings.Channel?.Value))
             {
                 _channel = null;
                 await StopPusher();
@@ -436,7 +436,7 @@ namespace AutoPrintr.Service.Services
                     ConnectionFailedEvent?.Invoke();
                 }
             }
-            else if (state == ConnectionState.Connected || state == ConnectionState.Failed)
+            else if (state == ConnectionState.Connected)
                 _connectionAttempts = 0;
         }
 

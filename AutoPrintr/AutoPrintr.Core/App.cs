@@ -1,7 +1,6 @@
 ﻿using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Services;
 using GalaSoft.MvvmLight.Ioc;
-using Microsoft.Practices.ServiceLocation;
 using System.Threading.Tasks;
 
 namespace AutoPrintr.Core
@@ -26,8 +25,6 @@ namespace AutoPrintr.Core
 
         protected virtual void RegisterTypes()
         {
-            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
-
             //Register Services
             SimpleIoc.Default.Register<IAppSettings, AppSettings>();
             SimpleIoc.Default.Register<ILoggerService, LoggerService>();
