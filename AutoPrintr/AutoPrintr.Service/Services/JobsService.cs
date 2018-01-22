@@ -426,18 +426,27 @@ namespace AutoPrintr.Service.Services
         {
             _loggingService.WriteInformation($"Pusher is {state}");
 
-            if (state == ConnectionState.WaitingToReconnect)
+            try
             {
-                _connectionAttempts++;
+                if (state == ConnectionState.WaitingToReconnect)
+                {
+                    _connectionAttempts++;
 
-                if (_connectionAttempts >= 5)
+                    if (_connectionAttempts >= 5)
+                    {
+                        _connectionAttempts = 0;
+                        ConnectionFailedEvent?.Invoke();
+                    }
+                }
+                else if (state == ConnectionState.Connected)
                 {
                     _connectionAttempts = 0;
-                    ConnectionFailedEvent?.Invoke();
                 }
             }
-            else if (state == ConnectionState.Connected)
-                _connectionAttempts = 0;
+            catch (Exception e)
+            {
+                _loggingService.WriteInformation($"Error handling the pusher '{state}' state. {e}");
+            }
         }
 
         private void _pusher_Error(object sender, PusherException error)

@@ -7,7 +7,6 @@ namespace AutoPrintr.Core.IServices
 {
     public interface IWindowsServiceClient
     {
-        bool Connected { get; }
         Action<Job> JobChangedAction { get; set; }
         Task ConnectAsync(Action connectionFailed);
         Task DisconnectAsync();

@@ -17,6 +17,7 @@ namespace AutoPrintr.ViewModels
         private readonly ISettingsService _settingsService;
         private readonly IWindowsServiceClient _windowsServiceClient;
         private readonly ILoggerService _loggingService;
+        private volatile bool _isOpenedConnectionFailedMessage;
 
         public bool AddToStartup
         {
@@ -252,11 +253,8 @@ namespace AutoPrintr.ViewModels
             {
                 ShowBusyControl();
                 await _windowsServiceClient.DisconnectAsync();
-
                 await _settingsService.InstallService(value);
-
-                if (InstallService && !_windowsServiceClient.Connected)
-                    await _windowsServiceClient.ConnectAsync(ShowConnectionFailedMessage);
+                await _windowsServiceClient.ConnectAsync(ShowConnectionFailedMessage);
             }
             catch (Exception e)
             {
@@ -280,7 +278,18 @@ namespace AutoPrintr.ViewModels
 
         public void ShowConnectionFailedMessage()
         {
-            ShowWarningControl("You are either offline or AutoPrintr is being blocked from connecting to the internet. If you have a software firewall in place disable that or give AutoPrintr permission to the network", "You are either offline");
+            if (_isOpenedConnectionFailedMessage)
+                return;
+
+            try
+            {
+                _isOpenedConnectionFailedMessage = true;
+                ShowWarningControl("You are either offline or AutoPrintr is being blocked from connecting to the internet. If you have a software firewall in place disable that or give AutoPrintr permission to the network", "You are either offline");
+            }
+            finally
+            {
+                _isOpenedConnectionFailedMessage = false;
+            }
         }
         #endregion
     }

@@ -31,6 +31,11 @@ namespace AutoPrintr.Core.Services
             {
                 try
                 {
+                    if (!File.Exists(filePath))
+                    {
+                        return false;
+                    }
+
                     File.SetAttributes(filePath, FileAttributes.Normal);
                     File.Delete(filePath);
                     return true;

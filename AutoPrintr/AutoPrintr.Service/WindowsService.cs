@@ -5,16 +5,17 @@ using GalaSoft.MvvmLight.Ioc;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.ServiceModel;
+using System.Threading.Tasks;
 
 namespace AutoPrintr.Service
 {
-    [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Single, InstanceContextMode = InstanceContextMode.Single)]
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     internal class WindowsService : IWindowsService
     {
         #region Properties
-        private readonly static ICollection<IWindowsServiceCallback> _callBackList = new List<IWindowsServiceCallback>();
+        private readonly List<IWindowsServiceCallback> _callbacks = new List<IWindowsServiceCallback>();
+        private readonly object guardCallbacks = new object();
 
         private IJobsService JobsService => SimpleIoc.Default.GetInstance<IJobsService>();
         private IPrinterService PrintersService => SimpleIoc.Default.GetInstance<IPrinterService>();
@@ -28,28 +29,43 @@ namespace AutoPrintr.Service
         public void Connect()
         {
             var callback = OperationContext.Current.GetCallbackChannel<IWindowsServiceCallback>();
-            if (!_callBackList.Contains(callback))
-                _callBackList.Add(callback);
+            if (callback == null)
+            {
+                return;
+            }
+
+            lock (guardCallbacks)
+            {
+                _callbacks.Add(callback);
+            }
         }
 
         public void Disconnect()
         {
             var callback = OperationContext.Current.GetCallbackChannel<IWindowsServiceCallback>();
-            if (_callBackList.Contains(callback))
-                _callBackList.Remove(callback);
+            if (callback == null)
+            {
+                return;
+            }
+
+            lock (guardCallbacks)
+            {
+                if (_callbacks.Contains(callback))
+                    _callbacks.Remove(callback);
+            }
         }
 
         public void Ping()
         { }
 
-        public IEnumerable<Printer> GetPrinters()
+        public Task<IEnumerable<Printer>> GetPrinters()
         {
-            return PrintersService.GetPrinters();
+            return Task.FromResult(PrintersService.GetPrinters());
         }
 
-        public IEnumerable<Job> GetJobs()
+        public Task<IEnumerable<Job>> GetJobs()
         {
-            return JobsService.GetJobs();
+            return Task.FromResult(JobsService.GetJobs());
         }
 
         public void Print(Job job)
@@ -62,77 +78,38 @@ namespace AutoPrintr.Service
             JobsService.DeleteJobs(jobs);
         }
 
-        public void JobChanged(Job job)
-        {
-            for (var i = _callBackList.Count - 1; i >= 0; i--)
-            {
-                var callback = _callBackList.Skip(i).Take(1).SingleOrDefault();
-                if (callback == null)
-                    return;
+        public void JobChanged(Job job) =>
+            ForEachCallback(callback => callback.JobChanged(job));
 
-                try
-                {
-                    callback.JobChanged(job);
-                }
-                catch (CommunicationException ex)
-                {
-                    _callBackList.Remove(callback);
-
-                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
-                    LoggerService.WriteWarning($"Error in {nameof(WindowsService)}: {ex.ToString()}");
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
-                    LoggerService.WriteError($"Error in {nameof(WindowsService)}: {ex.ToString()}");
-                }
-            }
-        }
-
-        public void ConnectionFailed()
-        {
-            for (var i = _callBackList.Count - 1; i >= 0; i--)
-            {
-                var callback = _callBackList.Skip(i).Take(1).SingleOrDefault();
-                if (callback == null)
-                    return;
-
-                try
-                {
-                    callback.ConnectionFailed();
-                }
-                catch (CommunicationException ex)
-                {
-                    _callBackList.Remove(callback);
-
-                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
-                    LoggerService.WriteWarning($"Error in {nameof(WindowsService)}: {ex.ToString()}");
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
-                    LoggerService.WriteError($"Error in {nameof(WindowsService)}: {ex.ToString()}");
-                }
-            }
-        }
+        public void ConnectionFailed() =>
+            ForEachCallback(callback => callback.ConnectionFailed());
         #endregion
 
         #region Static Methods
-        public static async void StartServiceHost()
+        public static void StartServiceHost()
         {
             try
             {
-                _serviceHost = CreateServiceHost();
+                var service = new WindowsService();
+                _serviceHost = new ServiceHost(service);
                 _serviceHost.Open();
             }
-            catch (AddressAlreadyInUseException)
+            catch (Exception ex)
             {
-                var newPortNumber = SettingsService.Settings.PortNumber + 1;
-                LoggerService.WriteWarning($"Port number {SettingsService.Settings.PortNumber} is busy. Changing it to: {newPortNumber}");
-                SettingsService.Settings.PortNumber = newPortNumber;
+                Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
+                LoggerService.WriteError(ex);
+            }
+        }
 
-                StartServiceHost();
-                await SettingsService.UpdateSettingsAsync(newPortNumber);
+        public static void StopServiceHost()
+        {
+            try
+            {
+                if (_serviceHost != null)
+                {
+                    _serviceHost.Close();
+                    _serviceHost = null;
+                }
             }
             catch (Exception ex)
             {
@@ -169,32 +146,37 @@ namespace AutoPrintr.Service
             }
         }
 
-        public static void StopServiceHost()
+        private void ForEachCallback(Action<IWindowsServiceCallback> call, bool store = false)
         {
-            try
+            lock (guardCallbacks)
             {
-                _serviceHost.Close();
-                _serviceHost = null;
+                for (int i = _callbacks.Count - 1; i >= 0; i--)
+                {
+                    try
+                    {
+                        call(_callbacks[i]);
+                    }
+                    catch (ObjectDisposedException ex)
+                    {
+                        _callbacks.RemoveAt(i);
+                        Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.Message}");
+                        LoggerService.WriteWarning($"Error in {nameof(WindowsService)}: {ex.Message}");
+                    }
+                    catch (CommunicationException ex)
+                    {
+                        _callbacks.RemoveAt(i);
+                        Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.Message}");
+                        LoggerService.WriteWarning($"Error in {nameof(WindowsService)}: {ex.Message}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex}");
+                        LoggerService.WriteError($"Error in {nameof(WindowsService)}: {ex}");
+                    }
+                }
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.ToString()}");
-                LoggerService.WriteError(ex);
-            }
         }
 
-        private static ServiceHost CreateServiceHost()
-        {
-            var service = new WindowsService();
-            var serviceHost = new ServiceHost(service, GetServiceAddress());
-
-            return serviceHost;
-        }
-
-        private static Uri GetServiceAddress()
-        {
-            return new Uri($"net.tcp://localhost:{SettingsService.Settings.PortNumber}/AutoPrintrService");
-        }
         #endregion
     }
 }

@@ -9,13 +9,11 @@ namespace AutoPrintr.Core.IServices
     public interface ISettingsService
     {
         event ChannelChangedEventHandler ChannelChangedEvent;
-        event PortNumberChangedEventHandler PortNumberChangedEvent;
 
         Settings Settings { get; }
         Task<bool> LoadSettingsAsync();
         void MonitorSettingsChanges();
         Task UpdateSettingsAsync(User user, Channel channel = null);
-        Task UpdateSettingsAsync(int portNumber);
         Task AddLocationAsync(Location location);
         Task RemoveLocationAsync(Location location);
         Task AddPrinterAsync(Printer printer);

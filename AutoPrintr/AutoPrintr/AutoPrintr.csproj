@@ -145,6 +145,7 @@
     <Compile Include="Helpers\DeleteJobAmount.cs" />
     <Compile Include="Helpers\EmailSettings.cs" />
     <Compile Include="Helpers\HideControlMessage.cs" />
+    <Compile Include="Helpers\ReliableService.cs" />
     <Compile Include="Helpers\ShowControlMessage.cs" />
     <Compile Include="Helpers\ViewType.cs" />
     <Compile Include="Helpers\VisualTreeHelperExtensions.cs" />
@@ -154,11 +155,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Service References\WindowsServiceReference\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
     <Compile Include="Services\NavigationService.cs" />
     <Compile Include="ViewModels\AboutViewModel.cs" />
@@ -229,39 +225,16 @@
     </Compile>
     <None Include="Properties\DataSources\AutoPrintr.Core.Models.Job.datasource" />
     <None Include="Properties\DataSources\AutoPrintr.Core.Models.Printer.datasource" />
-    <None Include="Service References\WindowsServiceReference\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
-    <None Include="Service References\WindowsServiceReference\configuration.svcinfo" />
-    <None Include="Service References\WindowsServiceReference\configuration91.svcinfo" />
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Content Include="..\AutoPrintr.Service\bin\Debug\AutoPrintr.Service.exe.config">
-      <Link>AutoPrintr.Service.exe.config</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <None Include="AutoPrintr_TemporaryKey.pfx" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
     <None Include="Properties\app.manifest" />
     <AppDesigner Include="Properties\" />
-    <None Include="Service References\WindowsServiceReference\AutoPrintr.Core.Models.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\WindowsServiceReference\service.wsdl" />
-    <None Include="Service References\WindowsServiceReference\service.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\WindowsServiceReference\service1.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\WindowsServiceReference\System.xsd">
-      <SubType>Designer</SubType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -298,12 +271,6 @@
       <Project>{638ac5d5-242d-4733-a930-64a91bf8225a}</Project>
       <Name>AutoPrintr.Service</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadataStorage Include="Service References\WindowsServiceReference\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
