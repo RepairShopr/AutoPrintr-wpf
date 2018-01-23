@@ -139,51 +139,76 @@ namespace AutoPrintr.Service.Services
 
         private async void _settingsService_ChannelChangedEvent(Core.Models.Channel newChannel)
         {
-            if (!IsRunning)
-                return;
+            try
+            {
+                if (!IsRunning)
+                    return;
 
-            await RunPusherAsync();
+                await RunPusherAsync();
+            }
+            catch (Exception e)
+            {
+                _loggingService.WriteError($"Error handling changed channel. {e}");
+            }
         }
         #endregion
 
         #region Printer Methods
         private async void PrintDocument(Job job, bool manual = false)
         {
-            var jobPrinters = GetPrintersAsync(job);
-            var printerToPrint = jobPrinters.FirstOrDefault(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0));
-            if (printerToPrint == null)
-                return;
-
-            _loggingService.WriteInformation($"Starting print document {job.Document.TypeTitle} on {printerToPrint.Name}");
-
-            _printingJobs.Add(printerToPrint, job);
-
-            job.Printer = printerToPrint.Name;
-            job.Quantity = printerToPrint.DocumentTypes.Where(x => x.DocumentType == job.Document.Type).Select(x => x.Quantity).Single();
-            job.State = JobState.Printing;
-            job.UpdatedOn = DateTime.Now;
-            JobChangedEvent?.Invoke(job);
-
-            await _printerService.PrintDocumentAsync(printerToPrint, job.Document, job.Quantity, (r, e) =>
+            try
             {
-                if (r)
-                    _loggingService.WriteInformation($"Document {job.Document.TypeTitle} is printed on {printerToPrint.Name}");
-                else
-                {
-                    Debug.WriteLine($"Error in {nameof(JobsService.PrintDocument)}: {e.ToString()}");
-                    _loggingService.WriteInformation($"Printing document {job.Document.TypeTitle} on {printerToPrint.Name} is failed");
-                    _loggingService.WriteError(e.ToString());
-                }
+                var jobPrinters = GetPrintersAsync(job);
+                var printerToPrint = jobPrinters.FirstOrDefault(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0));
+                if (printerToPrint == null)
+                    return;
 
-                job.Error = e;
-                job.State = r ? JobState.Printed : JobState.Error;
+                _loggingService.WriteInformation($"Starting print document {job.Document.TypeTitle} on {printerToPrint.Name}");
+
+                _printingJobs.Add(printerToPrint, job);
+
+                job.Printer = printerToPrint.Name;
+                job.Quantity = printerToPrint.DocumentTypes
+                    .Where(x => x.DocumentType == job.Document.Type)
+                    .Select(x => x.Quantity).Single();
+                job.State = JobState.Printing;
                 job.UpdatedOn = DateTime.Now;
                 JobChangedEvent?.Invoke(job);
 
-                _printingJobs.Remove(printerToPrint);
-                if (!_printingJobs.Any())
-                    MovePrintedJobs();
-            });
+                await _printerService.PrintDocumentAsync(printerToPrint, job.Document, job.Quantity, (r, e) =>
+                {
+                    try
+                    {
+                        if (r)
+                        {
+                            _loggingService.WriteInformation($"Document {job.Document.TypeTitle} is printed on {printerToPrint.Name}");
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"Error in {nameof(JobsService.PrintDocument)}: {e.ToString()}");
+                            _loggingService.WriteInformation($"Printing document {job.Document.TypeTitle} on {printerToPrint.Name} is failed");
+                            _loggingService.WriteError(e.ToString());
+                        }
+
+                        job.Error = e;
+                        job.State = r ? JobState.Printed : JobState.Error;
+                        job.UpdatedOn = DateTime.Now;
+                        JobChangedEvent?.Invoke(job);
+
+                        _printingJobs.Remove(printerToPrint);
+                        if (!_printingJobs.Any())
+                            MovePrintedJobs();
+                    }
+                    catch (Exception exception)
+                    {
+                        _loggingService.WriteError($"Error complited printing document. {exception}");
+                    }
+                });
+            }
+            catch (Exception exception)
+            {
+                _loggingService.WriteError($"Error printing document. {exception}");
+            }
         }
 
         private IEnumerable<Printer> GetPrintersAsync(Job job)
@@ -241,80 +266,126 @@ namespace AutoPrintr.Service.Services
 
         private async void _doneJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var localDoneJobs = _doneJobs.ToList();
-            await _fileService.SaveObjectAsync(_doneJobsFileName, localDoneJobs);
+            try
+            {
+                var localDoneJobs = _doneJobs.ToList();
+                await _fileService.SaveObjectAsync(_doneJobsFileName, localDoneJobs);
+            }
+            catch (Exception exception)
+            {
+                _loggingService.WriteError($"Error DoneJobs collection changing. {exception}");
+            }
         }
 
         private async void _downloadedJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var localDownloadedJobs = _downloadedJobs.ToList();
-            await _fileService.SaveObjectAsync(_downloadedJobsFileName, localDownloadedJobs);
-
-            if (e.NewItems != null)
+            try
             {
-                foreach (Job newJob in e.NewItems)
-                    PrintDocument(newJob);
+                var localDownloadedJobs = _downloadedJobs.ToList();
+                await _fileService.SaveObjectAsync(_downloadedJobsFileName, localDownloadedJobs);
+
+                if (e.NewItems != null)
+                {
+                    foreach (Job newJob in e.NewItems)
+                        PrintDocument(newJob);
+                }
+            }
+            catch (Exception exception)
+            {
+                _loggingService.WriteError($"Error DownloadedJobs collection changing. {exception}");
             }
         }
 
         private async void _newJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var localNewJobs = _newJobs.ToList();
-            await _fileService.SaveObjectAsync(_newJobsFileName, localNewJobs);
-
-            if (e.NewItems != null)
+            try
             {
-                foreach (Job newJob in e.NewItems)
-                    DownloadDocument(newJob);
+                var localNewJobs = _newJobs.ToList();
+                await _fileService.SaveObjectAsync(_newJobsFileName, localNewJobs);
+
+                if (e.NewItems != null)
+                {
+                    foreach (Job newJob in e.NewItems)
+                        DownloadDocument(newJob);
+                }
+            }
+            catch (Exception exception)
+            {
+                _loggingService.WriteError($"Error NewJobs collection changing. {exception}");
             }
         }
 
-        // TODO: review calls w/o await
         private async void DownloadDocument(Job job)
         {
-            var jobPrinters = GetPrintersAsync(job);
-            var rotation = jobPrinters.Any(x => x.Rotation);
-            if (rotation)
-                job.Document.FileUri = new Uri($"{job.Document.FileUri}&orientation=portrait");
+            try
+            {
+                var jobPrinters = GetPrintersAsync(job);
+                var rotation = jobPrinters.Any(x => x.Rotation);
+                if (rotation)
+                    job.Document.FileUri = new Uri($"{job.Document.FileUri}&orientation=portrait");
 
-            _loggingService.WriteInformation($"Starting download document {job.Document.TypeTitle} from {job.Document.FileUri}");
+                _loggingService.WriteInformation($"Starting download document {job.Document.TypeTitle} from {job.Document.FileUri}");
 
-            _downloadingJobCount++;
-            job.State = JobState.Processing;
-            job.UpdatedOn = DateTime.Now;
-            JobChangedEvent?.Invoke(job);
+                _downloadingJobCount++;
+                job.State = JobState.Processing;
+                job.UpdatedOn = DateTime.Now;
+                JobChangedEvent?.Invoke(job);
 
-            var localFilePath = $"Documents/{Guid.NewGuid()}.pdf";
-            await _fileService.DownloadFileAsync(job.Document.FileUri,
-                localFilePath,
-                p =>
-                {
-                    job.DownloadProgress = p;
-                    job.State = JobState.Downloading;
-                    job.UpdatedOn = DateTime.Now;
-                    JobChangedEvent?.Invoke(job);
-                },
-                (r, e) =>
-                {
-                    if (r)
-                        _loggingService.WriteInformation($"Document {job.Document.TypeTitle} is downloaded to {localFilePath}");
-                    else
+                var localFilePath = $"Documents/{Guid.NewGuid()}.pdf";
+                await _fileService.DownloadFileAsync(
+                    job.Document.FileUri,
+                    localFilePath,
+                    p =>
                     {
-                        Debug.WriteLine($"Error in {nameof(JobsService.DownloadDocument)}: {e.ToString()}");
-                        _loggingService.WriteInformation($"Downloading document {job.Document.TypeTitle} is failed");
-                        _loggingService.WriteError(e.ToString());
-                    }
+                        try
+                        {
+                            job.DownloadProgress = p;
+                            job.State = JobState.Downloading;
+                            job.UpdatedOn = DateTime.Now;
+                            JobChangedEvent?.Invoke(job);
+                        }
+                        catch (Exception exception)
+                        {
+                            _loggingService.WriteError($"Error downloading progress changed action. {exception}");
+                        }
+                    },
+                    (r, e) =>
+                    {
+                        try
+                        {
+                            if (r)
+                            {
+                                _loggingService.WriteInformation(
+                                    $"Document {job.Document.TypeTitle} is downloaded to {localFilePath}");
+                            }
+                            else
+                            {
+                                Debug.WriteLine($"Error in {nameof(JobsService.DownloadDocument)}: {e.ToString()}");
+                                _loggingService.WriteInformation($"Downloading document {job.Document.TypeTitle} is failed");
+                                _loggingService.WriteError(e.ToString());
+                            }
 
-                    _downloadingJobCount--;
-                    job.Error = e;
-                    job.State = r ? JobState.Downloaded : JobState.Error;
-                    job.Document.LocalFilePath = r ? localFilePath : null;
-                    job.UpdatedOn = DateTime.Now;
-                    JobChangedEvent?.Invoke(job);
+                            // TODO: sync access to _downloadingJobCount !!!
+                            _downloadingJobCount--;
+                            job.Error = e;
+                            job.State = r ? JobState.Downloaded : JobState.Error;
+                            job.Document.LocalFilePath = r ? localFilePath : null;
+                            job.UpdatedOn = DateTime.Now;
+                            JobChangedEvent?.Invoke(job);
 
-                    if (_downloadingJobCount <= 0)
-                        MoveDownloadedJobs();
-                });
+                            if (_downloadingJobCount <= 0)
+                                MoveDownloadedJobs();
+                        }
+                        catch (Exception exception)
+                        {
+                            _loggingService.WriteError($"Error downloading complited action. {exception}");
+                        }
+                    });
+            }
+            catch (Exception e)
+            {
+                _loggingService.WriteError($"Error downloading document. {e}");
+            }
         }
 
         private void MoveDownloadedJobs()

@@ -67,8 +67,11 @@ namespace AutoPrintr.Helpers
         {
             try
             {
-                _cts.Cancel();
-                await _task;
+                _cts?.Cancel();
+
+                if (_task != null)
+                    await _task;
+
                 TryCall(service => service.Disconnect());
             }
             catch (Exception ex)

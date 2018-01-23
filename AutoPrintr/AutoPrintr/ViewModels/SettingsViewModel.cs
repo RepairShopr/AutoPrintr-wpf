@@ -244,7 +244,14 @@ namespace AutoPrintr.ViewModels
                 HideBusyControl();
             }
 
-            RaisePropertyChanged(nameof(AddToStartup));
+            try
+            {
+                RaisePropertyChanged(nameof(AddToStartup));
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
         }
 
         private async void OnInstallService(bool value)
@@ -265,10 +272,17 @@ namespace AutoPrintr.ViewModels
                 HideBusyControl();
             }
 
-            if (InstallService && Printers?.Any() != true)
-                InitializePrinters();
+            try
+            {
+                if (InstallService && Printers?.Any() != true)
+                    InitializePrinters();
 
-            RaisePropertyChanged(nameof(InstallService));
+                RaisePropertyChanged(nameof(InstallService));
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
         }
 
         private void OnRestartService()

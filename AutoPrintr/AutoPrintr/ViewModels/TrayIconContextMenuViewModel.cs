@@ -1,4 +1,5 @@
-﻿using AutoPrintr.Core.IServices;
+﻿using System;
+using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
 using AutoPrintr.Helpers;
 using GalaSoft.MvvmLight.Command;
@@ -88,10 +89,17 @@ namespace AutoPrintr.ViewModels
 
         private async void OnLogout()
         {
-            if (_settingsService.Settings.User != null)
-                await _settingsService.UpdateSettingsAsync(null);
+            try
+            {
+                if (_settingsService.Settings.User != null)
+                    await _settingsService.UpdateSettingsAsync(null);
 
-            MessengerInstance.Send<User>(null);
+                MessengerInstance.Send<User>(null);
+            }
+            catch (Exception e)
+            {
+                _loggerService?.WriteError($"Error logout. {e}");
+            }
         }
 
         private void OnRequestHelp()
