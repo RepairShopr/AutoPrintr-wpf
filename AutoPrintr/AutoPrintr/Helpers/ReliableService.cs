@@ -24,6 +24,12 @@ namespace AutoPrintr.Helpers
             _factory = newFactory ?? throw new ArgumentNullException(nameof(newFactory));
         }
 
+        protected void Connect(Action<T> subscribe)
+        {
+            _channel = _factory.CreateChannel();
+            subscribe(_channel);
+        }
+
         protected async Task PingByTimeout(Action<T> ping, Action<T> subscribe, CancellationToken token)
         {
             while (true)
@@ -34,8 +40,7 @@ namespace AutoPrintr.Helpers
                 {
                     if (_channel == null)
                     {
-                        _channel = _factory.CreateChannel();
-                        subscribe(_channel);
+                        Connect(subscribe);
                     }
 
                     ping(_channel);

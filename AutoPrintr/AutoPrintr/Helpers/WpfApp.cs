@@ -50,7 +50,7 @@ namespace AutoPrintr.Helpers
             if (SettingsService.Settings.User == null)
                 NavigationService.NavigateTo(ViewType.Login.ToString());
 
-            ConnectWindowsServiceClient();
+            await ConnectWindowsServiceClient();
 
             //CheckForUpdates();
         }
@@ -216,10 +216,13 @@ namespace AutoPrintr.Helpers
         #endregion
 
         #region Windows Service Client
-        private async void ConnectWindowsServiceClient()
+        private async Task ConnectWindowsServiceClient()
         {
             var settingsViewModel = SimpleIoc.Default.GetInstance<SettingsViewModel>();
-            await WindowsServiceClient.ConnectAsync(settingsViewModel.ShowConnectionFailedMessage);
+            if (!await WindowsServiceClient.ConnectAsync(settingsViewModel.ShowConnectionFailedMessage))
+            {
+                await SettingsService.InstallService(true);
+            }
         }
         #endregion
 

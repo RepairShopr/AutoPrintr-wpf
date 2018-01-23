@@ -35,7 +35,7 @@ namespace AutoPrintr.Helpers
         #endregion
 
         #region Methods
-        public async Task ConnectAsync(Action connectionFailed)
+        public async Task<bool> ConnectAsync(Action connectionFailed)
         {
             if (_cts != null && _task != null)
             {
@@ -43,8 +43,24 @@ namespace AutoPrintr.Helpers
             }
 
             _connectionFailed = connectionFailed;
+
+            bool result;
+            try
+            {
+                Connect(service => service.Connect());
+                result = true;
+            }
+            catch (Exception)
+            {
+                result = false;
+            }
+
             _cts = new CancellationTokenSource();
-            _task = Task.Run(Ping, _cts.Token);
+            _task = Task.Run(
+                async () => await PingByTimeout(service => service.Connect(), service => service.Ping(), _cts.Token), 
+                _cts.Token);
+
+            return result;
         }
 
         public async Task DisconnectAsync()
@@ -136,11 +152,6 @@ namespace AutoPrintr.Helpers
             {
                 _connectionFailed?.Invoke();
             });
-        }
-
-        private Task Ping()
-        {
-            return PingByTimeout(service => service.Connect(), service => service.Ping(), _cts.Token);
         }
         #endregion
     }
