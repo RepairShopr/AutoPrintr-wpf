@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AutoPrintr.Service.Services
@@ -36,6 +37,8 @@ namespace AutoPrintr.Service.Services
         private ObservableCollection<Job> _newJobs;
         private ObservableCollection<Job> _downloadedJobs;
         private ObservableCollection<Job> _doneJobs;
+        private readonly object _jobCollectionGuard = new object();
+        private readonly SemaphoreSlim _fileGuard = new SemaphoreSlim(1);
 
         public bool IsRunning { get; private set; }
 
@@ -67,9 +70,12 @@ namespace AutoPrintr.Service.Services
         #region Jobs Methods
         public IEnumerable<Job> GetJobs()
         {
-            return _newJobs
-                .Union(_downloadedJobs)
-                .Union(_doneJobs);
+            lock (_jobCollectionGuard)
+            {
+                return _newJobs
+                    .Union(_downloadedJobs)
+                    .Union(_doneJobs);
+            }
         }
 
         public void Print(Job job)
@@ -97,12 +103,15 @@ namespace AutoPrintr.Service.Services
                 if (!string.IsNullOrEmpty(localJob.Document.LocalFilePath))
                     _fileService.DeleteFile(localJob.Document.LocalFilePath);
 
-                if (_doneJobs.Contains(localJob))
-                    _doneJobs.Remove(localJob);
-                else if (_downloadedJobs.Contains(localJob))
-                    _downloadedJobs.Remove(localJob);
-                else if (_newJobs.Contains(localJob))
-                    _newJobs.Remove(localJob);
+                lock (_jobCollectionGuard)
+                {
+                    if (_doneJobs.Contains(localJob))
+                        _doneJobs.Remove(localJob);
+                    else if (_downloadedJobs.Contains(localJob))
+                        _downloadedJobs.Remove(localJob);
+                    else if (_newJobs.Contains(localJob))
+                        _newJobs.Remove(localJob);
+                }
 
                 _loggingService.WriteInformation($"Job {localJob.Document.TypeTitle} is removed");
             }
@@ -222,16 +231,19 @@ namespace AutoPrintr.Service.Services
 
         private void MovePrintedJobs()
         {
-            var jobs = _downloadedJobs.Where(x => x.State == JobState.Printed || x.State == JobState.Error).ToList();
-            foreach (var job in jobs)
+            lock (_jobCollectionGuard)
             {
-                _downloadedJobs.Remove(job);
-                _doneJobs.Add(job);
-            }
+                var jobs = _downloadedJobs.Where(x => x.State == JobState.Printed || x.State == JobState.Error).ToList();
+                foreach (var job in jobs)
+                {
+                    _downloadedJobs.Remove(job);
+                    _doneJobs.Add(job);
+                }
 
-            var newPrintingJobs = _downloadedJobs.Where(x => x.State == JobState.Downloaded).ToList();
-            foreach (var newJob in newPrintingJobs)
-                PrintDocument(newJob);
+                var newPrintingJobs = _downloadedJobs.Where(x => x.State == JobState.Downloaded).ToList();
+                foreach (var newJob in newPrintingJobs)
+                    PrintDocument(newJob);
+            }
         }
         #endregion
 
@@ -257,19 +269,34 @@ namespace AutoPrintr.Service.Services
             if (!IsRunning)
                 return;
 
-            foreach (var newJob in _newJobs)
+            var localNewJobs = _newJobs.ToList();
+            foreach (var newJob in localNewJobs)
                 DownloadDocument(newJob);
 
-            foreach (var newJob in _downloadedJobs)
-                PrintDocument(newJob);
+            var localDownloadedJobs = _downloadedJobs.ToList();
+            foreach (var downloadedJob in localDownloadedJobs)
+                PrintDocument(downloadedJob);
         }
 
         private async void _doneJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             try
             {
-                var localDoneJobs = _doneJobs.ToList();
-                await _fileService.SaveObjectAsync(_doneJobsFileName, localDoneJobs);
+                List<Job> localDoneJobs;
+                lock (_jobCollectionGuard)
+                {
+                    localDoneJobs = _doneJobs.ToList();
+                }
+
+                await _fileGuard.WaitAsync();
+                try
+                {
+                    await _fileService.SaveObjectAsync(_doneJobsFileName, localDoneJobs);
+                }
+                finally
+                {
+                    _fileGuard.Release();
+                }
             }
             catch (Exception exception)
             {
@@ -281,8 +308,21 @@ namespace AutoPrintr.Service.Services
         {
             try
             {
-                var localDownloadedJobs = _downloadedJobs.ToList();
-                await _fileService.SaveObjectAsync(_downloadedJobsFileName, localDownloadedJobs);
+                List<Job> localDownloadedJobs;
+                lock (_jobCollectionGuard)
+                {
+                    localDownloadedJobs = _downloadedJobs.ToList();
+                }
+
+                await _fileGuard.WaitAsync();
+                try
+                {
+                    await _fileService.SaveObjectAsync(_downloadedJobsFileName, localDownloadedJobs);
+                }
+                finally
+                {
+                    _fileGuard.Release();
+                }
 
                 if (e.NewItems != null)
                 {
@@ -300,8 +340,21 @@ namespace AutoPrintr.Service.Services
         {
             try
             {
-                var localNewJobs = _newJobs.ToList();
-                await _fileService.SaveObjectAsync(_newJobsFileName, localNewJobs);
+                List<Job> localNewJobs;
+                lock (_jobCollectionGuard)
+                {
+                    localNewJobs = _newJobs.ToList();
+                }
+
+                await _fileGuard.WaitAsync();
+                try
+                {
+                    await _fileService.SaveObjectAsync(_newJobsFileName, localNewJobs);
+                }
+                finally
+                {
+                    _fileGuard.Release();
+                }
 
                 if (e.NewItems != null)
                 {
@@ -326,7 +379,7 @@ namespace AutoPrintr.Service.Services
 
                 _loggingService.WriteInformation($"Starting download document {job.Document.TypeTitle} from {job.Document.FileUri}");
 
-                _downloadingJobCount++;
+                Interlocked.Increment(ref _downloadingJobCount);
                 job.State = JobState.Processing;
                 job.UpdatedOn = DateTime.Now;
                 JobChangedEvent?.Invoke(job);
@@ -365,16 +418,16 @@ namespace AutoPrintr.Service.Services
                                 _loggingService.WriteError(e.ToString());
                             }
 
-                            // TODO: sync access to _downloadingJobCount !!!
-                            _downloadingJobCount--;
                             job.Error = e;
                             job.State = r ? JobState.Downloaded : JobState.Error;
                             job.Document.LocalFilePath = r ? localFilePath : null;
                             job.UpdatedOn = DateTime.Now;
                             JobChangedEvent?.Invoke(job);
 
-                            if (_downloadingJobCount <= 0)
+                            if (Interlocked.Decrement(ref _downloadingJobCount) <= 0)
+                            {
                                 MoveDownloadedJobs();
+                            }
                         }
                         catch (Exception exception)
                         {
@@ -390,15 +443,18 @@ namespace AutoPrintr.Service.Services
 
         private void MoveDownloadedJobs()
         {
-            var jobs = _newJobs.Where(x => x.State == JobState.Downloaded || x.State == JobState.Error).ToList();
-            foreach (var job in jobs)
+            lock (_jobCollectionGuard)
             {
-                _newJobs.Remove(job);
+                var jobs = _newJobs.Where(x => x.State == JobState.Downloaded || x.State == JobState.Error).ToList();
+                foreach (var job in jobs)
+                {
+                    _newJobs.Remove(job);
 
-                if (job.State == JobState.Downloaded)
-                    _downloadedJobs.Add(job);
-                else if (job.State == JobState.Error)
-                    _doneJobs.Add(job);
+                    if (job.State == JobState.Downloaded)
+                        _downloadedJobs.Add(job);
+                    else if (job.State == JobState.Error)
+                        _doneJobs.Add(job);
+                }
             }
         }
         #endregion
@@ -486,7 +542,11 @@ namespace AutoPrintr.Service.Services
                 if (!jobPrinters.Any())
                     return;
 
-                _newJobs.Add(newJob);
+                lock (_jobCollectionGuard)
+                {
+                    _newJobs.Add(newJob);
+                }
+
                 JobChangedEvent?.Invoke(newJob);
 
                 _loggingService.WriteInformation($"New job {newJob.Document.TypeTitle} is added");
