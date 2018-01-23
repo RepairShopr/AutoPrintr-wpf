@@ -198,11 +198,18 @@ namespace AutoPrintr.Core.Services
 
         public async Task<T> ReadObjectAsync<T>(string fileName)
         {
-            var str = await ReadStringAsync(fileName);
-            if (String.IsNullOrEmpty(str))
-                return default(T);
+            try
+            {
+                var str = await ReadStringAsync(fileName);
+                if (String.IsNullOrEmpty(str))
+                    return default(T);
 
-            return JsonConvert.DeserializeObject<T>(str);
+                return JsonConvert.DeserializeObject<T>(str);
+            }
+            catch (Exception)
+            {
+                return default(T);
+            }
         }
 
         public async Task SaveStringAsync(string fileName, string content)
