@@ -87,7 +87,7 @@ namespace AutoPrintr.Helpers
             {
                 return TryCall(service => service.GetPrinters());
             }
-            catch (CommunicationException ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
                 _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
@@ -101,7 +101,7 @@ namespace AutoPrintr.Helpers
             {
                 return await TryCall(service => service.GetJobs());
             }
-            catch (CommunicationException ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
                 _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
@@ -117,7 +117,7 @@ namespace AutoPrintr.Helpers
                     service.Print(job);
                     return true;
                 }
-                catch (CommunicationException ex)
+                catch (Exception ex)
                 {
                     Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
                     _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
@@ -133,7 +133,7 @@ namespace AutoPrintr.Helpers
                     service.DeleteJobs(jobs);
                     return true;
                 }
-                catch (CommunicationException ex)
+                catch (Exception ex)
                 {
                     Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
                     _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");

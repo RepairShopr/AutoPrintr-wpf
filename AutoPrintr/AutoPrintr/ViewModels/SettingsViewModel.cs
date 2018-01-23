@@ -156,9 +156,7 @@ namespace AutoPrintr.ViewModels
                 Printers = await _windowsServiceClient.GetPrintersAsync();
                 if (Printers == null)
                 {
-                    ShowMessageControl(
-                        "Printers cannot be loaded, the AutoPrintr service is not available. Please run the service and try again");
-                    HideBusyControl();
+                    ShowMessageControl("Printers cannot be loaded, the AutoPrintr service is not available. Please run the service and try again");
                     return;
                 }
 

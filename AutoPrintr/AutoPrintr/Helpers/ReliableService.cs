@@ -32,25 +32,31 @@ namespace AutoPrintr.Helpers
 
         protected async Task PingByTimeout(Action<T> ping, Action<T> subscribe, CancellationToken token)
         {
-            while (true)
+            try
             {
-                token.ThrowIfCancellationRequested();
-
-                try
+                while (true)
                 {
-                    if (_channel == null)
+                    token.ThrowIfCancellationRequested();
+
+                    try
                     {
-                        Connect(subscribe);
+                        if (_channel == null)
+                        {
+                            Connect(subscribe);
+                        }
+
+                        ping(_channel);
+                    }
+                    catch (Exception)
+                    {
+                        _channel = null;
                     }
 
-                    ping(_channel);
+                    await Task.Delay(_timeoutPing, token);
                 }
-                catch (Exception e)
-                {
-                    _channel = null;
-                }
-
-                await Task.Delay(_timeoutPing, token);
+            }
+            catch (TaskCanceledException)
+            {
             }
         }
 
