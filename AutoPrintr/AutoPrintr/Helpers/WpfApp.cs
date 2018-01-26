@@ -6,6 +6,7 @@ using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Views;
 using System.Deployment.Application;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -22,6 +23,8 @@ namespace AutoPrintr.Helpers
         private ISettingsService SettingsService => SimpleIoc.Default.GetInstance<ISettingsService>();
         private INavigationService NavigationService => SimpleIoc.Default.GetInstance<INavigationService>();
         private IWindowsServiceClient WindowsServiceClient => SimpleIoc.Default.GetInstance<IWindowsServiceClient>();
+
+        public bool FirstStart { get; private set; } = true;
         #endregion
 
         #region Constructors
@@ -38,17 +41,34 @@ namespace AutoPrintr.Helpers
         #region Methods
         public override async Task Startup(string[] args)
         {
-            var processName = Process.GetCurrentProcess().ProcessName;
-            if (Process.GetProcessesByName(processName).LongLength > 1)
-            {
-                Process.GetCurrentProcess().Kill();
-                return;
-            }
-
             await base.Startup(args);
 
+            var openSettings = args.Contains("-o");
+
+            var processName = Process.GetCurrentProcess().ProcessName;
+            var sameProcesses = Process.GetProcessesByName(processName);
+            if (sameProcesses.LongLength > 1)
+            {
+                FirstStart = false;
+                openSettings = true;
+                foreach (var process in sameProcesses)
+                {
+                    if (process.Id == 0 || 
+                        process.Id == Process.GetCurrentProcess().Id)
+                        continue;
+
+                    process.Kill();
+                }
+            }
+
             if (SettingsService.Settings.User == null)
+            {
                 NavigationService.NavigateTo(ViewType.Login.ToString());
+            }
+            else if (openSettings)
+            {
+                NavigationService.NavigateTo(ViewType.Settings.ToString());
+            }
 
             await ConnectWindowsServiceClient();
 

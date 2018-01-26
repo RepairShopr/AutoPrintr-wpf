@@ -8,6 +8,7 @@ namespace AutoPrintr.Views
 {
     internal partial class TrayIconContextMenuView : UserControl
     {
+        private static readonly string AppName = Assembly.GetEntryAssembly().GetName().Name;
         private static System.Windows.Forms.NotifyIcon _notifier;
 
         public TrayIconContextMenuView()
@@ -25,21 +26,24 @@ namespace AutoPrintr.Views
             _notifier = null;
         }
 
+        public void ShowBalloonTip()
+        {
+            _notifier.ShowBalloonTip(500, AppName, $"The {AppName} service has been started", System.Windows.Forms.ToolTipIcon.Info);
+        }
+
         private void CreateTrayIcon()
         {
             if (_notifier != null)
                 throw new InvalidOperationException();
 
-            string appName = Assembly.GetEntryAssembly().GetName().Name;
             _notifier = new System.Windows.Forms.NotifyIcon()
             {
-                Text = appName,
+                Text = AppName,
                 Icon = AutoPrintr.Resources.Printer_32,
                 Visible = true
             };
-            _notifier.MouseClick += OnMouseClick;
 
-            _notifier.ShowBalloonTip(500, appName, $"The {appName} service has been started", System.Windows.Forms.ToolTipIcon.Info);
+            _notifier.MouseClick += OnMouseClick;
         }
 
         private void OnMouseClick(object sender, System.Windows.Forms.MouseEventArgs mouseEventArgs)

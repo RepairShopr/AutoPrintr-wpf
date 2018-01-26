@@ -46,7 +46,11 @@ namespace AutoPrintr
             }
 
             await WpfApp.Instance.Startup(e.Args);
-            new TrayIconContextMenuView();
+            var trayIcon = new TrayIconContextMenuView();
+            if (WpfApp.Instance.FirstStart)
+            {
+                trayIcon.ShowBalloonTip();
+            }
         }
 
         protected override async void OnExit(ExitEventArgs e)
