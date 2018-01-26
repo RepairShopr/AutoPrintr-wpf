@@ -15,7 +15,8 @@ namespace AutoPrintr.Views
             InitializeComponent();
             CreateTrayIcon();
 
-            ContextMenu.DataContext = WpfApp.Instance.GetDataContext(ViewType.ContextMenu);
+            if (ContextMenu != null) 
+                ContextMenu.DataContext = WpfApp.Instance.GetDataContext(ViewType.ContextMenu);
         }
 
         public static void Close()
@@ -36,19 +37,42 @@ namespace AutoPrintr.Views
                 Icon = AutoPrintr.Resources.Printer_32,
                 Visible = true
             };
-            _notifier.Click += _notifier_Click;
+            _notifier.MouseClick += OnMouseClick;
 
             _notifier.ShowBalloonTip(500, appName, $"The {appName} service has been started", System.Windows.Forms.ToolTipIcon.Info);
         }
 
-        private void _notifier_Click(object sender, EventArgs e)
+        private void OnMouseClick(object sender, System.Windows.Forms.MouseEventArgs mouseEventArgs)
         {
-            ContextMenu.IsOpen = true;
+            try
+            {
+                if (ContextMenu == null) 
+                    return;
+
+                if (mouseEventArgs.Button == System.Windows.Forms.MouseButtons.Left)
+                {
+                    foreach (System.Windows.Controls.MenuItem item in ContextMenu.Items)
+                    {
+                        if (item.Name == "Settings")
+                        {
+                            item.Command.Execute(null);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    ContextMenu.IsOpen = true;
+                }
+            }
+            catch
+            {
+            }
         }
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            App.Current.Shutdown();
+            Application.Current.Shutdown();
         }
     }
 }
