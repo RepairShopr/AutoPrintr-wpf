@@ -1,4 +1,5 @@
-﻿using AutoPrintr.Core.IServices;
+﻿using System;
+using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Models;
 using AutoPrintr.Helpers;
 using GalaSoft.MvvmLight.Command;
@@ -13,6 +14,7 @@ namespace AutoPrintr.ViewModels
         #region Properties
         private readonly ISettingsService _settingsService;
         private readonly IUserService _userService;
+        private readonly ILoggerService _loggingService;
 
         public override ViewType Type => ViewType.Login;
 
@@ -36,11 +38,13 @@ namespace AutoPrintr.ViewModels
         #region Constructors
         public LoginViewModel(INavigationService navigationService,
             ISettingsService settingsService,
-            IUserService userService)
+            IUserService userService,
+            ILoggerService loggingService)
             : base(navigationService)
         {
             _settingsService = settingsService;
             _userService = userService;
+            _loggingService = loggingService;
 
             Login = new Login();
             LoginCommand = new RelayCommand(OnLogin);
@@ -50,29 +54,37 @@ namespace AutoPrintr.ViewModels
         #region Methods
         private async void OnLogin()
         {
-            if (!Login.ValidateProperties())
+            try
             {
-                ShowMessageControl(Login.GetAllErrors());
-                return;
-            }
+                if (!Login.ValidateProperties())
+                {
+                    ShowMessageControl(Login.GetAllErrors());
+                    return;
+                }
 
-            ShowBusyControl("Authenticating");
+                ShowBusyControl("Authenticating");
 
-            var user = await _userService.LoginAsync(Login);
-            if (user == null)
-            {
+                var user = await _userService.LoginAsync(Login);
+                if (user == null)
+                {
+                    HideBusyControl();
+                    ShowMessageControl("Authentication failed. Incorrect username or password");
+                    return;
+                }
+
+                await GetAndSaveChannelAsync(user);
+                await SaveDefaultLocationAsync(user);
+
                 HideBusyControl();
-                ShowMessageControl("Authentication failed. Incorrect username or password");
-                return;
+
+                MessengerInstance.Send(user);
+                NavigateTo(ViewType.Settings);
             }
-
-            await GetAndSaveChannelAsync(user);
-            await SaveDefaultLocationAsync(user);
-
-            HideBusyControl();
-
-            MessengerInstance.Send(user);
-            NavigateTo(ViewType.Settings);
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+                HideBusyControl();
+            }
         }
 
         private async Task GetAndSaveChannelAsync(User user)

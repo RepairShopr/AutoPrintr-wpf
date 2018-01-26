@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AutoPrintr.Service.Services
@@ -36,6 +37,8 @@ namespace AutoPrintr.Service.Services
         private ObservableCollection<Job> _newJobs;
         private ObservableCollection<Job> _downloadedJobs;
         private ObservableCollection<Job> _doneJobs;
+        private readonly object _jobCollectionGuard = new object();
+        private readonly SemaphoreSlim _fileGuard = new SemaphoreSlim(1);
 
         public bool IsRunning { get; private set; }
 
@@ -67,9 +70,12 @@ namespace AutoPrintr.Service.Services
         #region Jobs Methods
         public IEnumerable<Job> GetJobs()
         {
-            return _newJobs
-                .Union(_downloadedJobs)
-                .Union(_doneJobs);
+            lock (_jobCollectionGuard)
+            {
+                return _newJobs
+                    .Union(_downloadedJobs)
+                    .Union(_doneJobs);
+            }
         }
 
         public void Print(Job job)
@@ -81,7 +87,7 @@ namespace AutoPrintr.Service.Services
             PrintDocument(localJob, true);
         }
 
-        public async void DeleteJobs(IEnumerable<Job> jobs)
+        public void DeleteJobs(IEnumerable<Job> jobs)
         {
             if (jobs == null)
                 return;
@@ -95,14 +101,17 @@ namespace AutoPrintr.Service.Services
                 _loggingService.WriteInformation($"Starting remove job {localJob.Document.TypeTitle}");
 
                 if (!string.IsNullOrEmpty(localJob.Document.LocalFilePath))
-                    await _fileService.DeleteFileAsync(localJob.Document.LocalFilePath);
+                    _fileService.DeleteFile(localJob.Document.LocalFilePath);
 
-                if (_doneJobs.Contains(localJob))
-                    _doneJobs.Remove(localJob);
-                else if (_downloadedJobs.Contains(localJob))
-                    _downloadedJobs.Remove(localJob);
-                else if (_newJobs.Contains(localJob))
-                    _newJobs.Remove(localJob);
+                lock (_jobCollectionGuard)
+                {
+                    if (_doneJobs.Contains(localJob))
+                        _doneJobs.Remove(localJob);
+                    else if (_downloadedJobs.Contains(localJob))
+                        _downloadedJobs.Remove(localJob);
+                    else if (_newJobs.Contains(localJob))
+                        _newJobs.Remove(localJob);
+                }
 
                 _loggingService.WriteInformation($"Job {localJob.Document.TypeTitle} is removed");
             }
@@ -139,56 +148,81 @@ namespace AutoPrintr.Service.Services
 
         private async void _settingsService_ChannelChangedEvent(Core.Models.Channel newChannel)
         {
-            if (!IsRunning)
-                return;
+            try
+            {
+                if (!IsRunning)
+                    return;
 
-            await RunPusherAsync();
+                await RunPusherAsync();
+            }
+            catch (Exception e)
+            {
+                _loggingService.WriteError($"Error handling changed channel. {e}");
+            }
         }
         #endregion
 
         #region Printer Methods
         private async void PrintDocument(Job job, bool manual = false)
         {
-            var jobPrinters = await GetPrintersAsync(job);
-            var printerToPrint = jobPrinters.FirstOrDefault(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0));
-            if (printerToPrint == null)
-                return;
-
-            _loggingService.WriteInformation($"Starting print document {job.Document.TypeTitle} on {printerToPrint.Name}");
-
-            _printingJobs.Add(printerToPrint, job);
-
-            job.Printer = printerToPrint.Name;
-            job.Quantity = printerToPrint.DocumentTypes.Where(x => x.DocumentType == job.Document.Type).Select(x => x.Quantity).Single();
-            job.State = JobState.Printing;
-            job.UpdatedOn = DateTime.Now;
-            JobChangedEvent?.Invoke(job);
-
-            await _printerService.PrintDocumentAsync(printerToPrint, job.Document, job.Quantity, (r, e) =>
+            try
             {
-                if (r)
-                    _loggingService.WriteInformation($"Document {job.Document.TypeTitle} is printed on {printerToPrint.Name}");
-                else
-                {
-                    Debug.WriteLine($"Error in {nameof(JobsService.PrintDocument)}: {e.ToString()}");
-                    _loggingService.WriteInformation($"Printing document {job.Document.TypeTitle} on {printerToPrint.Name} is failed");
-                    _loggingService.WriteError(e.ToString());
-                }
+                var jobPrinters = GetPrintersAsync(job);
+                var printerToPrint = jobPrinters.FirstOrDefault(x => !_printingJobs.Keys.Any(p => string.Compare(x.Name, p.Name) == 0));
+                if (printerToPrint == null)
+                    return;
 
-                job.Error = e;
-                job.State = r ? JobState.Printed : JobState.Error;
+                _loggingService.WriteInformation($"Starting print document {job.Document.TypeTitle} on {printerToPrint.Name}");
+
+                _printingJobs.Add(printerToPrint, job);
+
+                job.Printer = printerToPrint.Name;
+                job.Quantity = printerToPrint.DocumentTypes
+                    .Where(x => x.DocumentType == job.Document.Type)
+                    .Select(x => x.Quantity).Single();
+                job.State = JobState.Printing;
                 job.UpdatedOn = DateTime.Now;
                 JobChangedEvent?.Invoke(job);
 
-                _printingJobs.Remove(printerToPrint);
-                if (!_printingJobs.Any())
-                    MovePrintedJobs();
-            });
+                await _printerService.PrintDocumentAsync(printerToPrint, job.Document, job.Quantity, (r, e) =>
+                {
+                    try
+                    {
+                        if (r)
+                        {
+                            _loggingService.WriteInformation($"Document {job.Document.TypeTitle} is printed on {printerToPrint.Name}");
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"Error in {nameof(JobsService.PrintDocument)}: {e.ToString()}");
+                            _loggingService.WriteInformation($"Printing document {job.Document.TypeTitle} on {printerToPrint.Name} is failed");
+                            _loggingService.WriteError(e.ToString());
+                        }
+
+                        job.Error = e;
+                        job.State = r ? JobState.Printed : JobState.Error;
+                        job.UpdatedOn = DateTime.Now;
+                        JobChangedEvent?.Invoke(job);
+
+                        _printingJobs.Remove(printerToPrint);
+                        if (!_printingJobs.Any())
+                            MovePrintedJobs();
+                    }
+                    catch (Exception exception)
+                    {
+                        _loggingService.WriteError($"Error complited printing document. {exception}");
+                    }
+                });
+            }
+            catch (Exception exception)
+            {
+                _loggingService.WriteError($"Error printing document. {exception}");
+            }
         }
 
-        private async Task<IEnumerable<Printer>> GetPrintersAsync(Job job)
+        private IEnumerable<Printer> GetPrintersAsync(Job job)
         {
-            var installedPrinters = await _printerService.GetPrintersAsync();
+            var installedPrinters = _printerService.GetPrinters();
             return installedPrinters
                 .Where(x => job.Document.Register.HasValue ? job.Document.Register == x.Register : true)
                 .Where(x => x.DocumentTypes.Any(d => d.DocumentType == job.Document.Type && d.Enabled && (job.Document.AutoPrint ? d.AutoPrint : true)))
@@ -197,16 +231,19 @@ namespace AutoPrintr.Service.Services
 
         private void MovePrintedJobs()
         {
-            var jobs = _downloadedJobs.Where(x => x.State == JobState.Printed || x.State == JobState.Error).ToList();
-            foreach (var job in jobs)
+            lock (_jobCollectionGuard)
             {
-                _downloadedJobs.Remove(job);
-                _doneJobs.Add(job);
-            }
+                var jobs = _downloadedJobs.Where(x => x.State == JobState.Printed || x.State == JobState.Error).ToList();
+                foreach (var job in jobs)
+                {
+                    _downloadedJobs.Remove(job);
+                    _doneJobs.Add(job);
+                }
 
-            var newPrintingJobs = _downloadedJobs.Where(x => x.State == JobState.Downloaded).ToList();
-            foreach (var newJob in newPrintingJobs)
-                PrintDocument(newJob);
+                var newPrintingJobs = _downloadedJobs.Where(x => x.State == JobState.Downloaded).ToList();
+                foreach (var newJob in newPrintingJobs)
+                    PrintDocument(newJob);
+            }
         }
         #endregion
 
@@ -215,19 +252,16 @@ namespace AutoPrintr.Service.Services
         {
             _loggingService.WriteInformation($"Starting read jobs");
 
-            _newJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_newJobsFileName);
-            if (_newJobs == null)
-                _newJobs = new ObservableCollection<Job>();
+            _newJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_newJobsFileName) 
+                       ?? new ObservableCollection<Job>();
             _newJobs.CollectionChanged += _newJobs_CollectionChanged;
 
-            _downloadedJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_downloadedJobsFileName);
-            if (_downloadedJobs == null)
-                _downloadedJobs = new ObservableCollection<Job>();
+            _downloadedJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_downloadedJobsFileName) 
+                              ?? new ObservableCollection<Job>();
             _downloadedJobs.CollectionChanged += _downloadedJobs_CollectionChanged;
 
-            _doneJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_doneJobsFileName);
-            if (_doneJobs == null)
-                _doneJobs = new ObservableCollection<Job>();
+            _doneJobs = await _fileService.ReadObjectAsync<ObservableCollection<Job>>(_doneJobsFileName) 
+                        ?? new ObservableCollection<Job>();
             _doneJobs.CollectionChanged += _doneJobs_CollectionChanged;
 
             _loggingService.WriteInformation($"Jobs are read");
@@ -235,101 +269,192 @@ namespace AutoPrintr.Service.Services
             if (!IsRunning)
                 return;
 
-            foreach (var newJob in _newJobs)
+            var localNewJobs = _newJobs.ToList();
+            foreach (var newJob in localNewJobs)
                 DownloadDocument(newJob);
 
-            foreach (var newJob in _downloadedJobs)
-                PrintDocument(newJob);
+            var localDownloadedJobs = _downloadedJobs.ToList();
+            foreach (var downloadedJob in localDownloadedJobs)
+                PrintDocument(downloadedJob);
         }
 
         private async void _doneJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var localDoneJobs = _doneJobs.ToList();
-            await _fileService.SaveObjectAsync(_doneJobsFileName, localDoneJobs);
+            try
+            {
+                List<Job> localDoneJobs;
+                lock (_jobCollectionGuard)
+                {
+                    localDoneJobs = _doneJobs.ToList();
+                }
+
+                await _fileGuard.WaitAsync();
+                try
+                {
+                    await _fileService.SaveObjectAsync(_doneJobsFileName, localDoneJobs);
+                }
+                finally
+                {
+                    _fileGuard.Release();
+                }
+            }
+            catch (Exception exception)
+            {
+                _loggingService.WriteError($"Error DoneJobs collection changing. {exception}");
+            }
         }
 
         private async void _downloadedJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var localDownloadedJobs = _downloadedJobs.ToList();
-            await _fileService.SaveObjectAsync(_downloadedJobsFileName, localDownloadedJobs);
-
-            if (e.NewItems != null)
+            try
             {
-                foreach (Job newJob in e.NewItems)
-                    PrintDocument(newJob);
+                List<Job> localDownloadedJobs;
+                lock (_jobCollectionGuard)
+                {
+                    localDownloadedJobs = _downloadedJobs.ToList();
+                }
+
+                await _fileGuard.WaitAsync();
+                try
+                {
+                    await _fileService.SaveObjectAsync(_downloadedJobsFileName, localDownloadedJobs);
+                }
+                finally
+                {
+                    _fileGuard.Release();
+                }
+
+                if (e.NewItems != null)
+                {
+                    foreach (Job newJob in e.NewItems)
+                        PrintDocument(newJob);
+                }
+            }
+            catch (Exception exception)
+            {
+                _loggingService.WriteError($"Error DownloadedJobs collection changing. {exception}");
             }
         }
 
         private async void _newJobs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var localNewJobs = _newJobs.ToList();
-            await _fileService.SaveObjectAsync(_newJobsFileName, localNewJobs);
-
-            if (e.NewItems != null)
+            try
             {
-                foreach (Job newJob in e.NewItems)
-                    DownloadDocument(newJob);
+                List<Job> localNewJobs;
+                lock (_jobCollectionGuard)
+                {
+                    localNewJobs = _newJobs.ToList();
+                }
+
+                await _fileGuard.WaitAsync();
+                try
+                {
+                    await _fileService.SaveObjectAsync(_newJobsFileName, localNewJobs);
+                }
+                finally
+                {
+                    _fileGuard.Release();
+                }
+
+                if (e.NewItems != null)
+                {
+                    foreach (Job newJob in e.NewItems)
+                        DownloadDocument(newJob);
+                }
+            }
+            catch (Exception exception)
+            {
+                _loggingService.WriteError($"Error NewJobs collection changing. {exception}");
             }
         }
 
         private async void DownloadDocument(Job job)
         {
-            var jobPrinters = await GetPrintersAsync(job);
-            var rotation = jobPrinters.Any(x => x.Rotation);
-            if (rotation)
-                job.Document.FileUri = new Uri($"{job.Document.FileUri}&orientation=portrait");
+            try
+            {
+                var jobPrinters = GetPrintersAsync(job);
+                var rotation = jobPrinters.Any(x => x.Rotation);
+                if (rotation)
+                    job.Document.FileUri = new Uri($"{job.Document.FileUri}&orientation=portrait");
 
-            _loggingService.WriteInformation($"Starting download document {job.Document.TypeTitle} from {job.Document.FileUri}");
+                _loggingService.WriteInformation($"Starting download document {job.Document.TypeTitle} from {job.Document.FileUri}");
 
-            _downloadingJobCount++;
-            job.State = JobState.Processing;
-            job.UpdatedOn = DateTime.Now;
-            JobChangedEvent?.Invoke(job);
+                Interlocked.Increment(ref _downloadingJobCount);
+                job.State = JobState.Processing;
+                job.UpdatedOn = DateTime.Now;
+                JobChangedEvent?.Invoke(job);
 
-            var localFilePath = $"Documents/{Guid.NewGuid()}.pdf";
-            await _fileService.DownloadFileAsync(job.Document.FileUri,
-                localFilePath,
-                p =>
-                {
-                    job.DownloadProgress = p;
-                    job.State = JobState.Downloading;
-                    job.UpdatedOn = DateTime.Now;
-                    JobChangedEvent?.Invoke(job);
-                },
-                (r, e) =>
-                {
-                    if (r)
-                        _loggingService.WriteInformation($"Document {job.Document.TypeTitle} is downloaded to {localFilePath}");
-                    else
+                var localFilePath = $"Documents/{Guid.NewGuid()}.pdf";
+                await _fileService.DownloadFileAsync(
+                    job.Document.FileUri,
+                    localFilePath,
+                    p =>
                     {
-                        Debug.WriteLine($"Error in {nameof(JobsService.DownloadDocument)}: {e.ToString()}");
-                        _loggingService.WriteInformation($"Downloading document {job.Document.TypeTitle} is failed");
-                        _loggingService.WriteError(e.ToString());
-                    }
+                        try
+                        {
+                            job.DownloadProgress = p;
+                            job.State = JobState.Downloading;
+                            job.UpdatedOn = DateTime.Now;
+                            JobChangedEvent?.Invoke(job);
+                        }
+                        catch (Exception exception)
+                        {
+                            _loggingService.WriteError($"Error downloading progress changed action. {exception}");
+                        }
+                    },
+                    (r, e) =>
+                    {
+                        try
+                        {
+                            if (r)
+                            {
+                                _loggingService.WriteInformation(
+                                    $"Document {job.Document.TypeTitle} is downloaded to {localFilePath}");
+                            }
+                            else
+                            {
+                                Debug.WriteLine($"Error in {nameof(JobsService.DownloadDocument)}: {e.ToString()}");
+                                _loggingService.WriteInformation($"Downloading document {job.Document.TypeTitle} is failed");
+                                _loggingService.WriteError(e.ToString());
+                            }
 
-                    _downloadingJobCount--;
-                    job.Error = e;
-                    job.State = r ? JobState.Downloaded : JobState.Error;
-                    job.Document.LocalFilePath = r ? localFilePath : null;
-                    job.UpdatedOn = DateTime.Now;
-                    JobChangedEvent?.Invoke(job);
+                            job.Error = e;
+                            job.State = r ? JobState.Downloaded : JobState.Error;
+                            job.Document.LocalFilePath = r ? localFilePath : null;
+                            job.UpdatedOn = DateTime.Now;
+                            JobChangedEvent?.Invoke(job);
 
-                    if (_downloadingJobCount <= 0)
-                        MoveDownloadedJobs();
-                });
+                            if (Interlocked.Decrement(ref _downloadingJobCount) <= 0)
+                            {
+                                MoveDownloadedJobs();
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            _loggingService.WriteError($"Error downloading complited action. {exception}");
+                        }
+                    });
+            }
+            catch (Exception e)
+            {
+                _loggingService.WriteError($"Error downloading document. {e}");
+            }
         }
 
         private void MoveDownloadedJobs()
         {
-            var jobs = _newJobs.Where(x => x.State == JobState.Downloaded || x.State == JobState.Error).ToList();
-            foreach (var job in jobs)
+            lock (_jobCollectionGuard)
             {
-                _newJobs.Remove(job);
+                var jobs = _newJobs.Where(x => x.State == JobState.Downloaded || x.State == JobState.Error).ToList();
+                foreach (var job in jobs)
+                {
+                    _newJobs.Remove(job);
 
-                if (job.State == JobState.Downloaded)
-                    _downloadedJobs.Add(job);
-                else if (job.State == JobState.Error)
-                    _doneJobs.Add(job);
+                    if (job.State == JobState.Downloaded)
+                        _downloadedJobs.Add(job);
+                    else if (job.State == JobState.Error)
+                        _doneJobs.Add(job);
+                }
             }
         }
         #endregion
@@ -337,7 +462,7 @@ namespace AutoPrintr.Service.Services
         #region Pusher Methods
         private async Task RunPusherAsync()
         {
-            if (_settingsService.Settings.Channel == null || string.IsNullOrEmpty(_settingsService.Settings.Channel.Value))
+            if (String.IsNullOrEmpty(_settingsService.Settings.Channel?.Value))
             {
                 _channel = null;
                 await StopPusher();
@@ -388,7 +513,7 @@ namespace AutoPrintr.Service.Services
             });
         }
 
-        private async void _pusher_ReadResponse(dynamic message)
+        private void _pusher_ReadResponse(dynamic message)
         {
             _loggingService.WriteInformation($"Starting read Pusher response: {message.ToString()}");
 
@@ -413,11 +538,15 @@ namespace AutoPrintr.Service.Services
             {
                 var newJob = new Job { Document = document };
 
-                var jobPrinters = await GetPrintersAsync(newJob);
+                var jobPrinters = GetPrintersAsync(newJob);
                 if (!jobPrinters.Any())
                     return;
 
-                _newJobs.Add(newJob);
+                lock (_jobCollectionGuard)
+                {
+                    _newJobs.Add(newJob);
+                }
+
                 JobChangedEvent?.Invoke(newJob);
 
                 _loggingService.WriteInformation($"New job {newJob.Document.TypeTitle} is added");
@@ -428,18 +557,27 @@ namespace AutoPrintr.Service.Services
         {
             _loggingService.WriteInformation($"Pusher is {state}");
 
-            if (state == ConnectionState.WaitingToReconnect)
+            try
             {
-                _connectionAttempts++;
+                if (state == ConnectionState.WaitingToReconnect)
+                {
+                    _connectionAttempts++;
 
-                if (_connectionAttempts >= 5)
+                    if (_connectionAttempts >= 5)
+                    {
+                        _connectionAttempts = 0;
+                        ConnectionFailedEvent?.Invoke();
+                    }
+                }
+                else if (state == ConnectionState.Connected)
                 {
                     _connectionAttempts = 0;
-                    ConnectionFailedEvent?.Invoke();
                 }
             }
-            else if (state == ConnectionState.Connected || state == ConnectionState.Failed)
-                _connectionAttempts = 0;
+            catch (Exception e)
+            {
+                _loggingService.WriteInformation($"Error handling the pusher '{state}' state. {e}");
+            }
         }
 
         private void _pusher_Error(object sender, PusherException error)

@@ -14,10 +14,8 @@ namespace AutoPrintr.Core.Services
         private readonly IFileService _fileService;
         private readonly ILoggerService _loggingService;
         private readonly string _fileName = $"Data/{nameof(Settings)}.json";
-        private static object _locker = new object();
 
         public event ChannelChangedEventHandler ChannelChangedEvent;
-        public event PortNumberChangedEventHandler PortNumberChangedEvent;
 
         private FileSystemWatcher _watcher;
 
@@ -46,6 +44,7 @@ namespace AutoPrintr.Core.Services
                 return false;
             }
 
+            _fileService.SetupAccessControl(_fileName);
             _loggingService.WriteInformation("Settings is loaded");
             return true;
         }
@@ -77,14 +76,6 @@ namespace AutoPrintr.Core.Services
             }
 
             await SaveSettingsAsync();
-        }
-
-        public async Task UpdateSettingsAsync(int portNumber)
-        {
-            Settings.PortNumber = portNumber;
-            await SaveSettingsAsync();
-
-            _loggingService.WriteInformation($"Service port number {portNumber} is updated");
         }
 
         public async Task AddLocationAsync(Location location)
@@ -214,7 +205,7 @@ namespace AutoPrintr.Core.Services
 
         private void _watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            lock (_locker)
+            try
             {
                 var oldSettings = Settings;
                 if (oldSettings == null)
@@ -228,9 +219,10 @@ namespace AutoPrintr.Core.Services
 
                 if (oldSettings.Channel?.Value != Settings.Channel?.Value)
                     ChannelChangedEvent?.Invoke(Settings.Channel);
-
-                if (oldSettings.PortNumber != Settings.PortNumber)
-                    PortNumberChangedEvent?.Invoke(Settings.PortNumber);
+            }
+            catch (Exception exception)
+            {
+                _loggingService.WriteError($"Error updating settings from a file: {exception}");
             }
         }
 

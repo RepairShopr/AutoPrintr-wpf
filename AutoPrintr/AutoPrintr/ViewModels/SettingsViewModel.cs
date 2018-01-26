@@ -16,6 +16,8 @@ namespace AutoPrintr.ViewModels
         #region Properties
         private readonly ISettingsService _settingsService;
         private readonly IWindowsServiceClient _windowsServiceClient;
+        private readonly ILoggerService _loggingService;
+        private volatile bool _isOpenedConnectionFailedMessage;
 
         public bool AddToStartup
         {
@@ -45,11 +47,13 @@ namespace AutoPrintr.ViewModels
         #region Constructors
         public SettingsViewModel(INavigationService navigationService,
             ISettingsService settingsService,
-            IWindowsServiceClient windowsServiceClient)
+            IWindowsServiceClient windowsServiceClient,
+            ILoggerService loggingService)
             : base(navigationService)
         {
             _settingsService = settingsService;
             _windowsServiceClient = windowsServiceClient;
+            _loggingService = loggingService;
 
             SelectedLocations = new ObservableCollection<Location>();
             DocumentTypes = Enum.GetValues(typeof(DocumentType))
@@ -72,17 +76,31 @@ namespace AutoPrintr.ViewModels
         #region Methods
         public override void NavigatedTo(object parameter = null)
         {
-            base.NavigatedTo(parameter);
+            try
+            {
+                base.NavigatedTo(parameter);
 
-            InitializeRegisters();
-            InitializeLocations();
-            InitializePrinters();
+                InitializeRegisters();
+                InitializeLocations();
+                InitializePrinters();
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
         }
 
         private void OnUserChanged(User obj)
         {
-            User = obj;
-            RaisePropertyChanged(nameof(User));
+            try
+            {
+                User = obj;
+                RaisePropertyChanged(nameof(User));
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
         }
 
         private void InitializeLocations()
@@ -99,60 +117,76 @@ namespace AutoPrintr.ViewModels
 
         private async void SelectedLocations_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            SelectedLocations.CollectionChanged -= SelectedLocations_CollectionChanged;
-
-            if (e.NewItems != null)
+            try
             {
-                foreach (Location newItem in e.NewItems)
-                {
-                    SelectedLocations.Add(newItem);
-                    await _settingsService.AddLocationAsync(newItem);
-                }
-            }
+                SelectedLocations.CollectionChanged -= SelectedLocations_CollectionChanged;
 
-            if (e.OldItems != null)
+                if (e.NewItems != null)
+                {
+                    foreach (Location newItem in e.NewItems)
+                    {
+                        SelectedLocations.Add(newItem);
+                        await _settingsService.AddLocationAsync(newItem);
+                    }
+                }
+
+                if (e.OldItems != null)
+                {
+                    foreach (Location oldtem in e.OldItems)
+                    {
+                        SelectedLocations.Remove(oldtem);
+                        await _settingsService.RemoveLocationAsync(oldtem);
+                    }
+                }
+
+                SelectedLocations.CollectionChanged += SelectedLocations_CollectionChanged;
+            }
+            catch (Exception exeption)
             {
-                foreach (Location oldtem in e.OldItems)
-                {
-                    SelectedLocations.Remove(oldtem);
-                    await _settingsService.RemoveLocationAsync(oldtem);
-                }
+                _loggingService?.WriteError(exeption);
             }
-
-            SelectedLocations.CollectionChanged += SelectedLocations_CollectionChanged;
         }
 
         private async void InitializePrinters()
         {
-            ShowBusyControl();
-
-            Printers = await _windowsServiceClient.GetPrintersAsync();
-            if (Printers == null)
+            try
             {
-                ShowMessageControl("Printers cannot be loaded, the AutoPrintr service is not available. Please run the service and try again");
+                ShowBusyControl();
+
+                Printers = await _windowsServiceClient.GetPrintersAsync();
+                if (Printers == null)
+                {
+                    ShowMessageControl("Printers cannot be loaded, the AutoPrintr service is not available. Please run the service and try again");
+                    return;
+                }
+
+                var documentTypes = Enum.GetValues(typeof(DocumentType)).OfType<DocumentType>().ToList();
+
+                foreach (var printer in Printers)
+                {
+                    printer.DocumentTypes.ToList().ForEach(x => x.Enabled = true);
+
+                    var documentTypesToAdd = documentTypes
+                        .Where(x => !printer.DocumentTypes.Any(p => p.DocumentType == x))
+                        .Select(x => new DocumentTypeSettings {DocumentType = x})
+                        .ToList();
+
+                    printer.DocumentTypes = printer.DocumentTypes
+                        .Union(documentTypesToAdd)
+                        .OrderBy(x => Document.GetTypeTitle(x.DocumentType))
+                        .ToList();
+                }
+
+                RaisePropertyChanged(nameof(Printers));
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
+            finally
+            {
                 HideBusyControl();
-                return;
             }
-
-            var documentTypes = Enum.GetValues(typeof(DocumentType)).OfType<DocumentType>().ToList();
-
-            foreach (var printer in Printers)
-            {
-                printer.DocumentTypes.ToList().ForEach(x => x.Enabled = true);
-
-                var documentTypesToAdd = documentTypes
-                    .Where(x => !printer.DocumentTypes.Any(p => p.DocumentType == x))
-                    .Select(x => new DocumentTypeSettings { DocumentType = x })
-                    .ToList();
-
-                printer.DocumentTypes = printer.DocumentTypes
-                    .Union(documentTypesToAdd)
-                    .OrderBy(x => Document.GetTypeTitle(x.DocumentType))
-                    .ToList();
-            }
-            RaisePropertyChanged(nameof(Printers));
-
-            HideBusyControl();
         }
 
         private void InitializeRegisters()
@@ -169,42 +203,84 @@ namespace AutoPrintr.ViewModels
 
         private async void OnUpdatePrinter(Printer obj)
         {
-            ShowBusyControl();
+            try
+            {
+                ShowBusyControl();
 
-            if (!_settingsService.Settings.Printers.Any(x => string.Compare(x.Name, obj.Name) == 0) && obj.DocumentTypes.Any(x => x.Enabled))
-                await _settingsService.AddPrinterAsync(obj);
-            else if (_settingsService.Settings.Printers.Any(x => string.Compare(x.Name, obj.Name) == 0) && !obj.DocumentTypes.Any(x => x.Enabled))
-                await _settingsService.RemovePrinterAsync(obj);
-            else
-                await _settingsService.UpdatePrinterAsync(obj);
-
-            HideBusyControl();
+                if (!_settingsService.Settings.Printers.Any(x => string.Compare(x.Name, obj.Name) == 0) &&
+                    obj.DocumentTypes.Any(x => x.Enabled))
+                    await _settingsService.AddPrinterAsync(obj);
+                else if (_settingsService.Settings.Printers.Any(x => string.Compare(x.Name, obj.Name) == 0) &&
+                         !obj.DocumentTypes.Any(x => x.Enabled))
+                    await _settingsService.RemovePrinterAsync(obj);
+                else
+                    await _settingsService.UpdatePrinterAsync(obj);
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
+            finally
+            {
+                HideBusyControl();
+            }
         }
 
         private async void OnAddToStartup(bool value)
         {
-            ShowBusyControl();
-            await _settingsService.AddToStartup(value);
-            HideBusyControl();
+            try
+            {
+                ShowBusyControl();
+                await _settingsService.AddToStartup(value);
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
+            finally
+            {
+                HideBusyControl();
+            }
 
-            RaisePropertyChanged(nameof(AddToStartup));
+            try
+            {
+                RaisePropertyChanged(nameof(AddToStartup));
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
         }
 
         private async void OnInstallService(bool value)
         {
-            ShowBusyControl();
-            await _windowsServiceClient.DisconnectAsync();
-
-            await _settingsService.InstallService(value);
-
-            if (InstallService && !_windowsServiceClient.Connected)
+            try
+            {
+                ShowBusyControl();
+                await _windowsServiceClient.DisconnectAsync();
+                await _settingsService.InstallService(value);
                 await _windowsServiceClient.ConnectAsync(ShowConnectionFailedMessage);
-            HideBusyControl();
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
+            finally
+            {
+                HideBusyControl();
+            }
 
-            if (InstallService && Printers?.Any() != true)
-                InitializePrinters();
+            try
+            {
+                if (InstallService && Printers?.Any() != true)
+                    InitializePrinters();
 
-            RaisePropertyChanged(nameof(InstallService));
+                RaisePropertyChanged(nameof(InstallService));
+            }
+            catch (Exception e)
+            {
+                _loggingService?.WriteError(e);
+            }
         }
 
         private void OnRestartService()
@@ -214,7 +290,18 @@ namespace AutoPrintr.ViewModels
 
         public void ShowConnectionFailedMessage()
         {
-            ShowWarningControl("You are either offline or AutoPrintr is being blocked from connecting to the internet. If you have a software firewall in place disable that or give AutoPrintr permission to the network", "You are either offline");
+            if (_isOpenedConnectionFailedMessage)
+                return;
+
+            try
+            {
+                _isOpenedConnectionFailedMessage = true;
+                ShowWarningControl("You are either offline or AutoPrintr is being blocked from connecting to the internet. If you have a software firewall in place disable that or give AutoPrintr permission to the network", "You are either offline");
+            }
+            finally
+            {
+                _isOpenedConnectionFailedMessage = false;
+            }
         }
         #endregion
     }

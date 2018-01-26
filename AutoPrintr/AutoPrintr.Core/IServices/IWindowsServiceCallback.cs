@@ -3,12 +3,13 @@ using System.ServiceModel;
 
 namespace AutoPrintr.Core.IServices
 {
+    [ServiceContract]
     public interface IWindowsServiceCallback
     {
-        [OperationContract]
+        [OperationContract(IsOneWay = true)]
         void JobChanged(Job job);
 
-        [OperationContract]
+        [OperationContract(IsOneWay = true)]
         void ConnectionFailed();
     }
 }

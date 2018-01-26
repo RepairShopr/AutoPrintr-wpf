@@ -4,156 +4,93 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceModel;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace AutoPrintr.Helpers
 {
-    [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Single, UseSynchronizationContext = false)]
-    internal class WindowsServiceClient : WindowsServiceReference.IWindowsServiceCallback, IWindowsServiceClient
+    [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, UseSynchronizationContext = false, IncludeExceptionDetailInFaults = true)]
+    internal class WindowsServiceClient : ReliableService<IWindowsService>, IWindowsServiceCallback, IWindowsServiceClient
     {
         #region Properties
-        private const int PING_INTERVAL_MINUTES = 60;
-
-        private readonly ISettingsService _settingsService;
+        private readonly Dispatcher _dispatcher;
         private readonly ILoggerService _loggerService;
-        private readonly System.Timers.Timer _timer;
-
+        private CancellationTokenSource _cts;
+        private Task _task;
         private Action _connectionFailed;
-        private WindowsServiceReference.WindowsServiceClient _windowsServiceClient;
 
-        public bool Connected => _windowsServiceClient?.State == CommunicationState.Opened;
         public Action<Job> JobChangedAction { get; set; }
         #endregion
 
         #region Constructors
-        public WindowsServiceClient(ISettingsService settingsService,
-            ILoggerService loggerService)
+        public WindowsServiceClient(ILoggerService loggerService)
         {
-            _settingsService = settingsService;
+            _dispatcher = Dispatcher.CurrentDispatcher;
             _loggerService = loggerService;
 
-            _timer = new System.Timers.Timer(TimeSpan.FromMinutes(PING_INTERVAL_MINUTES).TotalMilliseconds);
-            _timer.Elapsed += async (s, e) => { await Ping(); };
+            InitializeFactory(new DuplexChannelFactory<IWindowsService>(
+                new InstanceContext(this), "WindowsServiceEndpoint"));
         }
         #endregion
 
         #region Methods
-        public async Task ConnectAsync(Action connectionFailed)
+        public async Task<bool> ConnectAsync(Action connectionFailed)
         {
+            if (_cts != null && _task != null)
+            {
+                await DisconnectAsync();
+            }
+
             _connectionFailed = connectionFailed;
 
-            _settingsService.PortNumberChangedEvent -= SettingsService_PortNumberChangedEvent;
-            _settingsService.PortNumberChangedEvent += SettingsService_PortNumberChangedEvent;
-
+            bool result;
             try
             {
-                var instanceContext = new InstanceContext(this);
-                _windowsServiceClient = new WindowsServiceReference.WindowsServiceClient(instanceContext, "NetTcpBindingEndpoint", GetServiceAddress());
-
-                await Task.Run(() =>
-                {
-                    try
-                    {
-                        _windowsServiceClient.Open();
-                        _timer.Start();
-                    }
-                    catch (TimeoutException ex)
-                    {
-                        Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
-                        _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-                    }
-                    catch (EndpointNotFoundException ex)
-                    {
-                        Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
-                        _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-                    }
-                });
-
-                if (Connected)
-                    await _windowsServiceClient.ConnectAsync();
+                Connect(service => service.Connect());
+                result = true;
             }
-            catch (CommunicationException ex)
+            catch (Exception)
             {
-                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
-                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                result = false;
             }
+
+            _cts = new CancellationTokenSource();
+            _task = Task.Run(
+                async () => await PingByTimeout(service => service.Connect(), service => service.Ping(), _cts.Token), 
+                _cts.Token);
+
+            return result;
         }
 
         public async Task DisconnectAsync()
         {
             try
             {
-                if (!Connected)
-                    return;
+                _cts?.Cancel();
 
-                await _windowsServiceClient.DisconnectAsync();
+                if (_task != null)
+                    await _task;
 
-                await Task.Run(() =>
-                {
-                    try
-                    {
-                        _windowsServiceClient.Close();
-                        _timer.Stop();
-                    }
-                    catch (TimeoutException ex)
-                    {
-                        Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
-                        _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-                    }
-                    catch (EndpointNotFoundException ex)
-                    {
-                        Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
-                        _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-                    }
-                });
-
-                _connectionFailed = null;
+                TryCall(service => service.Disconnect());
             }
-            catch (CommunicationException ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
                 _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
             }
         }
 
-        public async Task Ping()
+        public Task<IEnumerable<Printer>> GetPrintersAsync()
         {
             try
             {
-                if (!Connected)
-                    return;
-
-                await _windowsServiceClient.PingAsync();
+                return TryCall(service => service.GetPrinters());
             }
-            catch (CommunicationException ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
                 _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-            }
-        }
-
-        public async Task<IEnumerable<Printer>> GetPrintersAsync()
-        {
-            try
-            {
-                if (!Connected)
-                    return null;
-
-                return await _windowsServiceClient.GetPrintersAsync();
-            }
-            catch (CommunicationException ex)
-            {
-                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
-                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
                 return null;
             }
         }
@@ -162,85 +99,62 @@ namespace AutoPrintr.Helpers
         {
             try
             {
-                if (!Connected)
-                    return null;
-
-                return await _windowsServiceClient.GetJobsAsync();
+                return await TryCall(service => service.GetJobs());
             }
-            catch (CommunicationException ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
                 _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
                 return null;
             }
         }
 
-        public async Task<bool> PrintAsync(Job job)
-        {
-            try
+        public Task<bool> PrintAsync(Job job)
+            => Task.Run(() => TryCall(service =>
             {
-                if (!Connected)
+                try
+                {
+                    service.Print(job);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                    _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
                     return false;
+                }
+            }));
 
-                await _windowsServiceClient.PrintAsync(job);
-                return true;
-            }
-            catch (CommunicationException ex)
+        public Task<bool> DeleteJobsAsync(Job[] jobs)
+            => Task.Run(() => TryCall(service =>
             {
-                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
-                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
-                return false;
-            }
-        }
-
-        public async Task<bool> DeleteJobsAsync(Job[] jobs)
-        {
-            try
-            {
-                if (!Connected)
+                try
+                {
+                    service.DeleteJobs(jobs);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
+                    _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
                     return false;
-
-                await _windowsServiceClient.DeleteJobsAsync(jobs);
-                return true;
-            }
-            catch (CommunicationException ex)
-            {
-                Debug.WriteLine($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
-                _loggerService.WriteWarning($"Error in {nameof(WindowsServiceClient)}: {ex.ToString()}");
-
-                return false;
-            }
-        }
+                }
+            }));
 
         public void JobChanged(Job job)
         {
-            JobChangedAction?.Invoke(job);
+            _dispatcher.Invoke(() =>
+            {
+                JobChangedAction?.Invoke(job);
+            });
         }
 
         public void ConnectionFailed()
         {
-            _connectionFailed?.Invoke();
-        }
-
-        private EndpointAddress GetServiceAddress()
-        {
-            return new EndpointAddress($"net.tcp://localhost:{_settingsService.Settings.PortNumber}/AutoPrintrService");
-        }
-
-        private async void SettingsService_PortNumberChangedEvent(int newPortNumber)
-        {
-            var localConnectionFailed = _connectionFailed;
-            await DisconnectAsync();
-
-            _loggerService.WriteWarning($"Port number {_settingsService.Settings.PortNumber} is changed to: {newPortNumber}");
-            _settingsService.Settings.PortNumber = newPortNumber;
-
-            await ConnectAsync(localConnectionFailed);
+            _dispatcher.Invoke(() =>
+            {
+                _connectionFailed?.Invoke();
+            });
         }
         #endregion
     }

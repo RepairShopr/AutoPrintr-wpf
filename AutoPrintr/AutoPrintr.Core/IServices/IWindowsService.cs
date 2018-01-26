@@ -1,6 +1,7 @@
 ﻿using AutoPrintr.Core.Models;
 using System.Collections.Generic;
 using System.ServiceModel;
+using System.Threading.Tasks;
 
 namespace AutoPrintr.Core.IServices
 {
@@ -17,10 +18,10 @@ namespace AutoPrintr.Core.IServices
         void Ping();
 
         [OperationContract]
-        IEnumerable<Printer> GetPrinters();
+        Task<IEnumerable<Printer>> GetPrinters();
 
         [OperationContract]
-        IEnumerable<Job> GetJobs();
+        Task<IEnumerable<Job>> GetJobs();
 
         [OperationContract]
         void Print(Job job);

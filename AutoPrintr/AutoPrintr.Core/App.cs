@@ -1,8 +1,8 @@
 ﻿using AutoPrintr.Core.IServices;
 using AutoPrintr.Core.Services;
 using GalaSoft.MvvmLight.Ioc;
-using Microsoft.Practices.ServiceLocation;
 using System.Threading.Tasks;
+using Microsoft.Practices.ServiceLocation;
 
 namespace AutoPrintr.Core
 {
