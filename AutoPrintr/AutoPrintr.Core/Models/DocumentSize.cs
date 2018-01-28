@@ -6,6 +6,7 @@
         Label,
         Receipt,
         IntakeForm,
-        PopDrawer
+        PopDrawer,
+        OuttakeForm
     }
 }

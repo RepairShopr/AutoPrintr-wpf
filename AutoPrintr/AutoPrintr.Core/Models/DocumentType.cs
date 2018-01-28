@@ -13,6 +13,7 @@
         Adjustment,
         CustomerID,
         Asset,
-        TicketLabel
+        TicketLabel,
+        OuttakeForm
     }
 }
