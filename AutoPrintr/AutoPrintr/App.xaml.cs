@@ -51,6 +51,10 @@ namespace AutoPrintr
             {
                 trayIcon.ShowBalloonTip();
             }
+            else
+            {
+                RefreshTrayArea();
+            }
         }
 
         protected override async void OnExit(ExitEventArgs e)
@@ -68,6 +72,20 @@ namespace AutoPrintr
                 var netVersion = (int?)ndpKey?.GetValue("Release");
                 //Version of .NET Framework 4.5 is 378389
                 return netVersion >= 378389;
+            }
+        }
+
+        private static void RefreshTrayArea()
+        {
+            ILoggerService logger = null;
+            try
+            {
+                logger = SimpleIoc.Default.GetInstance<ILoggerService>();
+                Task.Run(() => SystemTrayUpdater.Refresh(logger));
+            }
+            catch (Exception e)
+            {
+                logger?.WriteError($"Error refresh tray area. {e}");
             }
         }
         #endregion
