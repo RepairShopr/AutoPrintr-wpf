@@ -51,10 +51,8 @@ namespace AutoPrintr
             {
                 trayIcon.ShowBalloonTip();
             }
-            else
-            {
-                RefreshTrayArea();
-            }
+
+            RefreshTrayArea();
         }
 
         protected override async void OnExit(ExitEventArgs e)
