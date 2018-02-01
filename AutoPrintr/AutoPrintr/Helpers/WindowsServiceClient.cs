@@ -81,11 +81,11 @@ namespace AutoPrintr.Helpers
             }
         }
 
-        public Task<IEnumerable<Printer>> GetPrintersAsync()
+        public async Task<IEnumerable<Printer>> GetPrintersAsync()
         {
             try
             {
-                return TryCall(service => service.GetPrinters());
+                return await TryCall(service => service.GetPrinters());
             }
             catch (Exception ex)
             {
