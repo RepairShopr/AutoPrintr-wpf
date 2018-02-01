@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
+using System.Threading;
 
 namespace AutoPrintr.Service
 {
@@ -107,6 +108,11 @@ namespace AutoPrintr.Service
                 case Commands.Uninstall:
                     if (ServiceController.GetServices().Any(x => x.ServiceName == SERVICE_NAME))
                         ManagedInstallerClass.InstallHelper(new string[] { "/u", Assembly.GetExecutingAssembly().Location });
+                    break;
+                case Commands.Debug:
+                    var service = new Service();
+                    service.OnStart(new string[0]);
+                    Thread.Sleep(Timeout.Infinite);
                     break;
             }
         }
