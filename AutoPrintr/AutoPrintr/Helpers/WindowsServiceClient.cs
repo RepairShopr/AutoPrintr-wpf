@@ -57,7 +57,7 @@ namespace AutoPrintr.Helpers
 
             _cts = new CancellationTokenSource();
             _task = Task.Run(
-                async () => await PingByTimeout(service => service.Connect(), service => service.Ping(), _cts.Token), 
+                async () => await PingByTimeout(service => service.Ping(), service => service.Connect(), _cts.Token), 
                 _cts.Token);
 
             return result;
