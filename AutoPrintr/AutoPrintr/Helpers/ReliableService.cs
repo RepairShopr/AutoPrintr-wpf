@@ -7,16 +7,13 @@ namespace AutoPrintr.Helpers
 {
     public abstract class ReliableService<T> : IDisposable where T: class
     {
-        private readonly int _timeoutStep;
-        private readonly int _timeoutPing;
+        private readonly int _timeout;
         private ChannelFactory<T> _factory;
         private T _channel;
 
-        protected ReliableService(int timeoutStepInMilliseconds = 100,
-            int timeoutPingInMilliseconds = 2000)
+        protected ReliableService(int timeoutPingInMilliseconds = 2000)
         {
-            _timeoutStep = timeoutStepInMilliseconds;
-            _timeoutPing = timeoutPingInMilliseconds;
+            _timeout = timeoutPingInMilliseconds;
         }
 
         protected void InitializeFactory(ChannelFactory<T> newFactory)
@@ -26,7 +23,7 @@ namespace AutoPrintr.Helpers
 
         protected void Connect(Action<T> subscribe)
         {
-            _channel = _factory.CreateChannel();
+            _channel = _factory?.CreateChannel();
             subscribe(_channel);
         }
 
@@ -52,7 +49,7 @@ namespace AutoPrintr.Helpers
                         _channel = null;
                     }
 
-                    await Task.Delay(_timeoutPing, token);
+                    await Task.Delay(_timeout, token);
                 }
             }
             catch (TaskCanceledException)
@@ -76,22 +73,23 @@ namespace AutoPrintr.Helpers
             {
                 try
                 {
-                    if (_channel == null)
+                    if (_channel != null)
                     {
-                        _channel = _factory?.CreateChannel() ?? throw new Exception($"ReliableService of {typeof(T)} is disposed.");
+                        return lambda(_channel);
                     }
-
-                    return lambda(_channel);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     if (attempt >= 3)
                         throw;
-
-                    _channel = null;
                 }
 
-                Thread.Sleep(attempt * _timeoutStep);
+                if (attempt >= 3)
+                {
+                    throw new Exception("The WCF channel is not initialized.");
+                }
+
+                Thread.Sleep(_timeout);
                 attempt++;
             }
         }
