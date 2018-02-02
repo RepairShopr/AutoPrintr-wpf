@@ -3,6 +3,7 @@ using AutoPrintr.Core.Models;
 using AutoPrintr.Service.IServices;
 using GalaSoft.MvvmLight.Ioc;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceModel;
@@ -14,8 +15,7 @@ namespace AutoPrintr.Service
     internal class WindowsService : IWindowsService
     {
         #region Properties
-        private readonly List<IWindowsServiceCallback> _callbacks = new List<IWindowsServiceCallback>();
-        private readonly object guardCallbacks = new object();
+        private readonly ConcurrentDictionary<Guid, IWindowsServiceCallback> _callbacks = new ConcurrentDictionary<Guid, IWindowsServiceCallback>();
 
         private IJobsService JobsService => SimpleIoc.Default.GetInstance<IJobsService>();
         private IPrinterService PrintersService => SimpleIoc.Default.GetInstance<IPrinterService>();
@@ -26,33 +26,22 @@ namespace AutoPrintr.Service
         #endregion
 
         #region Methods
-        public void Connect()
+        public void Connect(Guid id)
         {
+            LoggerService.WriteInformation($"Add WCF connection from the '{id}' client.");
             var callback = OperationContext.Current.GetCallbackChannel<IWindowsServiceCallback>();
             if (callback == null)
             {
                 return;
             }
 
-            lock (guardCallbacks)
-            {
-                _callbacks.Add(callback);
-            }
+            _callbacks.AddOrUpdate(id, callback, (key, value) => callback);
         }
 
-        public void Disconnect()
+        public void Disconnect(Guid id)
         {
-            var callback = OperationContext.Current.GetCallbackChannel<IWindowsServiceCallback>();
-            if (callback == null)
-            {
-                return;
-            }
-
-            lock (guardCallbacks)
-            {
-                if (_callbacks.Contains(callback))
-                    _callbacks.Remove(callback);
-            }
+            LoggerService.WriteInformation($"Remove WCF connection from the '{id}' client.");
+            _callbacks.TryRemove(id, out _);
         }
 
         public void Ping()
@@ -148,31 +137,28 @@ namespace AutoPrintr.Service
 
         private void ForEachCallback(Action<IWindowsServiceCallback> call, bool store = false)
         {
-            lock (guardCallbacks)
+            foreach (var entry in _callbacks)
             {
-                for (int i = _callbacks.Count - 1; i >= 0; i--)
+                try
                 {
-                    try
-                    {
-                        call(_callbacks[i]);
-                    }
-                    catch (ObjectDisposedException ex)
-                    {
-                        _callbacks.RemoveAt(i);
-                        Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.Message}");
-                        LoggerService.WriteWarning($"Error in {nameof(WindowsService)}: {ex.Message}");
-                    }
-                    catch (CommunicationException ex)
-                    {
-                        _callbacks.RemoveAt(i);
-                        Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.Message}");
-                        LoggerService.WriteWarning($"Error in {nameof(WindowsService)}: {ex.Message}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex}");
-                        LoggerService.WriteError($"Error in {nameof(WindowsService)}: {ex}");
-                    }
+                    call(entry.Value);
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    _callbacks.TryRemove(entry.Key, out _);
+                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.Message}");
+                    LoggerService.WriteWarning($"Error in {nameof(WindowsService)}: {ex.Message}");
+                }
+                catch (CommunicationException ex)
+                {
+                    _callbacks.TryRemove(entry.Key, out _);
+                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex.Message}");
+                    LoggerService.WriteWarning($"Error in {nameof(WindowsService)}: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error in {nameof(WindowsService)}: {ex}");
+                    LoggerService.WriteError($"Error in {nameof(WindowsService)}: {ex}");
                 }
             }
         }

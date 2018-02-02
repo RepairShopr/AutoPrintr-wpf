@@ -1,4 +1,5 @@
-﻿using AutoPrintr.Core.Models;
+﻿using System;
+using AutoPrintr.Core.Models;
 using System.Collections.Generic;
 using System.ServiceModel;
 using System.Threading.Tasks;
@@ -9,10 +10,10 @@ namespace AutoPrintr.Core.IServices
     public interface IWindowsService
     {
         [OperationContract]
-        void Connect();
+        void Connect(Guid id);
 
         [OperationContract]
-        void Disconnect();
+        void Disconnect(Guid id);
 
         [OperationContract]
         void Ping();

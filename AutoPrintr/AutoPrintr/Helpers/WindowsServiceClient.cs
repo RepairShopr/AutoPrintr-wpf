@@ -14,6 +14,7 @@ namespace AutoPrintr.Helpers
     internal class WindowsServiceClient : ReliableService<IWindowsService>, IWindowsServiceCallback, IWindowsServiceClient
     {
         #region Properties
+        private readonly Guid _id = Guid.NewGuid();
         private readonly Dispatcher _dispatcher;
         private readonly ILoggerService _loggerService;
         private CancellationTokenSource _cts;
@@ -47,7 +48,7 @@ namespace AutoPrintr.Helpers
             bool result;
             try
             {
-                Connect(service => service.Connect());
+                Connect(service => service.Connect(_id));
                 result = true;
             }
             catch (Exception)
@@ -57,7 +58,7 @@ namespace AutoPrintr.Helpers
 
             _cts = new CancellationTokenSource();
             _task = Task.Run(
-                async () => await PingByTimeout(service => service.Ping(), service => service.Connect(), _cts.Token), 
+                async () => await PingByTimeout(service => service.Ping(), service => service.Connect(_id), _cts.Token), 
                 _cts.Token);
 
             return result;
@@ -72,7 +73,7 @@ namespace AutoPrintr.Helpers
                 if (_task != null)
                     await _task;
 
-                TryCall(service => service.Disconnect());
+                TryCall(service => service.Disconnect(_id));
             }
             catch (Exception ex)
             {
