@@ -58,6 +58,7 @@ namespace AutoPrintr.Helpers
                         continue;
 
                     process.Kill();
+                    process.Dispose();
                 }
             }
 

@@ -41,6 +41,7 @@ namespace AutoPrintr.Core.Models
                 case DocumentType.Estimate: return "Estimate";
                 case DocumentType.Ticket: return "Ticket";
                 case DocumentType.IntakeForm: return "Intake Form";
+                case DocumentType.OuttakeForm: return "Outtake Form";
                 case DocumentType.Receipt: return "Receipt";
                 case DocumentType.ZReport: return "Z Report";
                 case DocumentType.TicketReceipt: return "Ticket Receipt";
@@ -61,6 +62,7 @@ namespace AutoPrintr.Core.Models
                 case DocumentSize.Label: return "Size: 1.1x3";
                 case DocumentSize.Receipt: return "Size: 80mm";
                 case DocumentSize.IntakeForm: return "Intake Form";
+                case DocumentSize.OuttakeForm: return "Outtake Form";
                 case DocumentSize.PopDrawer: return "Pop Drawer";
                 default: return null;
             }
