@@ -38,11 +38,7 @@ namespace AutoPrintr.Helpers
         #region Methods
         public async Task<bool> ConnectAsync(Action connectionFailed)
         {
-            if (_cts != null && _task != null)
-            {
-                await DisconnectAsync();
-            }
-
+            await DisconnectAsync();
             _connectionFailed = connectionFailed;
 
             bool result;
@@ -68,12 +64,19 @@ namespace AutoPrintr.Helpers
         {
             try
             {
-                _cts?.Cancel();
+                if (_cts != null)
+                {
+                    _cts.Cancel();
+                    _cts = null;
 
-                if (_task != null)
-                    await _task;
+                    if (_task != null)
+                    {
+                        await _task;
+                        _task = null;
 
-                TryCall(service => service.Disconnect(_id));
+                        TryCall(service => service.Disconnect(_id));
+                    }
+                }
             }
             catch (Exception ex)
             {
