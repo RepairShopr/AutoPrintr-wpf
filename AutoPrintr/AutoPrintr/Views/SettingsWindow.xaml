@@ -8,9 +8,7 @@
         WindowStartupLocation="CenterScreen"
         Icon="/AutoPrintr;component/Resources/Printer_32.png"
         Height="720"
-        Width="1100"
-        WindowState="Maximized"
-        SizeToContent="Manual">
+        Width="1280">
 
     <Window.Resources>
         <system:Double x:Key="RowHeight">35</system:Double>
@@ -107,9 +105,9 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Margin="20,0,20,0" Text="Locations" FontSize="18" Style="{StaticResource HeaderTextBlockStyle}" />
+        <TextBlock Margin="20,-5,20,0" Text="Locations" FontSize="18" Style="{StaticResource HeaderTextBlockStyle}" />
         <ListView Grid.Row="1"
-                  Margin="20,7,10,10"
+                  Margin="20,5,10,10"
                   SelectionMode="Multiple"
                   IsEnabled="{Binding User.MultiLocationsAllowed, Mode=OneWay}"
                   ItemsSource="{Binding User.Locations, Mode=OneWay}"
@@ -123,10 +121,10 @@
 
         <Button Grid.Row="4" Margin="20,0,10,10" Content="Restart Service" Command="{Binding RestartServiceCommand, Mode=OneTime}" IsEnabled="{Binding InstallService, Mode=OneWay}" />
 
-        <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" Margin="-3,7,0,10" HorizontalAlignment="Left" />
+        <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" Margin="-3,5,0,10" HorizontalAlignment="Left" />
 
-        <TextBlock Grid.Column="1" Margin="20,0,20,0" Text="Printers" FontSize="18" Style="{StaticResource HeaderTextBlockStyle}" />
-        <ScrollViewer Grid.Row="1" Grid.RowSpan="4" Grid.Column="1" Margin="10,7,20,10" HorizontalScrollBarVisibility="Disabled">
+        <TextBlock Grid.Column="1" Margin="20,-5,20,0" Text="Printers" FontSize="18" Style="{StaticResource HeaderTextBlockStyle}" />
+        <ScrollViewer Grid.Row="1" Grid.RowSpan="4" Grid.Column="1" Margin="10,5,20,10" HorizontalScrollBarVisibility="Disabled">
             <Border VerticalAlignment="Top" HorizontalAlignment="Left" Style="{StaticResource SeparatorBorderStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
