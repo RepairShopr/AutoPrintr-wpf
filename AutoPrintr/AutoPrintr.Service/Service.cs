@@ -4,9 +4,11 @@ using GalaSoft.MvvmLight.Ioc;
 using System;
 using System.Configuration.Install;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
+using System.Threading;
 
 namespace AutoPrintr.Service
 {
@@ -78,36 +80,71 @@ namespace AutoPrintr.Service
 
         private static void RunCommand(Commands command)
         {
-            switch (command)
+            try
             {
-                case Commands.Install:
-                    if (!ServiceController.GetServices().Any(x => x.ServiceName == SERVICE_NAME))
-                        ManagedInstallerClass.InstallHelper(new string[] { Assembly.GetExecutingAssembly().Location });
-                    break;
-                case Commands.Start:
-                    using (ServiceController sc = new ServiceController(SERVICE_NAME))
-                    {
-                        if (ServiceController.GetServices().Any(x => x.ServiceName == SERVICE_NAME))
+                switch (command)
+                {
+                    case Commands.Install:
+                        if (!ServiceController.GetServices().Any(x => x.ServiceName == SERVICE_NAME))
+                            ManagedInstallerClass.InstallHelper(new string[] { Assembly.GetExecutingAssembly().Location });
+                        break;
+                    case Commands.Start:
+                        using (ServiceController sc = new ServiceController(SERVICE_NAME))
                         {
-                            if (sc.Status != ServiceControllerStatus.Running)
-                                sc.Start();
+                            if (ServiceController.GetServices().Any(x => x.ServiceName == SERVICE_NAME))
+                            {
+                                if (sc.Status != ServiceControllerStatus.Running)
+                                    sc.Start();
+                            }
                         }
-                    }
-                    break;
-                case Commands.Stop:
-                    using (var sc = new ServiceController(SERVICE_NAME))
-                    {
-                        if (ServiceController.GetServices().Any(x => x.ServiceName == SERVICE_NAME))
+
+                        break;
+                    case Commands.Stop:
+                        using (var sc = new ServiceController(SERVICE_NAME))
                         {
-                            if (sc.Status != ServiceControllerStatus.Stopped)
-                                sc.Stop();
+                            if (ServiceController.GetServices().Any(x => x.ServiceName == SERVICE_NAME))
+                            {
+                                if (sc.Status != ServiceControllerStatus.Stopped)
+                                {
+                                    sc.Stop();
+                                }
+
+                                try
+                                {
+                                    sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromMinutes(1));
+                                }
+                                catch (System.ServiceProcess.TimeoutException)
+                                {
+                                    foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location)))
+                                    {
+                                        if (process.Id == 0 ||
+                                            process.Id == Process.GetCurrentProcess().Id)
+                                        {
+                                            continue;
+                                        }
+
+                                        process.Kill();
+                                        process.WaitForExit(60 * 1000);
+                                    }
+                                }
+                            }
                         }
-                    }
-                    break;
-                case Commands.Uninstall:
-                    if (ServiceController.GetServices().Any(x => x.ServiceName == SERVICE_NAME))
-                        ManagedInstallerClass.InstallHelper(new string[] { "/u", Assembly.GetExecutingAssembly().Location });
-                    break;
+
+                        break;
+                    case Commands.Uninstall:
+                        if (ServiceController.GetServices().Any(x => x.ServiceName == SERVICE_NAME))
+                            ManagedInstallerClass.InstallHelper(new string[] { "/u", Assembly.GetExecutingAssembly().Location });
+                        break;
+                    case Commands.Debug:
+                        var service = new Service();
+                        service.OnStart(new string[0]);
+                        Thread.Sleep(Timeout.Infinite);
+                        break;
+                }
+            }
+            catch (Exception exception)
+            {
+                // ignore errors
             }
         }
         #endregion

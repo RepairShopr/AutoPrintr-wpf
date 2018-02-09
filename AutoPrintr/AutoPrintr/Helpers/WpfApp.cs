@@ -58,6 +58,7 @@ namespace AutoPrintr.Helpers
                         continue;
 
                     process.Kill();
+                    process.Dispose();
                 }
             }
 
@@ -65,12 +66,12 @@ namespace AutoPrintr.Helpers
             {
                 NavigationService.NavigateTo(ViewType.Login.ToString());
             }
-            else if (openSettings)
+
+            await ConnectWindowsServiceClient();
+            if (SettingsService.Settings.User != null && openSettings)
             {
                 NavigationService.NavigateTo(ViewType.Settings.ToString());
             }
-
-            await ConnectWindowsServiceClient();
 
             //CheckForUpdates();
         }
@@ -86,7 +87,7 @@ namespace AutoPrintr.Helpers
 
             SimpleIoc.Default.Register<EmailSettings>();
             SimpleIoc.Default.Register<INavigationService, NavigationService>();
-            SimpleIoc.Default.Register<IWindowsServiceClient, WindowsServiceClient>();
+            SimpleIoc.Default.Register<IWindowsServiceClient, WindowsServiceClient>(true);
 
             //Register ViewModels
             SimpleIoc.Default.Register<TrayIconContextMenuViewModel>(true);

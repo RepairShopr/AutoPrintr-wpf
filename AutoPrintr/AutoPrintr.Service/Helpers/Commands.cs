@@ -5,6 +5,7 @@
         Install,
         Uninstall,
         Start,
-        Stop
+        Stop,
+        Debug
     }
 }

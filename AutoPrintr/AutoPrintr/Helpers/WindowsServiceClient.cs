@@ -14,6 +14,7 @@ namespace AutoPrintr.Helpers
     internal class WindowsServiceClient : ReliableService<IWindowsService>, IWindowsServiceCallback, IWindowsServiceClient
     {
         #region Properties
+        private readonly Guid _id = Guid.NewGuid();
         private readonly Dispatcher _dispatcher;
         private readonly ILoggerService _loggerService;
         private CancellationTokenSource _cts;
@@ -37,17 +38,13 @@ namespace AutoPrintr.Helpers
         #region Methods
         public async Task<bool> ConnectAsync(Action connectionFailed)
         {
-            if (_cts != null && _task != null)
-            {
-                await DisconnectAsync();
-            }
-
+            await DisconnectAsync();
             _connectionFailed = connectionFailed;
 
             bool result;
             try
             {
-                Connect(service => service.Connect());
+                Connect(service => service.Connect(_id));
                 result = true;
             }
             catch (Exception)
@@ -57,7 +54,7 @@ namespace AutoPrintr.Helpers
 
             _cts = new CancellationTokenSource();
             _task = Task.Run(
-                async () => await PingByTimeout(service => service.Connect(), service => service.Ping(), _cts.Token), 
+                async () => await PingByTimeout(service => service.Ping(), service => service.Connect(_id), _cts.Token), 
                 _cts.Token);
 
             return result;
@@ -67,12 +64,19 @@ namespace AutoPrintr.Helpers
         {
             try
             {
-                _cts?.Cancel();
+                if (_cts != null)
+                {
+                    _cts.Cancel();
+                    _cts = null;
 
-                if (_task != null)
-                    await _task;
+                    if (_task != null)
+                    {
+                        await _task;
+                        _task = null;
 
-                TryCall(service => service.Disconnect());
+                        TryCall(service => service.Disconnect(_id));
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -81,11 +85,11 @@ namespace AutoPrintr.Helpers
             }
         }
 
-        public Task<IEnumerable<Printer>> GetPrintersAsync()
+        public async Task<IEnumerable<Printer>> GetPrintersAsync()
         {
             try
             {
-                return TryCall(service => service.GetPrinters());
+                return await TryCall(service => service.GetPrinters());
             }
             catch (Exception ex)
             {
