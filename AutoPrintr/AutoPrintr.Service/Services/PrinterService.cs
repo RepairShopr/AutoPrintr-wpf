@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Printing;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AutoPrintr.Service.Services
@@ -65,7 +66,7 @@ namespace AutoPrintr.Service.Services
                         throw new InvalidOperationException("LocalFilePath is required");
 
                     var processPath = ExtractSumatraPDF();
-                    var arguments = $"-silent -print-settings \"noscale,{printer.PrintMode.ToString().ToLower()},{count}x\" -exit-on-print -print-to \"{printer.Name}\" \"{_fileService.GetFilePath(document.LocalFilePath)}\"";
+                    var arguments = $"-silent -print-settings \"noscale,{printer.PrintMode.ToString().ToLower()},1x\" -exit-on-print -print-to \"{printer.Name}\" \"{_fileService.GetFilePath(document.LocalFilePath)}\"";
 
                     _loggingService.WriteInformation($"Printing command: {arguments}");
 
@@ -82,8 +83,12 @@ namespace AutoPrintr.Service.Services
                         CreateNoWindow = true
                     };
 
-                    var process = Process.Start(psi);
-                    process.WaitForExit();
+                    for (int i = 0; i < count; i++)
+                    {
+                        var process = Process.Start(psi);
+                        process.WaitForExit();
+                        Thread.Sleep(500);
+                    }
                 }
                 catch (Exception ex)
                 {
