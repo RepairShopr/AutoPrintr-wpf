@@ -5,6 +5,7 @@ using GalaSoft.MvvmLight.Ioc;
 using Microsoft.Win32;
 using System;
 using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -22,6 +23,12 @@ namespace AutoPrintr
             Dispatcher.UnhandledException += Dispatcher_UnhandledException;
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+            ServicePointManager.SecurityProtocol
+                = SecurityProtocolType.Tls
+                | SecurityProtocolType.Tls11
+                | SecurityProtocolType.Tls12
+                ;
         }
         #endregion
 
